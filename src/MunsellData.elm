@@ -2,7 +2,7 @@ module MunsellData
     exposing
         ( MunsellColor
         , ColorDict
-        , stringDefault
+        , numericFromString
         , loadColors
         , findColor
         , munsellName
@@ -62,11 +62,11 @@ munsellName hue value chroma =
                 Err <| "could not get hue name for " ++ toString hue
 
 
-findColor : Int -> Int -> Int -> ColorDict -> Result String MunsellColor
-findColor hue value chroma d =
+findColor : ColorDict -> Int -> Int -> Int -> Result String MunsellColor
+findColor colors hue value chroma =
     case munsellName hue value chroma of
         Ok name ->
-            case Dict.get name d of
+            case Dict.get name colors of
                 Just mc ->
                     Ok mc
 
@@ -88,8 +88,8 @@ findColor hue value chroma d =
             Err e
 
 
-stringDefault : b -> Result a b -> b
-stringDefault value res =
+numericFromString : b -> Result a b -> b
+numericFromString value res =
     case res of
         Ok v ->
             v
@@ -110,11 +110,11 @@ recordToColorEntry headers record =
                     ( name
                     , { name = name
                       , hue = hue
-                      , value = String.toInt value |> stringDefault 0
-                      , chroma = String.toInt chroma |> stringDefault 0
-                      , red = String.toFloat r |> stringDefault 0.0
-                      , green = String.toFloat g |> stringDefault 0.0
-                      , blue = String.toFloat b |> stringDefault 0.0
+                      , value = String.toInt value |> numericFromString 0
+                      , chroma = String.toInt chroma |> numericFromString 0
+                      , red = String.toFloat r |> numericFromString 0.0
+                      , green = String.toFloat g |> numericFromString 0.0
+                      , blue = String.toFloat b |> numericFromString 0.0
                       }
                     )
 

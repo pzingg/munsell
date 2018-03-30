@@ -1,6 +1,7 @@
 module Main exposing (..)
 
 import AnimationFrame
+import Dict exposing (Dict)
 import Html exposing (Html, div, p, text, input)
 import Html.Attributes as HA exposing (type_, value, src, width, height, style, checked)
 import Html.Events exposing (onClick, onInput)
@@ -8,7 +9,16 @@ import WebGL exposing (Mesh, Shader)
 import Math.Matrix4 as Mat4 exposing (Mat4, transform, translate, rotate)
 import Math.Vector3 as Vec3 exposing (Vec3, vec3)
 import Time exposing (Time)
-import MunsellData exposing (..)
+import Task
+import Window
+import MunsellData
+    exposing
+        ( MunsellColor
+        , ColorDict
+        , numericFromString
+        , findColor
+        , loadColors
+        )
 
 
 ---- WEBGL TYPES ----
@@ -34,7 +44,7 @@ type alias Rectangle =
     List Vertex
 
 
-{-| List of center point and 12 points on circumference
+{-| List of center point and 'circlePoints' points on circumference
 -}
 type alias Circle =
     List Vertex
@@ -49,26 +59,35 @@ type alias Circle =
 10 = white
 -}
 type alias Model =
-    { colors : MunsellData.ColorDict
+    { window : Window.Size
+    , colors : ColorDict
     , value : String
     , frozen : Bool
     , theta : Float
-    , mesh : Maybe (Mesh Vertex)
+    , wheelMeshes : Dict Int (Mesh Vertex)
     }
 
 
 init : ( Model, Cmd Msg )
 init =
     let
-        model =
-            { colors = MunsellData.loadColors
-            , value = "7"
-            , frozen = True
-            , theta = 0.5 * Basics.pi
-            , mesh = Nothing
-            }
+        colors =
+            loadColors
     in
-        update (ValueInput model.value) model
+        ( { window = Window.Size 800 800
+          , colors = colors
+          , value = "7"
+          , frozen = True
+          , theta = 0.5 * Basics.pi
+          , wheelMeshes = buildWheelMeshes colors
+          }
+        , Task.perform Resize Window.size
+        )
+
+
+colorValue : Model -> Int
+colorValue model =
+    String.toInt model.value |> numericFromString 7
 
 
 
@@ -76,7 +95,8 @@ init =
 
 
 type Msg
-    = FrameTick Time
+    = Resize Window.Size
+    | FrameTick Time
     | ValueInput String
     | Freeze
 
@@ -84,8 +104,8 @@ type Msg
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
-        Freeze ->
-            ( { model | frozen = not model.frozen }, Cmd.none )
+        Resize size ->
+            ( { model | window = size }, Cmd.none )
 
         FrameTick dt ->
             let
@@ -100,11 +120,10 @@ update msg model =
                 ( model_, Cmd.none )
 
         ValueInput newValue ->
-            let
-                model_ =
-                    { model | value = newValue }
-            in
-                ( { model_ | mesh = buildMesh model_ }, Cmd.none )
+            ( { model | value = newValue }, Cmd.none )
+
+        Freeze ->
+            ( { model | frozen = not model.frozen }, Cmd.none )
 
 
 
@@ -113,52 +132,69 @@ update msg model =
 
 view : Model -> Html Msg
 view model =
-    List.concat
-        [ [ p [] [ text "Value" ]
-          , input
-                [ type_ "range"
-                , HA.min "1"
-                , HA.max "9"
-                , value model.value
-                , onInput ValueInput
-                ]
-                []
-          , p [] [ text "Freeze" ]
-          , input
-                [ type_ "checkbox"
-                , checked model.frozen
-                , onClick Freeze
-                ]
-                []
-          ]
-        , viewMesh model.theta model.mesh
+    [ p [] [ text "Value" ]
+    , input
+        [ type_ "range"
+        , HA.min "1"
+        , HA.max "9"
+        , value model.value
+        , onInput ValueInput
         ]
+        []
+    , p [] [ text "Freeze" ]
+    , input
+        [ type_ "checkbox"
+        , checked model.frozen
+        , onClick Freeze
+        ]
+        []
+    , viewWheelMeshes model.wheelMeshes model.window model.theta (colorValue model)
+    ]
         |> div []
 
 
-viewMesh : Float -> Maybe (Mesh Vertex) -> List (Html Msg)
-viewMesh theta m =
-    case m of
-        Just mesh ->
-            [ WebGL.toHtml
-                [ width 800
-                , height 800
-                , style [ ( "display", "block" ) ]
-                ]
-                [ WebGL.entity
-                    vertexShader
-                    fragmentShader
-                    mesh
-                    { perspective = perspective theta }
-                ]
+viewWheelMeshes : Dict Int (Mesh Vertex) -> Window.Size -> Float -> Int -> Html Msg
+viewWheelMeshes meshes window theta value =
+    let
+        x =
+            cos theta
+
+        y =
+            0 - sin theta
+
+        w =
+            toFloat window.width
+
+        h =
+            toFloat window.height
+    in
+        WebGL.toHtml
+            [ width window.width
+            , height window.height
+            , style [ ( "display", "block" ) ]
             ]
+            (List.range 1 value
+                |> List.map (\v -> Dict.get v meshes)
+                |> List.foldl
+                    (\m acc ->
+                        case m of
+                            Just mesh ->
+                                WebGL.entity
+                                    vertexShader
+                                    fragmentShader
+                                    mesh
+                                    { perspective = perspective w h x y }
+                                    :: acc
 
-        Nothing ->
-            []
+                            Nothing ->
+                                acc
+                    )
+                    []
+            )
 
 
 
----- WEBGL ----
+---- SPACE CONSTANTS ----
 
 
 circleRadius : Float
@@ -176,6 +212,11 @@ bandUnit =
     45.0
 
 
+valueUnit : Float
+valueUnit =
+    90.0
+
+
 scaleFactor : Float
 scaleFactor =
     circleRadius + 5.0 + (7.5 * bandUnit)
@@ -184,6 +225,20 @@ scaleFactor =
 rectUnit : Float
 rectUnit =
     40.0 / scaleFactor
+
+
+valueDepth : Int -> Float
+valueDepth value =
+    toFloat (5 - value) * valueUnit / scaleFactor
+
+
+lookFrom : Float
+lookFrom =
+    6
+
+
+
+---- SPACE UTILITY FUNCTIONS ----
 
 
 {-| integers, 0 to 975
@@ -197,7 +252,7 @@ etc.
 hueRange : List Int
 hueRange =
     List.range 0 39
-        |> List.map (\i -> i * 25)
+        |> List.map ((*) 25)
 
 
 {-| even integers, 2 to 16
@@ -205,38 +260,92 @@ hueRange =
 chromaRange : List Int
 chromaRange =
     List.range 1 8
-        |> List.map (\i -> i * 2)
+        |> List.map ((*) 2)
 
 
-colorRect : Int -> Int -> Int -> ColorDict -> Maybe Color
-colorRect hue value chroma d =
-    case MunsellData.findColor hue value chroma d of
-        Ok mc ->
-            Just <| vec3 mc.red mc.green mc.blue
 
-        Err err ->
+---- COLOR WHEEL CIRCLES ----
+
+
+circumPoint : Color -> Float -> Int -> Vertex
+circumPoint color z i =
+    let
+        t =
+            Basics.pi * toFloat i * (2.0 / toFloat circlePoints)
+
+        ( x, y ) =
+            ( sin t * circleRadius / scaleFactor, cos t * circleRadius / scaleFactor )
+    in
+        Vertex (vec3 x y z) color
+
+
+makeCircle : Int -> Circle
+makeCircle value =
+    let
+        grayValue =
+            (toFloat value) / 10.0
+
+        color =
+            vec3 grayValue grayValue grayValue
+
+        z =
+            valueDepth value
+
+        circumf =
+            List.range 1 circlePoints
+                |> List.map (circumPoint color z)
+    in
+        Vertex (vec3 0 0 z) color :: circumf
+
+
+
+---- COLOR WHEEL RECTANGLES ----
+
+
+makeRects : ColorDict -> Int -> List Rectangle
+makeRects colors value =
+    List.foldl (\hue acc -> (makeRectsForHue colors hue value) ++ acc) [] hueRange
+
+
+makeRectsForHue : ColorDict -> Int -> Int -> List Rectangle
+makeRectsForHue colors hue value =
+    List.foldl
+        (\chroma acc ->
+            case makeRect colors hue value chroma of
+                Just rect ->
+                    rect :: acc
+
+                Nothing ->
+                    acc
+        )
+        []
+        chromaRange
+
+
+makeRect : ColorDict -> Int -> Int -> Int -> Maybe Rectangle
+makeRect colors hue value chroma =
+    case colorRect colors hue value chroma of
+        Just color ->
+            let
+                xf =
+                    xfRect hue value chroma
+
+                ( dx2, dy2 ) =
+                    sizeRect2 hue value chroma
+            in
+                Just <|
+                    [ Vertex (transform xf (vec3 -dx2 -dy2 0)) color
+                    , Vertex (transform xf (vec3 -dx2 dy2 0)) color
+                    , Vertex (transform xf (vec3 dx2 dy2 0)) color
+                    , Vertex (transform xf (vec3 dx2 -dy2 0)) color
+                    ]
+
+        Nothing ->
             Nothing
 
 
-xfRect : Int -> Int -> Int -> Mat4
-xfRect hue _ chroma =
-    let
-        theta =
-            (toFloat hue) * Basics.pi * (2.0 / 1000.0)
-
-        band =
-            toFloat (chroma // 2) - 0.5
-
-        rad =
-            (circleRadius + 5.0 + (band * bandUnit)) / scaleFactor
-    in
-        Mat4.identity
-            |> rotate theta (vec3 0 0 1)
-            |> translate (vec3 0 rad 0)
-
-
-halfRect : Int -> Int -> Int -> ( Float, Float )
-halfRect _ _ chroma =
+sizeRect2 : Int -> Int -> Int -> ( Float, Float )
+sizeRect2 _ _ chroma =
     let
         dx2 =
             case chroma of
@@ -264,101 +373,57 @@ halfRect _ _ chroma =
         ( dx2, 0.5 * rectUnit )
 
 
-makeRect : Int -> Int -> Int -> ColorDict -> Maybe Rectangle
-makeRect hue value chroma d =
+colorRect : ColorDict -> Int -> Int -> Int -> Maybe Color
+colorRect colors hue value chroma =
+    case findColor colors hue value chroma of
+        Ok mc ->
+            Just <| vec3 mc.red mc.green mc.blue
+
+        Err err ->
+            Nothing
+
+
+xfRect : Int -> Int -> Int -> Mat4
+xfRect hue value chroma =
     let
-        c =
-            colorRect hue value chroma d
+        theta =
+            (toFloat hue) * Basics.pi * (2.0 / 1000.0)
 
-        xf =
-            xfRect hue value chroma
+        band =
+            toFloat (chroma // 2) - 0.5
 
-        ( dx2, dy2 ) =
-            halfRect hue value chroma
+        y =
+            (circleRadius + 5.0 + (band * bandUnit)) / scaleFactor
+
+        z =
+            valueDepth value
     in
-        case c of
-            Just color ->
-                Just <|
-                    [ Vertex (transform xf (vec3 -dx2 -dy2 0)) color
-                    , Vertex (transform xf (vec3 -dx2 dy2 0)) color
-                    , Vertex (transform xf (vec3 dx2 dy2 0)) color
-                    , Vertex (transform xf (vec3 dx2 -dy2 0)) color
-                    ]
-
-            Nothing ->
-                Nothing
-
-
-displayValue : Model -> Int
-displayValue model =
-    String.toInt model.value |> MunsellData.stringDefault 7
+        Mat4.identity
+            |> rotate theta (vec3 0 0 1)
+            |> translate (vec3 0 y z)
 
 
 
----- BUILDING RECTANGLES ----
+---- COLOR WHEEL MESH ----
 
 
-makeRectsForHue : Int -> Int -> ColorDict -> List Rectangle
-makeRectsForHue hue value d =
-    List.foldl
-        (\chroma acc ->
-            case makeRect hue value chroma d of
-                Just rect ->
-                    rect :: acc
-
-                Nothing ->
-                    acc
-        )
-        []
-        chromaRange
+buildWheelMeshes : ColorDict -> Dict Int (Mesh Vertex)
+buildWheelMeshes colors =
+    List.range 1 9
+        |> List.map (\value -> ( value, buildWheelMeshForValue colors value ))
+        |> Dict.fromList
 
 
-makeRects : Int -> ColorDict -> List Rectangle
-makeRects value d =
-    List.foldl (\hue acc -> (makeRectsForHue hue value d) ++ acc) [] hueRange
-
-
-circumPoint : Color -> Int -> Vertex
-circumPoint color i =
+buildWheelMeshForValue : ColorDict -> Int -> Mesh Vertex
+buildWheelMeshForValue colors value =
     let
-        t =
-            Basics.pi * toFloat i * (2.0 / toFloat circlePoints)
+        circle =
+            makeCircle value
 
-        ( x, y ) =
-            ( sin t * circleRadius / scaleFactor, cos t * circleRadius / scaleFactor )
+        rects =
+            makeRects colors value
     in
-        Vertex (vec3 x y 0) color
-
-
-makeCircle : Int -> Circle
-makeCircle value =
-    let
-        grayValue =
-            (toFloat value) / 10.0
-
-        color =
-            vec3 grayValue grayValue grayValue
-
-        circumf =
-            List.range 1 circlePoints
-                |> List.map (circumPoint color)
-    in
-        Vertex (vec3 0 0 0) color :: circumf
-
-
-circleIndices : List ( Int, Int, Int )
-circleIndices =
-    List.range 1 circlePoints
-        |> List.map
-            (\i ->
-                ( 0
-                , i
-                , if i < circlePoints then
-                    i + 1
-                  else
-                    1
-                )
-            )
+        wheelMesh circle rects
 
 
 singleRectIndices : Int -> Int -> List ( Int, Int, Int )
@@ -376,39 +441,39 @@ rectIndices offset rects =
         |> List.concat
 
 
-toMesh : Circle -> List Rectangle -> Mesh Vertex
-toMesh circle rects =
+circleIndices : List ( Int, Int, Int )
+circleIndices =
+    List.range 1 circlePoints
+        |> List.map
+            (\i ->
+                ( 0
+                , i
+                , if i < circlePoints then
+                    i + 1
+                  else
+                    1
+                )
+            )
+
+
+wheelMesh : Circle -> List Rectangle -> Mesh Vertex
+wheelMesh circle rects =
     WebGL.indexedTriangles
         (List.concat (circle :: rects))
         (List.concat [ circleIndices, rectIndices (circlePoints + 1) rects ])
 
 
-buildMesh : Model -> Maybe (Mesh Vertex)
-buildMesh model =
+perspective : Float -> Float -> Float -> Float -> Mat4
+perspective width height x y =
     let
-        value =
-            displayValue model
+        eye =
+            vec3 x 0 y
+                |> Vec3.normalize
+                |> Vec3.scale 6
     in
-        case value > 0 && value <= 10 of
-            True ->
-                let
-                    circle =
-                        makeCircle value
-
-                    rects =
-                        makeRects value model.colors
-                in
-                    Just <| toMesh circle rects
-
-            False ->
-                Nothing
-
-
-perspective : Float -> Mat4
-perspective theta =
-    Mat4.mul
-        (Mat4.makePerspective 30 1 0.01 (100 * 10))
-        (Mat4.makeLookAt (vec3 (4 * cos theta) 0 (4 * sin theta)) (vec3 0 0 0) (vec3 0 1 0))
+        Mat4.mul
+            (Mat4.makePerspective 30 (width / height) 0.01 100)
+            (Mat4.makeLookAt eye (vec3 0 0 0) Vec3.j)
 
 
 vertexShader : Shader Vertex Uniforms { vcolor : Vec3 }
@@ -446,13 +511,18 @@ main =
         { view = view
         , init = init
         , update = update
-        , subscriptions =
-            (\model ->
-                case model.frozen of
-                    True ->
-                        Sub.none
-
-                    False ->
-                        AnimationFrame.diffs FrameTick
-            )
+        , subscriptions = subscriptions
         }
+
+
+subscriptions : Model -> Sub Msg
+subscriptions model =
+    case model.frozen of
+        True ->
+            Window.resizes Resize
+
+        False ->
+            Sub.batch
+                [ Window.resizes Resize
+                , AnimationFrame.diffs FrameTick
+                ]
