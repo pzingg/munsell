@@ -38,15 +38,17 @@ type alias Uniforms =
     { perspective : Mat4 }
 
 
-{-| List of 4 corner points
+{-| List of 4 corner points (top face) * 2
+List.length cube == 2 * 4
 -}
-type alias Rectangle =
+type alias Cube =
     List Vertex
 
 
-{-| List of center point and 'circlePoints' points on circumference
+{-| List of center point and 'circlePoints' points on circumference (top face) * 2
+List.length cylinder = 2 * (circlePoints + 1)
 -}
-type alias Circle =
+type alias Cylinder =
     List Vertex
 
 
@@ -207,6 +209,16 @@ circlePoints =
     30
 
 
+cylinderPoints : Int
+cylinderPoints =
+    2 * (circlePoints + 1)
+
+
+cubePoints : Int
+cubePoints =
+    8
+
+
 bandUnit : Float
 bandUnit =
     45.0
@@ -222,8 +234,8 @@ scaleFactor =
     circleRadius + 5.0 + (7.5 * bandUnit)
 
 
-rectUnit : Float
-rectUnit =
+scaledUnit : Float
+scaledUnit =
     40.0 / scaleFactor
 
 
@@ -279,8 +291,8 @@ circumPoint color z i =
         Vertex (vec3 x y z) color
 
 
-makeCircle : Int -> Circle
-makeCircle value =
+cylinderVertices : Int -> Cylinder
+cylinderVertices value =
     let
         grayValue =
             (toFloat value) / 10.0
@@ -288,30 +300,40 @@ makeCircle value =
         color =
             vec3 grayValue grayValue grayValue
 
-        z =
-            valueDepth value
+        zTop =
+            valueDepth value - (scaledUnit / 2)
 
-        circumf =
+        zBottom =
+            valueDepth value + (scaledUnit / 2)
+
+        circumTop =
             List.range 1 circlePoints
-                |> List.map (circumPoint color z)
+                |> List.map (circumPoint color zTop)
+
+        circumBottom =
+            List.range 1 circlePoints
+                |> List.map (circumPoint color zBottom)
     in
-        Vertex (vec3 0 0 z) color :: circumf
+        List.concat
+            [ Vertex (vec3 0 0 zTop) color :: circumTop
+            , Vertex (vec3 0 0 zBottom) color :: circumBottom
+            ]
 
 
 
 ---- COLOR WHEEL RECTANGLES ----
 
 
-makeRects : ColorDict -> Int -> List Rectangle
-makeRects colors value =
-    List.foldl (\hue acc -> (makeRectsForHue colors hue value) ++ acc) [] hueRange
+colorCubeVertices : ColorDict -> Int -> List Cube
+colorCubeVertices colors value =
+    List.foldl (\hue acc -> (makeColorCubesForHue colors hue value) ++ acc) [] hueRange
 
 
-makeRectsForHue : ColorDict -> Int -> Int -> List Rectangle
-makeRectsForHue colors hue value =
+makeColorCubesForHue : ColorDict -> Int -> Int -> List Cube
+makeColorCubesForHue colors hue value =
     List.foldl
         (\chroma acc ->
-            case makeRect colors hue value chroma of
+            case makeColorCube colors hue value chroma of
                 Just rect ->
                     rect :: acc
 
@@ -322,59 +344,63 @@ makeRectsForHue colors hue value =
         chromaRange
 
 
-makeRect : ColorDict -> Int -> Int -> Int -> Maybe Rectangle
-makeRect colors hue value chroma =
-    case colorRect colors hue value chroma of
+makeColorCube : ColorDict -> Int -> Int -> Int -> Maybe Cube
+makeColorCube colors hue value chroma =
+    case colorRgb colors hue value chroma of
         Just color ->
             let
                 xf =
-                    xfRect hue value chroma
+                    xfColorCube hue value chroma
 
-                ( dx2, dy2 ) =
-                    sizeRect2 hue value chroma
+                ( dx2, dy2, dz2 ) =
+                    dimColorCube2 hue value chroma
             in
                 Just <|
-                    [ Vertex (transform xf (vec3 -dx2 -dy2 0)) color
-                    , Vertex (transform xf (vec3 -dx2 dy2 0)) color
-                    , Vertex (transform xf (vec3 dx2 dy2 0)) color
-                    , Vertex (transform xf (vec3 dx2 -dy2 0)) color
+                    [ Vertex (transform xf (vec3 -dx2 -dy2 dz2)) color
+                    , Vertex (transform xf (vec3 -dx2 dy2 dz2)) color
+                    , Vertex (transform xf (vec3 dx2 dy2 dz2)) color
+                    , Vertex (transform xf (vec3 dx2 -dy2 dz2)) color
+                    , Vertex (transform xf (vec3 -dx2 -dy2 -dz2)) color
+                    , Vertex (transform xf (vec3 -dx2 dy2 -dz2)) color
+                    , Vertex (transform xf (vec3 dx2 dy2 -dz2)) color
+                    , Vertex (transform xf (vec3 dx2 -dy2 -dz2)) color
                     ]
 
         Nothing ->
             Nothing
 
 
-sizeRect2 : Int -> Int -> Int -> ( Float, Float )
-sizeRect2 _ _ chroma =
+dimColorCube2 : Int -> Int -> Int -> ( Float, Float, Float )
+dimColorCube2 _ _ chroma =
     let
         dx2 =
             case chroma of
                 2 ->
-                    0.16 * rectUnit
+                    0.16 * scaledUnit
 
                 4 ->
-                    0.25 * rectUnit
+                    0.25 * scaledUnit
 
                 6 ->
-                    0.33 * rectUnit
+                    0.33 * scaledUnit
 
                 8 ->
-                    0.4 * rectUnit
+                    0.4 * scaledUnit
 
                 10 ->
-                    0.5 * rectUnit
+                    0.5 * scaledUnit
 
                 12 ->
-                    0.5 * rectUnit
+                    0.5 * scaledUnit
 
                 _ ->
-                    0.67 * rectUnit
+                    0.67 * scaledUnit
     in
-        ( dx2, 0.5 * rectUnit )
+        ( dx2, 0.5 * scaledUnit, 0.5 * scaledUnit )
 
 
-colorRect : ColorDict -> Int -> Int -> Int -> Maybe Color
-colorRect colors hue value chroma =
+colorRgb : ColorDict -> Int -> Int -> Int -> Maybe Color
+colorRgb colors hue value chroma =
     case findColor colors hue value chroma of
         Ok mc ->
             Just <| vec3 mc.red mc.green mc.blue
@@ -383,8 +409,8 @@ colorRect colors hue value chroma =
             Nothing
 
 
-xfRect : Int -> Int -> Int -> Mat4
-xfRect hue value chroma =
+xfColorCube : Int -> Int -> Int -> Mat4
+xfColorCube hue value chroma =
     let
         theta =
             (toFloat hue) * Basics.pi * (2.0 / 1000.0)
@@ -417,50 +443,110 @@ buildWheelMeshes colors =
 buildWheelMeshForValue : ColorDict -> Int -> Mesh Vertex
 buildWheelMeshForValue colors value =
     let
-        circle =
-            makeCircle value
+        cylinder =
+            cylinderVertices value
 
-        rects =
-            makeRects colors value
+        cubes =
+            colorCubeVertices colors value
     in
-        wheelMesh circle rects
+        wheelMesh cylinder cubes
 
 
-singleRectIndices : Int -> Int -> List ( Int, Int, Int )
-singleRectIndices offset i =
+cubeVertexOrder : List ( Int, Int, Int )
+cubeVertexOrder =
+    [ -- front
+      ( 0, 1, 2 )
+    , ( 2, 3, 0 )
+    , -- right
+      ( 1, 5, 6 )
+    , ( 6, 2, 1 )
+    , -- back
+      ( 7, 6, 5 )
+    , ( 5, 4, 7 )
+    , -- left
+      ( 4, 0, 3 )
+    , ( 3, 7, 4 )
+    , -- bottom
+      ( 4, 5, 1 )
+    , ( 1, 0, 4 )
+    , -- top
+      ( 3, 2, 6 )
+    , ( 6, 7, 3 )
+    ]
+
+
+singleColorCubeIndices : Int -> Int -> List ( Int, Int, Int )
+singleColorCubeIndices offset i =
     let
-        base_i =
-            4 * i + offset
+        base =
+            cubePoints * i + offset
     in
-        [ ( base_i, base_i + 1, base_i + 2 ), ( base_i + 2, base_i + 3, base_i ) ]
+        cubeVertexOrder
+            |> List.map
+                (\( v1, v2, v3 ) ->
+                    ( base + v1, base + v2, base + v3 )
+                )
 
 
-rectIndices : Int -> List Rectangle -> List ( Int, Int, Int )
-rectIndices offset rects =
-    List.indexedMap (\i _ -> singleRectIndices offset i) rects
+colorCubeIndices : Int -> List Cube -> List ( Int, Int, Int )
+colorCubeIndices offset cubes =
+    List.indexedMap (\i _ -> singleColorCubeIndices offset i) cubes
         |> List.concat
 
 
-circleIndices : List ( Int, Int, Int )
-circleIndices =
-    List.range 1 circlePoints
-        |> List.map
-            (\i ->
-                ( 0
-                , i
-                , if i < circlePoints then
-                    i + 1
-                  else
-                    1
-                )
-            )
+cylinderIndices : List ( Int, Int, Int )
+cylinderIndices =
+    let
+        top =
+            List.range 1 circlePoints
+                |> List.map
+                    (\i ->
+                        ( 0
+                        , i
+                        , if i < circlePoints then
+                            i + 1
+                          else
+                            1
+                        )
+                    )
+
+        sides =
+            List.range 1 circlePoints
+                |> List.map
+                    (\i ->
+                        if i < circlePoints then
+                            [ ( i, i + circlePoints + 1, i + circlePoints + 2 )
+                            , ( i + circlePoints + 2, i + 1, i )
+                            ]
+                        else
+                            [ ( circlePoints, 2 * circlePoints + 1, circlePoints + 2 )
+                            , ( circlePoints + 2, 1, circlePoints )
+                            ]
+                    )
+                |> List.concat
+
+        bottom =
+            List.range (circlePoints + 1) (2 * circlePoints + 1)
+                |> List.reverse
+                |> List.map
+                    (\i ->
+                        ( circlePoints + 1
+                        , i
+                        , if i > circlePoints then
+                            i - 1
+                          else
+                            2 * circlePoints + 1
+                        )
+                    )
+    in
+        List.concat [ top, sides, bottom ]
 
 
-wheelMesh : Circle -> List Rectangle -> Mesh Vertex
-wheelMesh circle rects =
+wheelMesh : Cylinder -> List Cube -> Mesh Vertex
+wheelMesh cylinder cubes =
     WebGL.indexedTriangles
-        (List.concat (circle :: rects))
-        (List.concat [ circleIndices, rectIndices (circlePoints + 1) rects ])
+        (List.concat (cylinder :: cubes))
+        (List.concat [ cylinderIndices, colorCubeIndices cylinderPoints cubes ])
 
 
 perspective : Float -> Float -> Float -> Float -> Mat4
