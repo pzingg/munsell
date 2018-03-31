@@ -2,6 +2,9 @@ module Munsell
     exposing
         ( MunsellColor
         , ColorDict
+        , hueRange
+        , valueRange
+        , chromaRange
         , numericFromString
         , loadColors
         , findColor

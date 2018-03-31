@@ -1,10 +1,10 @@
 module MunsellColors exposing (munsellColors)
 
-import Dict exposing (Dict)
-import MunsellData exposing (MunsellColor)
+import Dict
+import Munsell exposing (ColorDict)
 
 
-munsellColors : Dict String MunsellColor
+munsellColors : ColorDict
 munsellColors =
     Dict.fromList
         [ ( "10B 1/2", { name = "10B 1/2", hue = "10B", value = 1, chroma = 2, red = 0.0569, green = 0.1188, blue = 0.163 } )
