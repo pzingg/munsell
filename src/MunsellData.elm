@@ -5,7 +5,8 @@ module MunsellData
         , numericFromString
         , loadColors
         , findColor
-        , munsellName
+        , munsellHueName
+        , munsellColorName
         )
 
 import Array exposing (Array)
@@ -34,8 +35,8 @@ munsellHueNames =
         |> Array.fromList
 
 
-munsellName : Int -> Int -> Int -> Result String String
-munsellName hue value chroma =
+munsellHueName : Int -> Result String String
+munsellHueName hue =
     let
         r1 =
             rem hue 25
@@ -56,15 +57,25 @@ munsellName hue value chroma =
     in
         case Array.get i munsellHueNames of
             Just abbr ->
-                Ok <| h ++ abbr ++ " " ++ toString value ++ "/" ++ toString chroma
+                Ok <| h ++ abbr
 
             Nothing ->
                 Err <| "could not get hue name for " ++ toString hue
 
 
+munsellColorName : Int -> Int -> Int -> Result String String
+munsellColorName hue value chroma =
+    case munsellHueName hue of
+        Ok hueName ->
+            Ok <| hueName ++ " " ++ toString value ++ "/" ++ toString chroma
+
+        Err e ->
+            Err e
+
+
 findColor : ColorDict -> Int -> Int -> Int -> Result String MunsellColor
 findColor colors hue value chroma =
-    case munsellName hue value chroma of
+    case munsellColorName hue value chroma of
         Ok name ->
             case Dict.get name colors of
                 Just mc ->

@@ -2,7 +2,7 @@ module Main exposing (..)
 
 import AnimationFrame
 import Dict exposing (Dict)
-import Html exposing (Html, div, p, text, input)
+import Html exposing (Html, div, p, text, input, button)
 import Html.Attributes as HA exposing (type_, value, src, width, height, style, checked)
 import Html.Events exposing (onClick, onInput)
 import WebGL exposing (Mesh, Shader)
@@ -15,6 +15,7 @@ import MunsellData
     exposing
         ( MunsellColor
         , ColorDict
+        , munsellHueName
         , numericFromString
         , findColor
         , loadColors
@@ -56,6 +57,11 @@ type alias Cylinder =
 ---- MODEL ----
 
 
+type ColorView
+    = ColorWheel
+    | HuePage
+
+
 {-| value is integer range 1 to 9
 0 = black
 10 = white
@@ -63,10 +69,13 @@ type alias Cylinder =
 type alias Model =
     { window : Window.Size
     , colors : ColorDict
+    , view : ColorView
+    , hueIndex : String
     , value : String
     , frozen : Bool
     , theta : Float
     , wheelMeshes : Dict Int (Mesh Vertex)
+    , hueMeshes : Maybe (Mesh Vertex)
     }
 
 
@@ -78,18 +87,30 @@ init =
     in
         ( { window = Window.Size 800 800
           , colors = colors
+          , view = ColorWheel
+          , hueIndex = "0"
           , value = "7"
           , frozen = True
           , theta = 0.5 * Basics.pi
           , wheelMeshes = buildWheelMeshes colors
+          , hueMeshes = Nothing
           }
         , Task.perform Resize Window.size
         )
 
 
-colorValue : Model -> Int
-colorValue model =
-    String.toInt model.value |> numericFromString 7
+toValue : String -> Int
+toValue value =
+    String.toInt value |> numericFromString 7
+
+
+toHue : String -> Int
+toHue hueIndex =
+    let
+        hue =
+            String.toInt hueIndex |> numericFromString 0
+    in
+        hue * 25
 
 
 
@@ -99,7 +120,9 @@ colorValue model =
 type Msg
     = Resize Window.Size
     | FrameTick Time
+    | ToggleView
     | ValueInput String
+    | HueIndexInput String
     | Freeze
 
 
@@ -121,8 +144,19 @@ update msg model =
             in
                 ( model_, Cmd.none )
 
+        ToggleView ->
+            case model.view of
+                ColorWheel ->
+                    ( buildHueMeshes model.hueIndex { model | view = HuePage }, Cmd.none )
+
+                _ ->
+                    ( { model | view = ColorWheel }, Cmd.none )
+
         ValueInput newValue ->
             ( { model | value = newValue }, Cmd.none )
+
+        HueIndexInput newHueIndex ->
+            ( buildHueMeshes newHueIndex model, Cmd.none )
 
         Freeze ->
             ( { model | frozen = not model.frozen }, Cmd.none )
@@ -134,25 +168,67 @@ update msg model =
 
 view : Model -> Html Msg
 view model =
-    [ p [] [ text "Value" ]
-    , input
-        [ type_ "range"
-        , HA.min "1"
-        , HA.max "9"
-        , value model.value
-        , onInput ValueInput
+    List.concat
+        [ viewSlider model
+        , [ input
+                [ type_ "checkbox"
+                , checked model.frozen
+                , onClick Freeze
+                ]
+                []
+          , text "Freeze"
+          , button
+                [ type_ "button"
+                , onClick ToggleView
+                ]
+                [ text "Toggle View" ]
+          , viewMesh model
+          ]
         ]
-        []
-    , p [] [ text "Freeze" ]
-    , input
-        [ type_ "checkbox"
-        , checked model.frozen
-        , onClick Freeze
-        ]
-        []
-    , viewWheelMeshes model.wheelMeshes model.window model.theta (colorValue model)
-    ]
         |> div []
+
+
+viewSlider : Model -> List (Html Msg)
+viewSlider model =
+    case model.view of
+        ColorWheel ->
+            [ p [] [ text "Value" ]
+            , input
+                [ type_ "range"
+                , HA.min "1"
+                , HA.max "9"
+                , value model.value
+                , onInput ValueInput
+                ]
+                []
+            ]
+
+        HuePage ->
+            [ p [] [ text "Hue" ]
+            , input
+                [ type_ "range"
+                , HA.min "1"
+                , HA.max "39"
+                , value model.hueIndex
+                , onInput HueIndexInput
+                ]
+                []
+            ]
+
+
+viewMesh : Model -> Html Msg
+viewMesh model =
+    case model.view of
+        ColorWheel ->
+            viewWheelMeshes model.wheelMeshes model.window model.theta (toValue model.value)
+
+        HuePage ->
+            case model.hueMeshes of
+                Just mesh ->
+                    viewHuePageMeshes model.window model.theta mesh
+
+                Nothing ->
+                    p [] [ text "No mesh!" ]
 
 
 viewWheelMeshes : Dict Int (Mesh Vertex) -> Window.Size -> Float -> Int -> Html Msg
@@ -193,6 +269,34 @@ viewWheelMeshes meshes window theta value =
                     )
                     []
             )
+
+
+viewHuePageMeshes : Window.Size -> Float -> Mesh Vertex -> Html Msg
+viewHuePageMeshes window theta mesh =
+    let
+        x =
+            cos theta
+
+        y =
+            0 - sin theta
+
+        w =
+            toFloat window.width
+
+        h =
+            toFloat window.height
+    in
+        WebGL.toHtml
+            [ width window.width
+            , height window.height
+            , style [ ( "display", "block" ) ]
+            ]
+            [ WebGL.entity
+                vertexShader
+                fragmentShader
+                mesh
+                { perspective = perspective w h x y }
+            ]
 
 
 
@@ -267,12 +371,52 @@ hueRange =
         |> List.map ((*) 25)
 
 
+{-| integers, 1 to 9
+-}
+valueRange : List Int
+valueRange =
+    List.range 1 9
+
+
 {-| even integers, 2 to 16
 -}
 chromaRange : List Int
 chromaRange =
     List.range 1 8
         |> List.map ((*) 2)
+
+
+colorRgb : ColorDict -> Int -> Int -> Int -> Maybe Color
+colorRgb colors hue value chroma =
+    case findColor colors hue value chroma of
+        Ok mc ->
+            Just <| vec3 mc.red mc.green mc.blue
+
+        Err err ->
+            Nothing
+
+
+cubeVertexOrder : List ( Int, Int, Int )
+cubeVertexOrder =
+    [ -- front
+      ( 0, 1, 2 )
+    , ( 2, 3, 0 )
+    , -- right
+      ( 1, 5, 6 )
+    , ( 6, 2, 1 )
+    , -- back
+      ( 7, 6, 5 )
+    , ( 5, 4, 7 )
+    , -- left
+      ( 4, 0, 3 )
+    , ( 3, 7, 4 )
+    , -- bottom
+      ( 4, 5, 1 )
+    , ( 1, 0, 4 )
+    , -- top
+      ( 3, 2, 6 )
+    , ( 6, 7, 3 )
+    ]
 
 
 
@@ -321,19 +465,19 @@ cylinderVertices value =
 
 
 
----- COLOR WHEEL RECTANGLES ----
+---- COLOR WHEEL CUBES ----
 
 
-colorCubeVertices : ColorDict -> Int -> List Cube
-colorCubeVertices colors value =
-    List.foldl (\hue acc -> (makeColorCubesForHue colors hue value) ++ acc) [] hueRange
+wheelCubeVertices : ColorDict -> Int -> List Cube
+wheelCubeVertices colors value =
+    List.foldl (\hue acc -> (wheelCubesForHue colors hue value) ++ acc) [] hueRange
 
 
-makeColorCubesForHue : ColorDict -> Int -> Int -> List Cube
-makeColorCubesForHue colors hue value =
+wheelCubesForHue : ColorDict -> Int -> Int -> List Cube
+wheelCubesForHue colors hue value =
     List.foldl
         (\chroma acc ->
-            case makeColorCube colors hue value chroma of
+            case wheelCube colors hue value chroma of
                 Just rect ->
                     rect :: acc
 
@@ -344,13 +488,13 @@ makeColorCubesForHue colors hue value =
         chromaRange
 
 
-makeColorCube : ColorDict -> Int -> Int -> Int -> Maybe Cube
-makeColorCube colors hue value chroma =
+wheelCube : ColorDict -> Int -> Int -> Int -> Maybe Cube
+wheelCube colors hue value chroma =
     case colorRgb colors hue value chroma of
         Just color ->
             let
                 xf =
-                    xfColorCube hue value chroma
+                    xfWheelCube hue value chroma
 
                 ( dx2, dy2, dz2 ) =
                     dimColorCube2 hue value chroma
@@ -368,6 +512,26 @@ makeColorCube colors hue value chroma =
 
         Nothing ->
             Nothing
+
+
+xfWheelCube : Int -> Int -> Int -> Mat4
+xfWheelCube hue value chroma =
+    let
+        theta =
+            (toFloat hue) * Basics.pi * (2.0 / 1000.0)
+
+        band =
+            toFloat (chroma // 2) - 0.5
+
+        y =
+            (circleRadius + 5.0 + (band * bandUnit)) / scaleFactor
+
+        z =
+            valueDepth value
+    in
+        Mat4.identity
+            |> rotate theta (vec3 0 0 1)
+            |> translate (vec3 0 y z)
 
 
 dimColorCube2 : Int -> Int -> Int -> ( Float, Float, Float )
@@ -399,43 +563,13 @@ dimColorCube2 _ _ chroma =
         ( dx2, 0.5 * scaledUnit, 0.5 * scaledUnit )
 
 
-colorRgb : ColorDict -> Int -> Int -> Int -> Maybe Color
-colorRgb colors hue value chroma =
-    case findColor colors hue value chroma of
-        Ok mc ->
-            Just <| vec3 mc.red mc.green mc.blue
-
-        Err err ->
-            Nothing
-
-
-xfColorCube : Int -> Int -> Int -> Mat4
-xfColorCube hue value chroma =
-    let
-        theta =
-            (toFloat hue) * Basics.pi * (2.0 / 1000.0)
-
-        band =
-            toFloat (chroma // 2) - 0.5
-
-        y =
-            (circleRadius + 5.0 + (band * bandUnit)) / scaleFactor
-
-        z =
-            valueDepth value
-    in
-        Mat4.identity
-            |> rotate theta (vec3 0 0 1)
-            |> translate (vec3 0 y z)
-
-
 
 ---- COLOR WHEEL MESH ----
 
 
 buildWheelMeshes : ColorDict -> Dict Int (Mesh Vertex)
 buildWheelMeshes colors =
-    List.range 1 9
+    valueRange
         |> List.map (\value -> ( value, buildWheelMeshForValue colors value ))
         |> Dict.fromList
 
@@ -447,32 +581,9 @@ buildWheelMeshForValue colors value =
             cylinderVertices value
 
         cubes =
-            colorCubeVertices colors value
+            wheelCubeVertices colors value
     in
         wheelMesh cylinder cubes
-
-
-cubeVertexOrder : List ( Int, Int, Int )
-cubeVertexOrder =
-    [ -- front
-      ( 0, 1, 2 )
-    , ( 2, 3, 0 )
-    , -- right
-      ( 1, 5, 6 )
-    , ( 6, 2, 1 )
-    , -- back
-      ( 7, 6, 5 )
-    , ( 5, 4, 7 )
-    , -- left
-      ( 4, 0, 3 )
-    , ( 3, 7, 4 )
-    , -- bottom
-      ( 4, 5, 1 )
-    , ( 1, 0, 4 )
-    , -- top
-      ( 3, 2, 6 )
-    , ( 6, 7, 3 )
-    ]
 
 
 singleColorCubeIndices : Int -> Int -> List ( Int, Int, Int )
@@ -547,6 +658,88 @@ wheelMesh cylinder cubes =
     WebGL.indexedTriangles
         (List.concat (cylinder :: cubes))
         (List.concat [ cylinderIndices, colorCubeIndices cylinderPoints cubes ])
+
+
+
+---- HUE PAGE CUBES ----
+
+
+buildHueMeshes : String -> Model -> Model
+buildHueMeshes newHueIndex model =
+    let
+        mesh =
+            hueCubeVertices model.colors (toHue newHueIndex)
+                |> hueMesh
+    in
+        { model | hueIndex = newHueIndex, hueMeshes = Just mesh }
+
+
+hueCubeVertices : ColorDict -> Int -> List Cube
+hueCubeVertices colors hue =
+    List.foldl (\value acc -> (hueCubesForValue colors hue value) ++ acc) [] valueRange
+
+
+hueCubesForValue : ColorDict -> Int -> Int -> List Cube
+hueCubesForValue colors hue value =
+    List.foldl
+        (\chroma acc ->
+            case hueCube colors hue value chroma of
+                Just rect ->
+                    rect :: acc
+
+                Nothing ->
+                    acc
+        )
+        []
+        chromaRange
+
+
+hueCube : ColorDict -> Int -> Int -> Int -> Maybe Cube
+hueCube colors hue value chroma =
+    case colorRgb colors hue value chroma of
+        Just color ->
+            let
+                xf =
+                    xfHueCube hue value chroma
+
+                ( dx2, dy2, dz2 ) =
+                    ( 0.5 * scaledUnit, 0.5 * scaledUnit, 0.5 * scaledUnit )
+            in
+                Just <|
+                    [ Vertex (transform xf (vec3 -dx2 -dy2 dz2)) color
+                    , Vertex (transform xf (vec3 -dx2 dy2 dz2)) color
+                    , Vertex (transform xf (vec3 dx2 dy2 dz2)) color
+                    , Vertex (transform xf (vec3 dx2 -dy2 dz2)) color
+                    , Vertex (transform xf (vec3 -dx2 -dy2 -dz2)) color
+                    , Vertex (transform xf (vec3 -dx2 dy2 -dz2)) color
+                    , Vertex (transform xf (vec3 dx2 dy2 -dz2)) color
+                    , Vertex (transform xf (vec3 dx2 -dy2 -dz2)) color
+                    ]
+
+        Nothing ->
+            Nothing
+
+
+xfHueCube : Int -> Int -> Int -> Mat4
+xfHueCube _ value chroma =
+    let
+        x =
+            ((toFloat (chroma // 2)) - 4) * scaledUnit
+
+        y =
+            ((toFloat value) - 5) * scaledUnit
+    in
+        Mat4.identity
+            |> translate (vec3 x y 0)
+
+
+hueMesh : List Cube -> Mesh Vertex
+hueMesh cubes =
+    WebGL.indexedTriangles (List.concat cubes) (colorCubeIndices 0 cubes)
+
+
+
+---- CAMERA AND SHADERS ----
 
 
 perspective : Float -> Float -> Float -> Float -> Mat4
