@@ -1,20 +1,17 @@
-module ColorWheel exposing (buildMeshes)
+module ColorWheel exposing (..)
 
 import Dict exposing (Dict)
-import WebGL
-import Math.Matrix4 as Mat4 exposing (Mat4, scale, translate, rotate)
+import Math.Matrix4 as Mat4 exposing (Mat4, scale3, translate3, rotate)
 import Math.Vector3 as Vec3 exposing (Vec3, vec3)
-import Geometry
+import Geometry as Geom
     exposing
-        ( Cylinder
-        , Cube
+        ( Solid
         , AppMesh
         , cylinderPoints
         , makeColor
         , makeCube
         , makeCylinder
-        , cylinderIndices
-        , cubesIndices
+        , toMesh
         )
 import Munsell
     exposing
@@ -28,14 +25,9 @@ import Munsell
 ---- CONSTANTS ----
 
 
-cylinderRadius : Float
-cylinderRadius =
-    90
-
-
-rSpacing : Float
-rSpacing =
-    45
+cylinderSize : Float
+cylinderSize =
+    80
 
 
 cubeSize : Float
@@ -43,58 +35,68 @@ cubeSize =
     40
 
 
+r0 : Float
+r0 =
+    (cylinderSize / 2) + 10 + (cubeSize / 2)
+
+
+rSpacing : Float
+rSpacing =
+    50
+
+
+sceneSize : Float
+sceneSize =
+    r0 + (8 * rSpacing) + (cubeSize / 2)
+
+
 zSpacing : Float
 zSpacing =
     90
 
 
-{-| 280 units
--}
-sceneSize : Float
-sceneSize =
-    cylinderRadius + 10 + (8 * rSpacing)
-
-
-cubeScaledSize : Float
-cubeScaledSize =
-    cubeSize / sceneSize
-
-
 zForValue : Int -> Float
 zForValue value =
-    toFloat (5 - value) * zSpacing / sceneSize
+    toFloat (value - 5) * zSpacing
 
 
 
 ---- GL OBJECTS ----
 
 
-wheelCylinder : Int -> Cylinder
-wheelCylinder value =
+cylinderForValue : Int -> Solid
+cylinderForValue value =
     let
         grayValue =
             (toFloat value) / 10.0
 
         color =
             vec3 grayValue grayValue grayValue
-
-        xf =
-            Mat4.identity
-                |> scale (vec3 cubeScaledSize cubeScaledSize cubeScaledSize)
     in
-        makeCylinder color xf
+        makeCylinder color (xfCylinder value)
 
 
-wheelCubes : ColorDict -> Int -> List Cube
-wheelCubes colors value =
-    List.foldl (\hue acc -> (wheelCubesForHue colors hue value) ++ acc) [] hueRange
+xfCylinder : Int -> Mat4
+xfCylinder value =
+    let
+        z =
+            zForValue value
+    in
+        Mat4.identity
+            |> translate3 0 0 z
+            |> scale3 cylinderSize cylinderSize cubeSize
 
 
-wheelCubesForHue : ColorDict -> Int -> Int -> List Cube
-wheelCubesForHue colors hue value =
+cubesForValue : ColorDict -> Int -> List Solid
+cubesForValue colors value =
+    List.foldl (\hue acc -> (cubesForHV colors hue value) ++ acc) [] hueRange
+
+
+cubesForHV : ColorDict -> Int -> Int -> List Solid
+cubesForHV colors hue value =
     List.foldl
         (\chroma acc ->
-            case wheelCube colors hue value chroma of
+            case cubeInGamut colors hue value chroma of
                 Just rect ->
                     rect :: acc
 
@@ -105,46 +107,55 @@ wheelCubesForHue colors hue value =
         chromaRange
 
 
-wheelCube : ColorDict -> Int -> Int -> Int -> Maybe Cube
-wheelCube colors hue value chroma =
+cubeInGamut : ColorDict -> Int -> Int -> Int -> Maybe Solid
+cubeInGamut colors hue value chroma =
     case makeColor colors hue value chroma of
         Just color ->
-            xfWheelCube hue value chroma
-                |> makeCube color
-                |> Just
+            Just (cubeWithColor color hue value chroma)
 
         Nothing ->
             Nothing
 
 
-xfWheelCube : Int -> Int -> Int -> Mat4
-xfWheelCube hue value chroma =
+cubeWithColor : Vec3 -> Int -> Int -> Int -> Solid
+cubeWithColor color hue value chroma =
+    xfCube hue value chroma
+        |> makeCube color
+
+
+xfCube : Int -> Int -> Int -> Mat4
+xfCube hue value chroma =
     let
         theta =
-            (toFloat hue) * Basics.pi * (2.0 / 1000.0)
-
-        band =
-            toFloat (chroma // 2) - 0.5
+            (toFloat hue) * 2 * Basics.pi / 1000
 
         ( sx, sy, sz ) =
-            dimColorCube hue value chroma cubeScaledSize
+            scaleCube hue value chroma cubeSize
+
+        band =
+            (chroma // 2) - 1
 
         y =
-            (cylinderRadius + 5.0 + (band * rSpacing)) / sceneSize
+            r0 + ((toFloat band) * rSpacing)
 
         z =
             zForValue value
     in
         Mat4.identity
-            |> scale (vec3 sx sy sz)
-            |> rotate theta (vec3 0 0 1)
-            |> translate (vec3 0 y z)
+            |> rotate -theta (vec3 0 0 1)
+            |> translate3 0 y z
+            |> scale3 sx sy sz
 
 
-dimColorCube : Int -> Int -> Int -> Float -> ( Float, Float, Float )
-dimColorCube _ _ chroma size =
+
+-- |> translate (vec3 0 y z)
+-- |> rotate theta (vec3 0 0 1)
+
+
+scaleCube : Int -> Int -> Int -> Float -> ( Float, Float, Float )
+scaleCube _ _ chroma size =
     let
-        dx2 =
+        x =
             case chroma of
                 2 ->
                     0.32
@@ -167,7 +178,7 @@ dimColorCube _ _ chroma size =
                 _ ->
                     1.33
     in
-        ( dx2 * size, size, size )
+        ( (x * size), size, size )
 
 
 
@@ -185,20 +196,9 @@ meshForValue : ColorDict -> Int -> AppMesh
 meshForValue colors value =
     let
         cylinder =
-            wheelCylinder value
+            cylinderForValue value
 
         cubes =
-            wheelCubes colors value
+            cubesForValue colors value
     in
-        toMesh cylinder cubes
-
-
-toMesh : Cylinder -> List Cube -> AppMesh
-toMesh cylinder cubes =
-    WebGL.indexedTriangles
-        (List.concat (cylinder :: cubes))
-        (List.concat
-            [ cylinderIndices 0
-            , cubesIndices cylinderPoints cubes
-            ]
-        )
+        toMesh (cylinder :: cubes)

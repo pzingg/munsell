@@ -1,20 +1,4 @@
-module Geometry
-    exposing
-        ( Color
-        , Vertex
-        , AppMesh
-        , Uniforms
-        , Cube
-        , Cylinder
-        , cubePoints
-        , cylinderPoints
-        , makeColor
-        , makeCylinder
-        , makeCube
-        , cylinderIndices
-        , cubeIndices
-        , cubesIndices
-        )
+module Geometry exposing (..)
 
 import WebGL exposing (Mesh)
 import Math.Matrix4 as Mat4 exposing (Mat4, transform, translate, rotate)
@@ -40,21 +24,26 @@ type alias AppMesh =
 
 
 type alias Uniforms =
-    { perspective : Mat4 }
+    { perspective : Mat4
+    , camera : Mat4
+    }
 
 
-{-| List of 4 corner points (top face) * 2
-List.length cube == 2 * 4
+makeUniforms : Float -> Float -> Float -> Vec3 -> Uniforms
+makeUniforms width height worldSize eye =
+    { perspective = Mat4.makePerspective 45 (width / height) 0.01 (worldSize * 4)
+    , camera = Mat4.makeLookAt eye (vec3 0 0 0) (vec3 0 1 0)
+    }
+
+
+{-| A Solid is made up of vertices.
+A Cube has 4 corner points (top face) and 4 on the bottom face = 8 total.
+A Cylinder has 1 center point plus 'cylinderFacePoints' on the circumference
+of both the top and bottom faces.
 -}
-type alias Cube =
-    List Vertex
-
-
-{-| List of center point and 'cylinderFacePoints' points on circumference (top face) * 2
-List.length cylinder = 2 * (cylinderFacePoints + 1)
--}
-type alias Cylinder =
-    List Vertex
+type Solid
+    = Cube (List Vertex)
+    | Cylinder (List Vertex)
 
 
 
@@ -68,7 +57,7 @@ cubePoints =
 
 cylinderFacePoints : Int
 cylinderFacePoints =
-    30
+    16
 
 
 cylinderPoints : Int
@@ -121,12 +110,12 @@ cylinderFaceVertex : Color -> Mat4 -> Float -> Int -> Vertex
 cylinderFaceVertex color xf z i =
     let
         t =
-            Basics.pi * toFloat i * (2.0 / toFloat cylinderFacePoints)
+            Basics.pi * (toFloat ((i - 1) * 2)) / (toFloat cylinderFacePoints)
     in
-        Vertex (transform xf (vec3 (sin t) (cos t) z)) color
+        Vertex (transform xf (vec3 (0.5 * sin t) (0.5 * cos t) z)) color
 
 
-makeCylinder : Color -> Mat4 -> Cylinder
+makeCylinder : Color -> Mat4 -> Solid
 makeCylinder color xf =
     let
         topFace =
@@ -141,6 +130,7 @@ makeCylinder color xf =
             [ Vertex (transform xf (vec3 0 0 0.5)) color :: topFace
             , Vertex (transform xf (vec3 0 0 -0.5)) color :: bottomFace
             ]
+            |> Cylinder
 
 
 cylinderIndices : Int -> List ( Int, Int, Int )
@@ -207,7 +197,7 @@ cylinderIndices base =
 ---- CUBES ----
 
 
-makeCube : Color -> Mat4 -> Cube
+makeCube : Color -> Mat4 -> Solid
 makeCube color xf =
     [ Vertex (transform xf (vec3 -0.5 -0.5 0.5)) color
     , Vertex (transform xf (vec3 -0.5 0.5 0.5)) color
@@ -218,6 +208,7 @@ makeCube color xf =
     , Vertex (transform xf (vec3 0.5 0.5 -0.5)) color
     , Vertex (transform xf (vec3 0.5 -0.5 -0.5)) color
     ]
+        |> Cube
 
 
 cubeIndices : Int -> List ( Int, Int, Int )
@@ -229,7 +220,46 @@ cubeIndices base =
             )
 
 
-cubesIndices : Int -> List Cube -> List ( Int, Int, Int )
-cubesIndices offset cubes =
-    List.indexedMap (\i _ -> cubeIndices (cubePoints * i + offset)) cubes
-        |> List.concat
+toMesh : List Solid -> AppMesh
+toMesh solids =
+    let
+        ( v, i ) =
+            buildTriangleIndices solids
+    in
+        WebGL.indexedTriangles v i
+
+
+buildTriangleIndices : List Solid -> ( List Vertex, List ( Int, Int, Int ) )
+buildTriangleIndices solids =
+    List.foldl
+        (\solid ( accv, acci ) ->
+            let
+                base =
+                    List.length accv
+            in
+                ( List.append accv (getVertices solid)
+                , List.append acci (getVertexIndices base solid)
+                )
+        )
+        ( [], [] )
+        solids
+
+
+getVertices : Solid -> List Vertex
+getVertices solid =
+    case solid of
+        Cube vertices ->
+            vertices
+
+        Cylinder vertices ->
+            vertices
+
+
+getVertexIndices : Int -> Solid -> List ( Int, Int, Int )
+getVertexIndices base solid =
+    case solid of
+        Cube vertices ->
+            cubeIndices base
+
+        Cylinder vertices ->
+            cylinderIndices base

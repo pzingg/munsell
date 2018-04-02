@@ -2,7 +2,7 @@ module Main exposing (..)
 
 import AnimationFrame
 import Dict exposing (Dict)
-import Html exposing (Html, div, p, text, input, button)
+import Html exposing (Html, div, p, text, label, input, button)
 import Html.Attributes as HA exposing (type_, value, src, width, height, style, checked)
 import Html.Events exposing (onClick, onInput)
 import WebGL exposing (Mesh, Shader)
@@ -11,7 +11,7 @@ import Math.Vector3 as Vec3 exposing (Vec3, vec3)
 import Time exposing (Time)
 import Task
 import Window
-import Geometry exposing (..)
+import Geometry as Geom exposing (..)
 import ColorWheel
 import HueGrid
 import Munsell
@@ -38,7 +38,8 @@ type ColorView
 10 = white
 -}
 type alias Model =
-    { window : Window.Size
+    { windowRect : Window.Size
+    , cameraPosition : Vec3
     , colors : ColorDict
     , view : ColorView
     , hueIndex : String
@@ -50,19 +51,25 @@ type alias Model =
     }
 
 
+cameraDistance : Float
+cameraDistance =
+    3 * ColorWheel.sceneSize
+
+
 init : ( Model, Cmd Msg )
 init =
     let
         colors =
             loadColors
     in
-        ( { window = Window.Size 800 800
+        ( { windowRect = Window.Size 800 800
+          , cameraPosition = vec3 0 0 cameraDistance
           , colors = colors
           , view = ColorWheelView
           , hueIndex = "0"
           , value = "7"
           , frozen = True
-          , theta = 0.5 * Basics.pi
+          , theta = 0
           , wheelMeshes = ColorWheel.buildMeshes colors
           , hueMesh = Nothing
           }
@@ -101,7 +108,7 @@ update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         Resize size ->
-            ( { model | window = size }, Cmd.none )
+            ( { model | windowRect = size }, Cmd.none )
 
         FrameTick dt ->
             let
@@ -111,7 +118,14 @@ update msg model =
                             model
 
                         False ->
-                            { model | theta = model.theta + (dt / 1000.0) }
+                            let
+                                theta =
+                                    model.theta + (dt / 1000.0)
+
+                                cameraPosition =
+                                    vec3 (cameraDistance * sin theta) 0 (cameraDistance * cos theta)
+                            in
+                                { model | theta = theta, cameraPosition = cameraPosition }
             in
                 ( model_, Cmd.none )
 
@@ -147,66 +161,106 @@ update msg model =
 ---- VIEW ----
 
 
+toolboxWidth : Int
+toolboxWidth =
+    400
+
+
 view : Model -> Html Msg
 view model =
-    List.concat
-        [ viewSlider model
-        , [ input
-                [ type_ "checkbox"
-                , checked model.frozen
-                , onClick Freeze
+    div []
+        [ div
+            [ style
+                [ ( "position", "absolute" )
+                , ( "z-index", "1" )
+                , ( "left", "0px" )
+                , ( "top", "0px" )
                 ]
-                []
-          , text "Freeze"
-          , button
-                [ type_ "button"
-                , onClick ToggleView
+            ]
+            [ viewMesh model ]
+        , div
+            [ style
+                [ ( "position", "absolute" )
+                , ( "z-index", "2" )
+                , ( "left", toString (model.windowRect.width - toolboxWidth) ++ "px" )
+                , ( "top", "0px" )
+                , ( "width", toString toolboxWidth ++ "px" )
+                , ( "text-align", "left" )
                 ]
-                [ text "Toggle View" ]
-          , viewMesh model
-          ]
+            ]
+            [ viewSlider model
+            , div []
+                [ button
+                    [ type_ "button"
+                    , onClick ToggleView
+                    ]
+                    [ text "Toggle View" ]
+                ]
+            , div []
+                [ label [] [ text "Camera X " ]
+                , text (toString <| Vec3.getX model.cameraPosition)
+                ]
+            , div []
+                [ label [] [ text "Camera Y " ]
+                , text (toString <| Vec3.getY model.cameraPosition)
+                ]
+            , div []
+                [ label [] [ text "Camera Z " ]
+                , text (toString <| Vec3.getZ model.cameraPosition)
+                ]
+            , div []
+                [ input
+                    [ type_ "checkbox"
+                    , checked model.frozen
+                    , onClick Freeze
+                    ]
+                    []
+                , label [] [ text "Freeze" ]
+                ]
+            ]
         ]
-        |> div []
 
 
-viewSlider : Model -> List (Html Msg)
+viewSlider : Model -> Html Msg
 viewSlider model =
     case model.view of
         ColorWheelView ->
-            [ p [] [ text "Value" ]
-            , input
-                [ type_ "range"
-                , HA.min "1"
-                , HA.max "9"
-                , value model.value
-                , onInput ValueInput
+            div []
+                [ label [] [ text "Value" ]
+                , input
+                    [ type_ "range"
+                    , HA.min "1"
+                    , HA.max "9"
+                    , value model.value
+                    , onInput ValueInput
+                    ]
+                    []
                 ]
-                []
-            ]
 
         HueGridView ->
-            [ p [] [ text "Hue" ]
-            , input
-                [ type_ "range"
-                , HA.min "1"
-                , HA.max "39"
-                , value model.hueIndex
-                , onInput HueIndexInput
+            div []
+                [ label [] [ text "Hue" ]
+                , input
+                    [ type_ "range"
+                    , HA.min "1"
+                    , HA.max "39"
+                    , value model.hueIndex
+                    , onInput HueIndexInput
+                    ]
+                    []
                 ]
-                []
-            ]
 
 
 viewMesh : Model -> Html Msg
 viewMesh model =
     case model.view of
         ColorWheelView ->
-            viewColorWheel model.wheelMeshes model.window model.theta (toValue model.value)
+            viewColorWheel model.wheelMeshes model.windowRect model.cameraPosition (toValue model.value)
 
         HueGridView ->
             case model.hueMesh of
                 Just mesh ->
-                    viewHueGrid model.window model.theta mesh
+                    viewHueGrid model.windowRect model.cameraPosition mesh
 
                 Nothing ->
                     p [] [ text "No mesh!" ]
@@ -216,24 +270,18 @@ viewMesh model =
 ---- VIEW ----
 
 
-viewColorWheel : Dict Int AppMesh -> Window.Size -> Float -> Int -> Html msg
-viewColorWheel meshes window theta value =
+viewColorWheel : Dict Int AppMesh -> Window.Size -> Vec3 -> Int -> Html msg
+viewColorWheel meshes windowRect eye value =
     let
-        x =
-            cos theta
-
-        y =
-            0 - sin theta
-
         w =
-            toFloat window.width
+            toFloat windowRect.width
 
         h =
-            toFloat window.height
+            toFloat windowRect.height
     in
         WebGL.toHtml
-            [ width window.width
-            , height window.height
+            [ width windowRect.width
+            , height windowRect.height
             , style [ ( "display", "block" ) ]
             ]
             (List.range 1 value
@@ -246,7 +294,7 @@ viewColorWheel meshes window theta value =
                                     vertexShader
                                     fragmentShader
                                     mesh
-                                    { perspective = perspective w h x y }
+                                    (makeUniforms w h ColorWheel.sceneSize eye)
                                     :: acc
 
                             Nothing ->
@@ -256,58 +304,30 @@ viewColorWheel meshes window theta value =
             )
 
 
-viewHueGrid : Window.Size -> Float -> AppMesh -> Html Msg
-viewHueGrid window theta mesh =
+viewHueGrid : Window.Size -> Vec3 -> AppMesh -> Html Msg
+viewHueGrid windowRect eye mesh =
     let
-        x =
-            cos theta
-
-        y =
-            0 - sin theta
-
         w =
-            toFloat window.width
+            toFloat windowRect.width
 
         h =
-            toFloat window.height
+            toFloat windowRect.height
     in
         WebGL.toHtml
-            [ width window.width
-            , height window.height
+            [ width windowRect.width
+            , height windowRect.height
             , style [ ( "display", "block" ) ]
             ]
             [ WebGL.entity
                 vertexShader
                 fragmentShader
                 mesh
-                { perspective = perspective w h x y }
+                (makeUniforms w h ColorWheel.sceneSize eye)
             ]
 
 
 
----- CAMERA CONSTANTS ----
-
-
-lookFrom : Float
-lookFrom =
-    6
-
-
-
----- CAMERA AND SHADERS ----
-
-
-perspective : Float -> Float -> Float -> Float -> Mat4
-perspective width height x y =
-    let
-        eye =
-            vec3 x 0 y
-                |> Vec3.normalize
-                |> Vec3.scale 6
-    in
-        Mat4.mul
-            (Mat4.makePerspective 30 (width / height) 0.01 100)
-            (Mat4.makeLookAt eye (vec3 0 0 0) Vec3.j)
+---- SHADERS ----
 
 
 vertexShader : Shader Vertex Uniforms { vcolor : Vec3 }
@@ -315,10 +335,11 @@ vertexShader =
     [glsl|
         attribute vec3 position;
         attribute vec3 color;
+        uniform mat4 camera;
         uniform mat4 perspective;
         varying vec3 vcolor;
         void main () {
-            gl_Position = perspective * vec4(position, 1.0);
+            gl_Position = perspective * camera * vec4(position, 1.0);
             vcolor = color;
         }
     |]

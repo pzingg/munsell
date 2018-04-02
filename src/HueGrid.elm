@@ -1,17 +1,15 @@
 module HueGrid exposing (buildMesh)
 
 import WebGL
-import Math.Matrix4 as Mat4 exposing (Mat4, scale, translate, rotate)
+import Math.Matrix4 as Mat4 exposing (Mat4, scale3, translate3)
 import Math.Vector3 as Vec3 exposing (Vec3, vec3)
-import Geometry
+import Geometry as Geom
     exposing
-        ( Cylinder
-        , Cube
+        ( Solid
         , AppMesh
         , makeColor
         , makeCube
-        , makeCylinder
-        , cubesIndices
+        , toMesh
         )
 import Munsell exposing (ColorDict, hueRange, chromaRange, valueRange)
 
@@ -24,46 +22,30 @@ cubeSize =
     40
 
 
-sceneSize : Float
-sceneSize =
-    280
-
-
-cubeScaledSize : Float
-cubeScaledSize =
-    cubeSize / sceneSize
-
-
 xySpacing : Float
 xySpacing =
-    45 / sceneSize
+    50
 
 
 zSpacing : Float
 zSpacing =
-    90 / sceneSize
+    90
 
 
 
----- HUE PAGE CUBES ----
+---- HUE GRID CUBES ----
 
 
-buildMesh : ColorDict -> Int -> AppMesh
-buildMesh colors hue =
-    hueGridCubes colors hue
-        |> toMesh
+cubesForHue : ColorDict -> Int -> List Solid
+cubesForHue colors hue =
+    List.foldl (\value acc -> (cubesForHV colors hue value) ++ acc) [] valueRange
 
 
-hueGridCubes : ColorDict -> Int -> List Cube
-hueGridCubes colors hue =
-    List.foldl (\value acc -> (hueCubesForValue colors hue value) ++ acc) [] valueRange
-
-
-hueCubesForValue : ColorDict -> Int -> Int -> List Cube
-hueCubesForValue colors hue value =
+cubesForHV : ColorDict -> Int -> Int -> List Solid
+cubesForHV colors hue value =
     List.foldl
         (\chroma acc ->
-            case hueCube colors hue value chroma of
+            case cubeInGamut colors hue value chroma of
                 Just rect ->
                     rect :: acc
 
@@ -74,32 +56,37 @@ hueCubesForValue colors hue value =
         chromaRange
 
 
-hueCube : ColorDict -> Int -> Int -> Int -> Maybe Cube
-hueCube colors hue value chroma =
+cubeInGamut : ColorDict -> Int -> Int -> Int -> Maybe Solid
+cubeInGamut colors hue value chroma =
     case makeColor colors hue value chroma of
         Just color ->
-            xfHueCube hue value chroma
-                |> makeCube color
-                |> Just
+            Just (cubeWithColor color hue value chroma)
 
         Nothing ->
             Nothing
 
 
-xfHueCube : Int -> Int -> Int -> Mat4
-xfHueCube _ value chroma =
+cubeWithColor : Vec3 -> Int -> Int -> Int -> Solid
+cubeWithColor color hue value chroma =
+    xfCube hue value chroma
+        |> makeCube color
+
+
+xfCube : Int -> Int -> Int -> Mat4
+xfCube _ value chroma =
     let
         x =
-            ((toFloat (chroma // 2)) - 4) * xySpacing
+            (toFloat ((chroma // 2) - 1)) * xySpacing
 
         y =
-            ((toFloat value) - 5) * xySpacing
+            (toFloat (value - 5)) * xySpacing
     in
         Mat4.identity
-            |> scale (vec3 cubeScaledSize cubeScaledSize cubeScaledSize)
-            |> translate (vec3 x y 0)
+            |> translate3 x y 0
+            |> scale3 cubeSize cubeSize cubeSize
 
 
-toMesh : List Cube -> AppMesh
-toMesh cubes =
-    WebGL.indexedTriangles (List.concat cubes) (cubesIndices 0 cubes)
+buildMesh : ColorDict -> Int -> AppMesh
+buildMesh colors hue =
+    cubesForHue colors hue
+        |> toMesh
