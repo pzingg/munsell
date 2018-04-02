@@ -5,8 +5,7 @@ import Dict exposing (Dict)
 import Html exposing (Html, div, p, text, label, input, button)
 import Html.Attributes as HA exposing (type_, value, src, width, height, style, checked)
 import Html.Events exposing (onClick, onInput)
-import WebGL exposing (Mesh, Shader)
-import Math.Matrix4 as Mat4 exposing (Mat4, transform, translate, rotate)
+import WebGL exposing (Mesh, Shader, Entity)
 import Math.Vector3 as Vec3 exposing (Vec3, vec3)
 import Time exposing (Time)
 import Task
@@ -46,8 +45,9 @@ type alias Model =
     , value : String
     , frozen : Bool
     , theta : Float
+    , ballMeshes : List AppMesh
     , wheelMeshes : Dict Int AppMesh
-    , hueMesh : Maybe AppMesh
+    , hueMeshes : List AppMesh
     }
 
 
@@ -70,8 +70,9 @@ init =
           , value = "7"
           , frozen = True
           , theta = 0
-          , wheelMeshes = ColorWheel.buildMeshes colors
-          , hueMesh = Nothing
+          , ballMeshes = ColorWheel.ballMeshes Geom.defaultBallColors ColorWheel.sceneSize
+          , wheelMeshes = ColorWheel.wheelMeshes colors
+          , hueMeshes = []
           }
         , Task.perform Resize Window.size
         )
@@ -133,11 +134,11 @@ update msg model =
             case model.view of
                 ColorWheelView ->
                     let
-                        mesh =
+                        meshes =
                             toHue model.hueIndex
-                                |> HueGrid.buildMesh model.colors
+                                |> HueGrid.gridMeshes model.colors
                     in
-                        ( { model | view = HueGridView, hueMesh = Just mesh }, Cmd.none )
+                        ( { model | view = HueGridView, hueMeshes = meshes }, Cmd.none )
 
                 _ ->
                     ( { model | view = ColorWheelView }, Cmd.none )
@@ -147,11 +148,11 @@ update msg model =
 
         HueIndexInput newHueIndex ->
             let
-                mesh =
+                meshes =
                     toHue newHueIndex
-                        |> HueGrid.buildMesh model.colors
+                        |> HueGrid.gridMeshes model.colors
             in
-                ( { model | hueIndex = newHueIndex, hueMesh = Just mesh }, Cmd.none )
+                ( { model | hueIndex = newHueIndex, hueMeshes = meshes }, Cmd.none )
 
         Freeze ->
             ( { model | frozen = not model.frozen }, Cmd.none )
@@ -255,29 +256,46 @@ viewMesh : Model -> Html Msg
 viewMesh model =
     case model.view of
         ColorWheelView ->
-            viewColorWheel model.wheelMeshes model.windowRect model.cameraPosition (toValue model.value)
+            viewColorWheel
+                model.ballMeshes
+                model.wheelMeshes
+                model.windowRect
+                model.cameraPosition
+                (toValue model.value)
 
         HueGridView ->
-            case model.hueMesh of
-                Just mesh ->
-                    viewHueGrid model.windowRect model.cameraPosition mesh
-
-                Nothing ->
+            case model.hueMeshes of
+                [] ->
                     p [] [ text "No mesh!" ]
+
+                _ ->
+                    viewHueGrids model.windowRect model.cameraPosition model.hueMeshes
 
 
 
 ---- VIEW ----
 
 
-viewColorWheel : Dict Int AppMesh -> Window.Size -> Vec3 -> Int -> Html msg
-viewColorWheel meshes windowRect eye value =
+toEntity : Uniforms -> AppMesh -> Entity
+toEntity uniforms mesh =
+    WebGL.entity
+        vertexShader
+        fragmentShader
+        mesh
+        uniforms
+
+
+viewColorWheel : List AppMesh -> Dict Int AppMesh -> Window.Size -> Vec3 -> Int -> Html msg
+viewColorWheel ballMeshes meshes windowRect eye value =
     let
         w =
             toFloat windowRect.width
 
         h =
             toFloat windowRect.height
+
+        uniforms =
+            makeUniforms w h ColorWheel.sceneSize eye
     in
         WebGL.toHtml
             [ width windowRect.width
@@ -290,40 +308,33 @@ viewColorWheel meshes windowRect eye value =
                     (\m acc ->
                         case m of
                             Just mesh ->
-                                WebGL.entity
-                                    vertexShader
-                                    fragmentShader
-                                    mesh
-                                    (makeUniforms w h ColorWheel.sceneSize eye)
-                                    :: acc
+                                toEntity uniforms mesh :: acc
 
                             Nothing ->
                                 acc
                     )
-                    []
+                    (List.map (toEntity uniforms) ballMeshes)
             )
 
 
-viewHueGrid : Window.Size -> Vec3 -> AppMesh -> Html Msg
-viewHueGrid windowRect eye mesh =
+viewHueGrids : Window.Size -> Vec3 -> List AppMesh -> Html Msg
+viewHueGrids windowRect eye meshes =
     let
         w =
             toFloat windowRect.width
 
         h =
             toFloat windowRect.height
+
+        uniforms =
+            makeUniforms w h ColorWheel.sceneSize eye
     in
         WebGL.toHtml
             [ width windowRect.width
             , height windowRect.height
             , style [ ( "display", "block" ) ]
             ]
-            [ WebGL.entity
-                vertexShader
-                fragmentShader
-                mesh
-                (makeUniforms w h ColorWheel.sceneSize eye)
-            ]
+            (List.map (toEntity uniforms) meshes)
 
 
 

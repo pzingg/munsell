@@ -5,13 +5,16 @@ import Math.Matrix4 as Mat4 exposing (Mat4, scale3, translate3, rotate)
 import Math.Vector3 as Vec3 exposing (Vec3, vec3)
 import Geometry as Geom
     exposing
-        ( Solid
-        , AppMesh
+        ( AppMesh
+        , GeometryObject
+        , BallColors
         , cylinderPoints
         , makeColor
         , makeCube
         , makeCylinder
-        , toMesh
+        , makeWireframeBall
+        , indexedTriangleMesh
+        , polylineMeshes
         )
 import Munsell
     exposing
@@ -27,7 +30,7 @@ import Munsell
 
 cylinderSize : Float
 cylinderSize =
-    80
+    120
 
 
 cubeSize : Float
@@ -37,7 +40,7 @@ cubeSize =
 
 r0 : Float
 r0 =
-    (cylinderSize / 2) + 10 + (cubeSize / 2)
+    (cylinderSize / 2) + cubeSize + 20
 
 
 rSpacing : Float
@@ -47,7 +50,7 @@ rSpacing =
 
 sceneSize : Float
 sceneSize =
-    r0 + (8 * rSpacing) + (cubeSize / 2)
+    2 * (r0 + (8 * rSpacing) + (cubeSize / 2))
 
 
 zSpacing : Float
@@ -64,7 +67,7 @@ zForValue value =
 ---- GL OBJECTS ----
 
 
-cylinderForValue : Int -> Solid
+cylinderForValue : Int -> GeometryObject
 cylinderForValue value =
     let
         grayValue =
@@ -87,12 +90,12 @@ xfCylinder value =
             |> scale3 cylinderSize cylinderSize cubeSize
 
 
-cubesForValue : ColorDict -> Int -> List Solid
+cubesForValue : ColorDict -> Int -> List GeometryObject
 cubesForValue colors value =
     List.foldl (\hue acc -> (cubesForHV colors hue value) ++ acc) [] hueRange
 
 
-cubesForHV : ColorDict -> Int -> Int -> List Solid
+cubesForHV : ColorDict -> Int -> Int -> List GeometryObject
 cubesForHV colors hue value =
     List.foldl
         (\chroma acc ->
@@ -107,7 +110,7 @@ cubesForHV colors hue value =
         chromaRange
 
 
-cubeInGamut : ColorDict -> Int -> Int -> Int -> Maybe Solid
+cubeInGamut : ColorDict -> Int -> Int -> Int -> Maybe GeometryObject
 cubeInGamut colors hue value chroma =
     case makeColor colors hue value chroma of
         Just color ->
@@ -117,7 +120,7 @@ cubeInGamut colors hue value chroma =
             Nothing
 
 
-cubeWithColor : Vec3 -> Int -> Int -> Int -> Solid
+cubeWithColor : Vec3 -> Int -> Int -> Int -> GeometryObject
 cubeWithColor color hue value chroma =
     xfCube hue value chroma
         |> makeCube color
@@ -158,25 +161,25 @@ scaleCube _ _ chroma size =
         x =
             case chroma of
                 2 ->
-                    0.32
+                    0.35
 
                 4 ->
                     0.5
 
                 6 ->
-                    0.67
+                    0.7
 
                 8 ->
-                    0.8
+                    0.9
 
-                10 ->
-                    1
+                14 ->
+                    1.4
 
-                12 ->
-                    1
+                16 ->
+                    1.4
 
                 _ ->
-                    1.33
+                    1
     in
         ( (x * size), size, size )
 
@@ -185,8 +188,16 @@ scaleCube _ _ chroma size =
 ---- MESHES ----
 
 
-buildMeshes : ColorDict -> Dict Int AppMesh
-buildMeshes colors =
+ballMeshes : BallColors -> Float -> List AppMesh
+ballMeshes colors size =
+    Mat4.identity
+        |> scale3 size size size
+        |> makeWireframeBall colors
+        |> polylineMeshes
+
+
+wheelMeshes : ColorDict -> Dict Int AppMesh
+wheelMeshes colors =
     valueRange
         |> List.map (\value -> ( value, meshForValue colors value ))
         |> Dict.fromList
@@ -201,4 +212,4 @@ meshForValue colors value =
         cubes =
             cubesForValue colors value
     in
-        toMesh (cylinder :: cubes)
+        indexedTriangleMesh (cylinder :: cubes)
