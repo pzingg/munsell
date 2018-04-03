@@ -16,7 +16,7 @@ import Munsell exposing (ColorDict, findColor)
 Camera (Eye) Coordinates - Radial
 
   - theta is vertical angle (positive y) between camera position and z axis,
-    with -pi <= theta <= pi, 0 <= cos theta <= 1, -1 <= sin theta <= 1
+    with -0.5 * pi <= theta <= 0.5 * pi, 0 <= cos theta <= 1, -1 <= sin theta <= 1
   - phi is horizontal angle (positive x) between camera position and z axis, 0 <= phi < 2 * pi
 
 -}
@@ -89,12 +89,31 @@ dragCamera cameraDistance deltaX deltaY { position, phi } =
         -- Subtract deltaTheta and deltaPhi
         theta =
             (currentTheta - deltaTheta)
-                |> (Basics.max -pi)
-                |> (Basics.min pi)
+                |> (Basics.max (-0.5 * pi))
+                |> (Basics.min (0.5 * pi))
     in
         makeCamera cameraDistance theta (phi - deltaPhi)
 
 
+{-| camera.position positive y: { 0 = 0, 1 = 5240, 2 = 0 }
+camera.position near positive y: { position = { 0 = 0, 1 = 5239.999997414164, 2 = 0.16461945502184888 }, phi = 0 }
+lookAt positive y: { 0 = NaN, 1 = NaN, 2 = 0, 3 = 0, 4 = NaN, 5 = NaN, 6 = 1, 7 = 0, 8 = NaN, 9 = NaN, 10 = 0, 11 = 0, 12 = NaN, 13 = NaN, 14 = -5240, 15 = 1 }
+lookAt near positive y:
+{ 0 = 1, 1 = 0, 2 = 0, 3 = 0
+, 4 = 0, 5 = 0.0000314159265308872, 6 = 0.9999999995065197, 7 = 0
+, 8 = 0, 9 = -0.99999999950652, 10 = 0.00003141592653088719, 11 = 0
+, 12 = 0, 13 = 0, 14 = -5240, 15 = 1 }
+
+camera.position negative y: { 0 = 0, 1 = -5240, 2 = 0 }
+camera.position near negative y: { position = { 0 = 0, 1 = -5239.999997414164, 2 = 0.16461945502184888 }, phi = 0 }
+lookAt negative y: { 0 = NaN, 1 = NaN, 2 = 0, 3 = 0, 4 = NaN, 5 = NaN, 6 = -1, 7 = 0, 8 = NaN, 9 = NaN, 10 = 0, 11 = 0, 12 = NaN, 13 = NaN, 14 = -5240, 15 = 1 }
+lookAt near negative y:
+{ 0 = 1, 1 = 0, 2 = 0, 3 = 0
+, 4 = 0, 5 = 0.0000314159265308872, 6 = -0.9999999995065197, 7 = 0
+, 8 = 0, 9 = 0.99999999950652, 10 = 0.00003141592653088719, 11 = 0
+, 12 = 0, 13 = 0, 14 = -5240, 15 = 1 }
+
+-}
 cameraMatrix : Camera -> Mat4
 cameraMatrix { position, phi } =
     let
@@ -110,17 +129,17 @@ cameraMatrix { position, phi } =
         case dot > 0.99999 of
             True ->
                 Mat4.fromRecord
-                    { m11 = 0
-                    , m21 = -1
+                    { m11 = 1
+                    , m21 = 0
                     , m31 = 0
                     , m41 = 0
-                    , m12 = 1
+                    , m12 = 0
                     , m22 = 0
-                    , m32 = 0
+                    , m32 = 1
                     , m42 = 0
                     , m13 = 0
-                    , m23 = 0
-                    , m33 = 1
+                    , m23 = -1
+                    , m33 = 0
                     , m43 = 0
                     , m14 = 0
                     , m24 = 0
@@ -133,17 +152,17 @@ cameraMatrix { position, phi } =
                 case dot < -0.99999 of
                     True ->
                         Mat4.fromRecord
-                            { m11 = 0
-                            , m21 = 1
+                            { m11 = 1
+                            , m21 = 0
                             , m31 = 0
                             , m41 = 0
-                            , m12 = 1
+                            , m12 = 0
                             , m22 = 0
-                            , m32 = 0
+                            , m32 = -1
                             , m42 = 0
                             , m13 = 0
-                            , m23 = 0
-                            , m33 = -1
+                            , m23 = 1
+                            , m33 = 0
                             , m43 = 0
                             , m14 = 0
                             , m24 = 0

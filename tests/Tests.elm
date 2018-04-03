@@ -14,54 +14,54 @@ import Expect exposing (FloatingPointTolerance(..))
 cameraTest : Test
 cameraTest =
     describe "Camera and perspective"
-        [ test "lookAt near z-minus" <|
+        [ test "lookAt near negative y" <|
             \_ ->
                 let
-                    eye =
-                        eyeCoordinates 5240 (pi * 0.99) 0
-                            |> Debug.log "eye near z-minus"
-
                     camera =
-                        Mat4.makeLookAt eye worldCenter worldUp
-                            |> Debug.log "lookAt near z-minus"
+                        makeCamera 5240 (-0.49999 * pi) 0
+                            |> Debug.log "camera.position near negative y"
+
+                    xf =
+                        Mat4.makeLookAt camera.position worldCenter worldUp
+                            |> Debug.log "lookAt near negative y"
                 in
-                    Expect.equal camera Mat4.identity
-        , test "lookAt z-minus" <|
+                    Expect.equal xf Mat4.identity
+        , test "lookAt negative y" <|
             \_ ->
                 let
-                    eye =
-                        vec3 0 0 -5240
-                            |> Debug.log "eye z-minus"
+                    position =
+                        vec3 0 -5240 0
+                            |> Debug.log "camera.position negative y"
 
-                    camera =
-                        Mat4.makeLookAt eye worldCenter worldUp
-                            |> Debug.log "lookAt z-minus"
+                    xf =
+                        Mat4.makeLookAt position worldCenter worldUp
+                            |> Debug.log "lookAt negative y"
                 in
-                    Expect.equal camera Mat4.identity
-        , test "lookAt near z-plus" <|
+                    Expect.equal xf Mat4.identity
+        , test "lookAt near positive y" <|
             \_ ->
                 let
-                    eye =
-                        eyeCoordinates 5240 (pi * 0.01) 0
-                            |> Debug.log "eye near z-plus"
-
                     camera =
-                        Mat4.makeLookAt eye worldCenter worldUp
-                            |> Debug.log "lookAt near z-plus"
+                        makeCamera 5240 (0.49999 * pi) 0
+                            |> Debug.log "camera.position near positive y"
+
+                    xf =
+                        Mat4.makeLookAt camera.position worldCenter worldUp
+                            |> Debug.log "lookAt near positive y"
                 in
-                    Expect.equal camera Mat4.identity
-        , test "lookAt z-plus" <|
+                    Expect.equal xf Mat4.identity
+        , test "lookAt positive y" <|
             \_ ->
                 let
-                    eye =
-                        vec3 0 0 5240
-                            |> Debug.log "eye z-plus"
+                    position =
+                        vec3 0 5240 0
+                            |> Debug.log "camera.position positive y"
 
-                    camera =
-                        Mat4.makeLookAt eye worldCenter worldUp
-                            |> Debug.log "lookAt z-plus"
+                    xf =
+                        Mat4.makeLookAt position worldCenter worldUp
+                            |> Debug.log "lookAt positive y"
                 in
-                    Expect.equal camera Mat4.identity
+                    Expect.equal xf Mat4.identity
         ]
 
 
