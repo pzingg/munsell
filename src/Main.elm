@@ -10,6 +10,7 @@ import Math.Vector3 as Vec3 exposing (Vec3, vec3)
 import Time exposing (Time)
 import Task
 import Window
+import ElementRelativeMouseEvents exposing (Point, onMouseDown, onMouseUp, onMouseMove)
 import Geometry as Geom exposing (..)
 import ColorWheel
 import HueGrid
@@ -38,16 +39,18 @@ type ColorView
 -}
 type alias Model =
     { windowRect : Window.Size
-    , cameraPosition : Vec3
+    , camera : Camera
+    , lastDragPosition : Maybe Point
     , colors : ColorDict
     , view : ColorView
     , hueIndex : String
     , value : String
-    , frozen : Bool
-    , theta : Float
+    , animating : Bool
+    , showBall : Bool
+    , showCoordinates : Bool
     , ballMeshes : List AppMesh
     , wheelMeshes : Dict Int AppMesh
-    , hueMeshes : List AppMesh
+    , hueMesh : AppMesh
     }
 
 
@@ -63,19 +66,27 @@ init =
             loadColors
     in
         ( { windowRect = Window.Size 800 800
-          , cameraPosition = vec3 0 0 cameraDistance
+          , camera = makeCamera cameraDistance (0.5 * pi) (1.5 * pi)
+          , lastDragPosition = Nothing
           , colors = colors
           , view = ColorWheelView
           , hueIndex = "0"
           , value = "7"
-          , frozen = True
-          , theta = 0
+          , animating = False
+          , showBall = False
+          , showCoordinates = False
           , ballMeshes = ColorWheel.ballMeshes Geom.defaultBallColors ColorWheel.sceneSize
           , wheelMeshes = ColorWheel.wheelMeshes colors
-          , hueMeshes = []
+          , hueMesh = buildHueGrid colors "0"
           }
-        , Task.perform Resize Window.size
+        , Task.perform WindowResize Window.size
         )
+
+
+buildHueGrid : ColorDict -> String -> AppMesh
+buildHueGrid colors hueIndex =
+    toHue hueIndex
+        |> HueGrid.gridMesh colors
 
 
 toValue : String -> Int
@@ -97,65 +108,106 @@ toHue hueIndex =
 
 
 type Msg
-    = Resize Window.Size
-    | FrameTick Time
+    = FrameTick Time
     | ToggleView
     | ValueInput String
     | HueIndexInput String
-    | Freeze
+    | AnimatingClick
+    | ShowBallClick
+    | ShowCoordinatesClick
+    | WindowResize Window.Size
+    | MouseDown Point
+    | MouseUp Point
+    | MouseMove Point
+
+
+{-| Number of pixels per second we are dragging via animation
+-}
+dragRate : Float
+dragRate =
+    0.5
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
-        Resize size ->
-            ( { model | windowRect = size }, Cmd.none )
-
         FrameTick dt ->
             let
                 model_ =
-                    case model.frozen of
+                    case model.animating of
                         True ->
-                            model
+                            let
+                                deltaX =
+                                    Time.inSeconds dt * dragRate * toFloat model.windowRect.width
+                            in
+                                { model | camera = dragCamera cameraDistance deltaX 0 model.camera }
 
                         False ->
-                            let
-                                theta =
-                                    model.theta + (dt / 1000.0)
-
-                                cameraPosition =
-                                    vec3 (cameraDistance * sin theta) 0 (cameraDistance * cos theta)
-                            in
-                                { model | theta = theta, cameraPosition = cameraPosition }
+                            model
             in
                 ( model_, Cmd.none )
 
         ToggleView ->
-            case model.view of
-                ColorWheelView ->
-                    let
-                        meshes =
-                            toHue model.hueIndex
-                                |> HueGrid.gridMeshes model.colors
-                    in
-                        ( { model | view = HueGridView, hueMeshes = meshes }, Cmd.none )
+            let
+                nextView =
+                    case model.view of
+                        ColorWheelView ->
+                            HueGridView
 
-                _ ->
-                    ( { model | view = ColorWheelView }, Cmd.none )
+                        _ ->
+                            ColorWheelView
+            in
+                ( { model | view = nextView }, Cmd.none )
 
         ValueInput newValue ->
             ( { model | value = newValue }, Cmd.none )
 
         HueIndexInput newHueIndex ->
-            let
-                meshes =
-                    toHue newHueIndex
-                        |> HueGrid.gridMeshes model.colors
-            in
-                ( { model | hueIndex = newHueIndex, hueMeshes = meshes }, Cmd.none )
+            ( { model
+                | hueIndex = newHueIndex
+                , hueMesh = buildHueGrid model.colors newHueIndex
+              }
+            , Cmd.none
+            )
 
-        Freeze ->
-            ( { model | frozen = not model.frozen }, Cmd.none )
+        AnimatingClick ->
+            ( { model | animating = not model.animating }, Cmd.none )
+
+        ShowBallClick ->
+            ( { model | showBall = not model.showBall }, Cmd.none )
+
+        ShowCoordinatesClick ->
+            ( { model | showCoordinates = not model.showCoordinates }, Cmd.none )
+
+        WindowResize size ->
+            ( { model | windowRect = size }, Cmd.none )
+
+        MouseDown position ->
+            ( { model | lastDragPosition = Just position }, Cmd.none )
+
+        MouseUp position ->
+            ( { model | lastDragPosition = Nothing }, Cmd.none )
+
+        MouseMove position ->
+            case model.lastDragPosition of
+                Just lastPosition ->
+                    let
+                        camera =
+                            dragCamera
+                                cameraDistance
+                                (position.x - lastPosition.x)
+                                (position.y - lastPosition.y)
+                                model.camera
+                    in
+                        ( { model
+                            | camera = camera
+                            , lastDragPosition = Just position
+                          }
+                        , Cmd.none
+                        )
+
+                Nothing ->
+                    ( model, Cmd.none )
 
 
 
@@ -189,44 +241,60 @@ view model =
                 , ( "text-align", "left" )
                 ]
             ]
-            [ viewSlider model
-            , div []
-                [ button
-                    [ type_ "button"
-                    , onClick ToggleView
-                    ]
-                    [ text "Toggle View" ]
-                ]
-            , div []
-                [ label [] [ text "Camera X " ]
-                , text (toString <| Vec3.getX model.cameraPosition)
-                ]
-            , div []
-                [ label [] [ text "Camera Y " ]
-                , text (toString <| Vec3.getY model.cameraPosition)
-                ]
-            , div []
-                [ label [] [ text "Camera Z " ]
-                , text (toString <| Vec3.getZ model.cameraPosition)
-                ]
-            , div []
-                [ input
-                    [ type_ "checkbox"
-                    , checked model.frozen
-                    , onClick Freeze
-                    ]
-                    []
-                , label [] [ text "Freeze" ]
-                ]
-            ]
+            (viewSlider model
+                ++ [ div []
+                        [ button
+                            [ type_ "button"
+                            , onClick ToggleView
+                            ]
+                            [ text
+                                (case model.view of
+                                    ColorWheelView ->
+                                        "Hue Grid Page"
+
+                                    _ ->
+                                        "Color Wheel Page"
+                                )
+                            ]
+                        ]
+                   , div []
+                        [ input
+                            [ type_ "checkbox"
+                            , checked model.animating
+                            , onClick AnimatingClick
+                            ]
+                            []
+                        , label [] [ text "Animating" ]
+                        ]
+                   , div []
+                        [ input
+                            [ type_ "checkbox"
+                            , checked model.showBall
+                            , onClick ShowBallClick
+                            ]
+                            []
+                        , label [] [ text "Show Ball" ]
+                        ]
+                   , div []
+                        [ input
+                            [ type_ "checkbox"
+                            , checked model.showCoordinates
+                            , onClick ShowCoordinatesClick
+                            ]
+                            []
+                        , label [] [ text "Show Coordinates" ]
+                        ]
+                   ]
+                ++ viewCoordinates model
+            )
         ]
 
 
-viewSlider : Model -> Html Msg
+viewSlider : Model -> List (Html Msg)
 viewSlider model =
     case model.view of
         ColorWheelView ->
-            div []
+            [ div []
                 [ label [] [ text "Value" ]
                 , input
                     [ type_ "range"
@@ -237,39 +305,118 @@ viewSlider model =
                     ]
                     []
                 ]
+            , div []
+                [ label [] [ text model.value ] ]
+            ]
 
         HueGridView ->
-            div []
-                [ label [] [ text "Hue" ]
-                , input
-                    [ type_ "range"
-                    , HA.min "1"
-                    , HA.max "39"
-                    , value model.hueIndex
-                    , onInput HueIndexInput
+            let
+                hue =
+                    toHue model.hueIndex
+
+                nameLeft =
+                    case munsellHueName ((hue + 500) % 1000) of
+                        Ok n ->
+                            n
+
+                        Err e ->
+                            e
+
+                nameRight =
+                    case munsellHueName hue of
+                        Ok n ->
+                            n
+
+                        Err e ->
+                            e
+            in
+                [ div []
+                    [ label [] [ text "Hue" ]
+                    , input
+                        [ type_ "range"
+                        , HA.min "1"
+                        , HA.max "39"
+                        , value model.hueIndex
+                        , onInput HueIndexInput
+                        ]
+                        []
                     ]
-                    []
+                , div []
+                    [ label [] [ text (nameLeft ++ " " ++ nameRight) ] ]
                 ]
+
+
+viewCoordinates : Model -> List (Html Msg)
+viewCoordinates model =
+    case model.showCoordinates of
+        True ->
+            [ div []
+                [ label [] [ text "Drag Pos X " ]
+                , text
+                    (case model.lastDragPosition of
+                        Just pos ->
+                            toString <| pos.x
+
+                        Nothing ->
+                            ""
+                    )
+                ]
+            , div []
+                [ label [] [ text "Drag Pos Y " ]
+                , text
+                    (case model.lastDragPosition of
+                        Just pos ->
+                            toString <| pos.y
+
+                        Nothing ->
+                            ""
+                    )
+                ]
+            , div []
+                [ label [] [ text "Camera X " ]
+                , text (toString <| Vec3.getX model.camera.position)
+                ]
+            , div []
+                [ label [] [ text "Camera Y " ]
+                , text (toString <| Vec3.getY model.camera.position)
+                ]
+            , div []
+                [ label [] [ text "Camera Z " ]
+                , text (toString <| Vec3.getZ model.camera.position)
+                ]
+            , div []
+                [ label [] [ text "Camera phi " ]
+                , text (toString <| model.camera.phi * 180 / pi)
+                ]
+            ]
+
+        False ->
+            []
 
 
 viewMesh : Model -> Html Msg
 viewMesh model =
-    case model.view of
-        ColorWheelView ->
-            viewColorWheel
+    let
+        ballMeshes =
+            if model.showBall then
                 model.ballMeshes
-                model.wheelMeshes
-                model.windowRect
-                model.cameraPosition
-                (toValue model.value)
+            else
+                []
+    in
+        case model.view of
+            ColorWheelView ->
+                viewColorWheel
+                    model.windowRect
+                    model.camera
+                    (toValue model.value)
+                    ballMeshes
+                    model.wheelMeshes
 
-        HueGridView ->
-            case model.hueMeshes of
-                [] ->
-                    p [] [ text "No mesh!" ]
-
-                _ ->
-                    viewHueGrids model.windowRect model.cameraPosition model.hueMeshes
+            HueGridView ->
+                viewHueGrids
+                    model.windowRect
+                    model.camera
+                    (model.hueMesh :: ballMeshes)
 
 
 
@@ -285,8 +432,8 @@ toEntity uniforms mesh =
         uniforms
 
 
-viewColorWheel : List AppMesh -> Dict Int AppMesh -> Window.Size -> Vec3 -> Int -> Html msg
-viewColorWheel ballMeshes meshes windowRect eye value =
+viewColorWheel : Window.Size -> Camera -> Int -> List AppMesh -> Dict Int AppMesh -> Html Msg
+viewColorWheel windowRect camera value ballMeshes meshes =
     let
         w =
             toFloat windowRect.width
@@ -295,12 +442,15 @@ viewColorWheel ballMeshes meshes windowRect eye value =
             toFloat windowRect.height
 
         uniforms =
-            makeUniforms w h ColorWheel.sceneSize eye
+            makeUniforms w h ColorWheel.sceneSize camera
     in
         WebGL.toHtml
             [ width windowRect.width
             , height windowRect.height
             , style [ ( "display", "block" ) ]
+            , onMouseDown MouseDown
+            , onMouseUp MouseUp
+            , onMouseMove MouseMove
             ]
             (List.range 1 value
                 |> List.map (\v -> Dict.get v meshes)
@@ -317,8 +467,8 @@ viewColorWheel ballMeshes meshes windowRect eye value =
             )
 
 
-viewHueGrids : Window.Size -> Vec3 -> List AppMesh -> Html Msg
-viewHueGrids windowRect eye meshes =
+viewHueGrids : Window.Size -> Camera -> List AppMesh -> Html Msg
+viewHueGrids windowRect camera meshes =
     let
         w =
             toFloat windowRect.width
@@ -327,12 +477,15 @@ viewHueGrids windowRect eye meshes =
             toFloat windowRect.height
 
         uniforms =
-            makeUniforms w h ColorWheel.sceneSize eye
+            makeUniforms w h ColorWheel.sceneSize camera
     in
         WebGL.toHtml
             [ width windowRect.width
             , height windowRect.height
             , style [ ( "display", "block" ) ]
+            , onMouseDown MouseDown
+            , onMouseUp MouseUp
+            , onMouseMove MouseMove
             ]
             (List.map (toEntity uniforms) meshes)
 
@@ -383,12 +536,13 @@ main =
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
-    case model.frozen of
-        True ->
-            Window.resizes Resize
+    let
+        subAlways =
+            Window.resizes WindowResize
+    in
+        case model.animating of
+            True ->
+                Sub.batch [ AnimationFrame.diffs FrameTick, subAlways ]
 
-        False ->
-            Sub.batch
-                [ Window.resizes Resize
-                , AnimationFrame.diffs FrameTick
-                ]
+            False ->
+                subAlways

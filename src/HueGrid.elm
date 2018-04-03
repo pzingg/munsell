@@ -1,4 +1,4 @@
-module HueGrid exposing (gridMeshes)
+module HueGrid exposing (gridMesh)
 
 import Math.Matrix4 as Mat4 exposing (Mat4, scale3, translate3)
 import Math.Vector3 as Vec3 exposing (Vec3, vec3)
@@ -8,12 +8,18 @@ import Geometry as Geom
         , AppMesh
         , makeColor
         , makeCube
+        , makeCylinder
         , indexedTriangleMesh
         )
 import Munsell exposing (ColorDict, hueRange, chromaRange, valueRange)
 
 
 ---- CONSTANTS ----
+
+
+cylinderSize : Float
+cylinderSize =
+    90
 
 
 cubeSize : Float
@@ -23,21 +29,88 @@ cubeSize =
 
 x0 : Float
 x0 =
-    80
+    120
 
 
-xySpacing : Float
-xySpacing =
-    50
+xzSpacing : Float
+xzSpacing =
+    60
 
 
-zSpacing : Float
-zSpacing =
-    90
+zForValue : Int -> Float
+zForValue value =
+    toFloat (value - 5) * xzSpacing
 
 
 
 ---- HUE GRID CUBES ----
+
+
+gridMesh : ColorDict -> Int -> AppMesh
+gridMesh colors hue =
+    let
+        cylinders =
+            valueRange
+                |> List.map cylinderForValue
+
+        cubes =
+            gridCubes colors hue
+    in
+        indexedTriangleMesh (cylinders ++ cubes)
+
+
+cylinderForValue : Int -> GeometryObject
+cylinderForValue value =
+    let
+        grayValue =
+            (toFloat value) / 10.0
+
+        color =
+            vec3 grayValue grayValue grayValue
+    in
+        makeCylinder color (xfCylinder value)
+
+
+xfCylinder : Int -> Mat4
+xfCylinder value =
+    let
+        z =
+            zForValue value
+    in
+        Mat4.identity
+            |> translate3 0 0 z
+            |> scale3 cylinderSize cylinderSize cubeSize
+
+
+gridCubes : ColorDict -> Int -> List GeometryObject
+gridCubes colors hue =
+    List.range 0 3
+        |> List.foldl
+            (\i acc ->
+                let
+                    thetaRight =
+                        (toFloat i) * pi / 8
+
+                    thetaLeft =
+                        (toFloat (8 - i)) * pi / 8
+
+                    xfRight =
+                        Mat4.makeRotate thetaRight (vec3 0 0 1)
+
+                    xfLeft =
+                        Mat4.makeRotate thetaLeft (vec3 0 0 1)
+
+                    hueRight =
+                        (hue + (i * 25)) % 1000
+
+                    hueLeft =
+                        (hue + 500 + (i * 25)) % 1000
+                in
+                    acc
+                        ++ cubesForHue colors hueRight xfRight
+                        ++ cubesForHue colors hueLeft xfLeft
+            )
+            []
 
 
 cubesForHue : ColorDict -> Int -> Mat4 -> List GeometryObject
@@ -81,47 +154,11 @@ xfCube : Int -> Int -> Int -> Mat4
 xfCube _ value chroma =
     let
         x =
-            x0 + (toFloat ((chroma // 2) - 1)) * xySpacing
+            x0 + (toFloat ((chroma // 2) - 1)) * xzSpacing
 
-        y =
-            (toFloat (value - 5)) * xySpacing
+        z =
+            (toFloat (value - 5)) * xzSpacing
     in
         Mat4.identity
-            |> translate3 x y 0
+            |> translate3 x 0 z
             |> scale3 cubeSize cubeSize cubeSize
-
-
-type GridLocation
-    = GridLeft
-    | GridRight
-
-
-gridMeshes : ColorDict -> Int -> List AppMesh
-gridMeshes colors hueRight0 =
-    let
-        xfRight0 =
-            Mat4.identity
-
-        xfRight1 =
-            Mat4.translate3 0 0 zSpacing xfRight0
-
-        xfLeft0 =
-            Mat4.makeScale3 -1 1 1
-
-        xfLeft1 =
-            Mat4.translate3 0 0 zSpacing xfLeft0
-
-        hueRight1 =
-            (hueRight0 + 25) % 1000
-
-        hueLeft0 =
-            (hueRight0 + 975) % 1000
-
-        hueLeft1 =
-            (hueRight0 + 950) % 1000
-    in
-        [ cubesForHue colors hueRight0 xfRight0 |> indexedTriangleMesh
-        , cubesForHue colors hueRight1 xfRight1 |> indexedTriangleMesh
-        , cubesForHue colors hueLeft0 xfLeft0 |> indexedTriangleMesh
-        , cubesForHue colors hueLeft1 xfLeft1 |> indexedTriangleMesh
-        ]

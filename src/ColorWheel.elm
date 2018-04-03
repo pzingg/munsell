@@ -130,7 +130,7 @@ xfCube : Int -> Int -> Int -> Mat4
 xfCube hue value chroma =
     let
         theta =
-            (toFloat hue) * 2 * Basics.pi / 1000
+            (toFloat hue) * 2 * pi / 1000
 
         ( sx, sy, sz ) =
             scaleCube hue value chroma cubeSize

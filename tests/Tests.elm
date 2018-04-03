@@ -11,23 +11,57 @@ import Expect exposing (FloatingPointTolerance(..))
 -- Check out http://package.elm-lang.org/packages/elm-community/elm-test/latest to learn more about testing in Elm!
 
 
-meshTest : Test
-meshTest =
-    describe "Meshes"
-        [ test "single cube" <|
+cameraTest : Test
+cameraTest =
+    describe "Camera and perspective"
+        [ test "lookAt near z-minus" <|
             \_ ->
                 let
-                    black =
-                        vec3 0 0 0
+                    eye =
+                        eyeCoordinates 5240 (pi * 0.99) 0
+                            |> Debug.log "eye near z-minus"
 
-                    solid =
-                        makeCube black Mat4.identity
-
-                    ( v, i ) =
-                        buildTriangleIndices [ solid, solid ]
-                            |> Debug.log "vertices"
+                    camera =
+                        Mat4.makeLookAt eye worldCenter worldUp
+                            |> Debug.log "lookAt near z-minus"
                 in
-                    Expect.equal (List.length i) 24
+                    Expect.equal camera Mat4.identity
+        , test "lookAt z-minus" <|
+            \_ ->
+                let
+                    eye =
+                        vec3 0 0 -5240
+                            |> Debug.log "eye z-minus"
+
+                    camera =
+                        Mat4.makeLookAt eye worldCenter worldUp
+                            |> Debug.log "lookAt z-minus"
+                in
+                    Expect.equal camera Mat4.identity
+        , test "lookAt near z-plus" <|
+            \_ ->
+                let
+                    eye =
+                        eyeCoordinates 5240 (pi * 0.01) 0
+                            |> Debug.log "eye near z-plus"
+
+                    camera =
+                        Mat4.makeLookAt eye worldCenter worldUp
+                            |> Debug.log "lookAt near z-plus"
+                in
+                    Expect.equal camera Mat4.identity
+        , test "lookAt z-plus" <|
+            \_ ->
+                let
+                    eye =
+                        vec3 0 0 5240
+                            |> Debug.log "eye z-plus"
+
+                    camera =
+                        Mat4.makeLookAt eye worldCenter worldUp
+                            |> Debug.log "lookAt z-plus"
+                in
+                    Expect.equal camera Mat4.identity
         ]
 
 
@@ -128,7 +162,7 @@ cubeTest =
             \_ ->
                 let
                     sqrt2 =
-                        sin (Basics.pi / 4)
+                        sin (pi / 4)
 
                     black =
                         vec3 0 0 0
@@ -146,7 +180,7 @@ cubeTest =
             \_ ->
                 let
                     sqrt2 =
-                        sin (Basics.pi / 4)
+                        sin (pi / 4)
 
                     black =
                         vec3 0 0 0

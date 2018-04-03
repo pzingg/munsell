@@ -9,13 +9,15 @@
     ],
     "exposed-modules": [],
     "dependencies": {
+      "Elm-Canvas/element-relative-mouse-events": "1.0.0 <= v < 2.0.0",
+      "elm-community/basics-extra": "3.0.1 <= v < 4.0.0",
+      "elm-community/elm-test": "4.0.0 <= v < 5.0.0",
+      "elm-community/linear-algebra": "3.0.0 <= v < 4.0.0",
+      "elm-community/webgl": "2.0.0 <= v < 3.0.0",
       "elm-lang/animation-frame": "1.0.0 <= v < 2.0.0",
       "elm-lang/core": "5.0.0 <= v < 6.0.0",
       "elm-lang/html": "2.0.0 <= v < 3.0.0",
       "elm-lang/window": "1.0.0 <= v < 2.0.0",
-      "elm-community/elm-test": "4.0.0 <= v < 5.0.0",
-      "elm-community/webgl": "2.0.0 <= v < 3.0.0",
-      "elm-community/linear-algebra": "3.0.0 <= v < 4.0.0",
       "lovasoa/elm-csv": "1.0.0 <= v < 2.0.0"
     },
     "elm-version": "0.18.0 <= v < 0.19.0"
