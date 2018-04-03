@@ -7,22 +7,27 @@ import Math.Vector3 as Vec3 exposing (Vec3, vec3)
 import Munsell exposing (ColorDict, findColor)
 
 
-{-| Coordinate system:
-z is up, x coming out towards camera, y to right
+{-| World Coordinate System - Cartesian
+
+  - positive x to right
+  - positive y is up
+  - positive z coming out towards camera
+
+Camera (Eye) Coordinates - Radial
+
+  - theta is vertical angle (positive y) between camera position and z axis,
+    with -pi <= theta <= pi, 0 <= cos theta <= 1, -1 <= sin theta <= 1
+  - phi is horizontal angle (positive x) between camera position and z axis, 0 <= phi < 2 * pi
+
 -}
 worldUp : Vec3
 worldUp =
-    vec3 0 0 1
+    Vec3.j
 
 
 worldCenter : Vec3
 worldCenter =
     vec3 0 0 0
-
-
-minusK : Vec3
-minusK =
-    vec3 0 0 -1
 
 
 
@@ -53,9 +58,9 @@ makeCamera : Float -> Float -> Float -> Camera
 makeCamera cameraDistance theta phi =
     { position =
         vec3
-            (cameraDistance * sin theta * cos phi)
-            (cameraDistance * sin theta * sin phi)
-            (cameraDistance * cos theta)
+            (cameraDistance * cos theta * sin phi)
+            (cameraDistance * sin theta)
+            (cameraDistance * cos theta * cos phi)
     , phi = fmod phi (2 * pi)
     }
 
@@ -66,20 +71,25 @@ dragCamera cameraDistance deltaX deltaY { position, phi } =
         radPerPixel =
             pi / cameraDistance
 
+        -- deltaY positive is down in view coordinate system
+        -- so negate to transfer to x for world coordinates
+        deltaTheta =
+            -radPerPixel * deltaY
+
+        -- deltaX positive is right in view coordinate system
+        -- so transfer to y for world coordinates
         deltaPhi =
             radPerPixel * deltaX
 
-        deltaTheta =
-            radPerPixel * deltaY
-
-        normal =
+        currentTheta =
             Vec3.normalize position
+                |> Vec3.getY
+                |> asin
 
         -- Subtract deltaTheta and deltaPhi
         theta =
-            (acos (Vec3.getZ normal))
-                - deltaTheta
-                |> (Basics.max 0)
+            (currentTheta - deltaTheta)
+                |> (Basics.max -pi)
                 |> (Basics.min pi)
     in
         makeCamera cameraDistance theta (phi - deltaPhi)
@@ -95,7 +105,7 @@ cameraMatrix { position, phi } =
             Vec3.normalize position
 
         dot =
-            Vec3.dot normal Vec3.k
+            Vec3.dot normal worldUp
     in
         case dot > 0.99999 of
             True ->
@@ -117,7 +127,7 @@ cameraMatrix { position, phi } =
                     , m34 = -cameraDistance
                     , m44 = 1
                     }
-                    |> Mat4.rotate -phi Vec3.k
+                    |> Mat4.rotate -phi Vec3.j
 
             False ->
                 case dot < -0.99999 of
@@ -140,7 +150,7 @@ cameraMatrix { position, phi } =
                             , m34 = -cameraDistance
                             , m44 = 1
                             }
-                            |> Mat4.rotate -phi Vec3.k
+                            |> Mat4.rotate -phi Vec3.j
 
                     False ->
                         Mat4.makeLookAt position worldCenter worldUp
@@ -278,12 +288,12 @@ cylinderPoints =
 
 
 cylinderFaceVertex : Color -> Mat4 -> Float -> Int -> Vertex
-cylinderFaceVertex color xf z i =
+cylinderFaceVertex color xf y i =
     let
         t =
             pi * (toFloat ((i - 1) * 2)) / (toFloat cylinderFacePoints)
     in
-        Vertex (transform xf (vec3 (0.5 * sin t) (0.5 * cos t) z)) color
+        Vertex (transform xf (vec3 (0.5 * sin t) y (0.5 * cos t))) color
 
 
 makeCylinder : Color -> Mat4 -> GeometryObject
@@ -298,8 +308,8 @@ makeCylinder color xf =
                 |> List.map (cylinderFaceVertex color xf -0.5)
     in
         List.concat
-            [ Vertex (transform xf (vec3 0 0 0.5)) color :: topFace
-            , Vertex (transform xf (vec3 0 0 -0.5)) color :: bottomFace
+            [ Vertex (transform xf (vec3 0 0.5 0)) color :: topFace
+            , Vertex (transform xf (vec3 0 -0.5 0)) color :: bottomFace
             ]
             |> GeometryObject Cylinder
 
@@ -466,7 +476,7 @@ equator colorPos colorNeg xf =
                             theta =
                                 (toFloat i) * 2 * pi / (toFloat cylinderFacePoints)
                         in
-                            Vertex (transform xf (vec3 (0.5 * sin theta) (0.5 * cos theta) 0)) colorPos
+                            Vertex (transform xf (vec3 (0.5 * sin theta) 0 (0.5 * cos theta))) colorPos
                     )
                 |> GeometryObject Polyline
 
@@ -478,7 +488,7 @@ equator colorPos colorNeg xf =
                             theta =
                                 (toFloat i) * 2 * pi / (toFloat cylinderFacePoints)
                         in
-                            Vertex (transform xf (vec3 (0.5 * sin theta) (0.5 * cos theta) 0)) colorNeg
+                            Vertex (transform xf (vec3 (0.5 * sin theta) 0 (0.5 * cos theta))) colorNeg
                     )
                 |> GeometryObject Polyline
     in
@@ -497,9 +507,9 @@ segment colorPos colorNeg angle xf =
                                 (toFloat i) * 2 * pi / (toFloat cylinderFacePoints)
 
                             xf_ =
-                                Mat4.rotate angle (vec3 0 0 1) xf
+                                Mat4.rotate angle worldUp xf
                         in
-                            Vertex (transform xf_ (vec3 (0.5 * cos theta) 0 (0.5 * sin theta))) colorPos
+                            Vertex (transform xf_ (vec3 (0.5 * cos theta) (0.5 * sin theta) 0)) colorPos
                     )
                 |> GeometryObject Polyline
 
@@ -512,9 +522,9 @@ segment colorPos colorNeg angle xf =
                                 (toFloat i) * 2 * pi / (toFloat cylinderFacePoints)
 
                             xf_ =
-                                Mat4.rotate angle (vec3 0 0 1) xf
+                                Mat4.rotate angle worldUp xf
                         in
-                            Vertex (transform xf_ (vec3 (0.5 * cos theta) 0 (0.5 * sin theta))) colorNeg
+                            Vertex (transform xf_ (vec3 (0.5 * cos theta) (0.5 * sin theta) 0)) colorNeg
                     )
                 |> GeometryObject Polyline
     in

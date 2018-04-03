@@ -66,7 +66,7 @@ init =
             loadColors
     in
         ( { windowRect = Window.Size 800 800
-          , camera = makeCamera cameraDistance (0.5 * pi) (1.5 * pi)
+          , camera = makeCamera cameraDistance 0 0
           , lastDragPosition = Nothing
           , colors = colors
           , view = ColorWheelView

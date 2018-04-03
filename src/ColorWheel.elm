@@ -58,8 +58,8 @@ zSpacing =
     90
 
 
-zForValue : Int -> Float
-zForValue value =
+valueY : Int -> Float
+valueY value =
     toFloat (value - 5) * zSpacing
 
 
@@ -81,13 +81,9 @@ cylinderForValue value =
 
 xfCylinder : Int -> Mat4
 xfCylinder value =
-    let
-        z =
-            zForValue value
-    in
-        Mat4.identity
-            |> translate3 0 0 z
-            |> scale3 cylinderSize cylinderSize cubeSize
+    Mat4.identity
+        |> translate3 0 (valueY value) 0
+        |> scale3 cylinderSize cubeSize cylinderSize
 
 
 cubesForValue : ColorDict -> Int -> List GeometryObject
@@ -132,22 +128,19 @@ xfCube hue value chroma =
         theta =
             (toFloat hue) * 2 * pi / 1000
 
-        ( sx, sy, sz ) =
-            scaleCube hue value chroma cubeSize
-
         band =
             (chroma // 2) - 1
 
-        y =
+        x =
             r0 + ((toFloat band) * rSpacing)
 
-        z =
-            zForValue value
+        sz =
+            scaleCube hue value chroma cubeSize
     in
         Mat4.identity
-            |> rotate -theta (vec3 0 0 1)
-            |> translate3 0 y z
-            |> scale3 sx sy sz
+            |> rotate theta Geom.worldUp
+            |> translate3 x (valueY value) 0
+            |> scale3 cubeSize cubeSize sz
 
 
 
@@ -155,7 +148,7 @@ xfCube hue value chroma =
 -- |> rotate theta (vec3 0 0 1)
 
 
-scaleCube : Int -> Int -> Int -> Float -> ( Float, Float, Float )
+scaleCube : Int -> Int -> Int -> Float -> Float
 scaleCube _ _ chroma size =
     let
         x =
@@ -181,7 +174,7 @@ scaleCube _ _ chroma size =
                 _ ->
                     1
     in
-        ( (x * size), size, size )
+        x * size
 
 
 

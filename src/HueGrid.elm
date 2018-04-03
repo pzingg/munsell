@@ -32,14 +32,14 @@ x0 =
     120
 
 
-xzSpacing : Float
-xzSpacing =
+spacing : Float
+spacing =
     60
 
 
-zForValue : Int -> Float
-zForValue value =
-    toFloat (value - 5) * xzSpacing
+valueY : Int -> Float
+valueY value =
+    toFloat (value - 5) * spacing
 
 
 
@@ -73,13 +73,9 @@ cylinderForValue value =
 
 xfCylinder : Int -> Mat4
 xfCylinder value =
-    let
-        z =
-            zForValue value
-    in
-        Mat4.identity
-            |> translate3 0 0 z
-            |> scale3 cylinderSize cylinderSize cubeSize
+    Mat4.identity
+        |> translate3 0 (valueY value) 0
+        |> scale3 cylinderSize cubeSize cylinderSize
 
 
 gridCubes : ColorDict -> Int -> List GeometryObject
@@ -95,10 +91,10 @@ gridCubes colors hue =
                         (toFloat (8 - i)) * pi / 8
 
                     xfRight =
-                        Mat4.makeRotate thetaRight (vec3 0 0 1)
+                        Mat4.makeRotate thetaRight Geom.worldUp
 
                     xfLeft =
-                        Mat4.makeRotate thetaLeft (vec3 0 0 1)
+                        Mat4.makeRotate thetaLeft Geom.worldUp
 
                     hueRight =
                         (hue + (i * 25)) % 1000
@@ -154,11 +150,11 @@ xfCube : Int -> Int -> Int -> Mat4
 xfCube _ value chroma =
     let
         x =
-            x0 + (toFloat ((chroma // 2) - 1)) * xzSpacing
+            x0 + (toFloat ((chroma // 2) - 1)) * spacing
 
-        z =
-            (toFloat (value - 5)) * xzSpacing
+        y =
+            (toFloat (value - 5)) * spacing
     in
         Mat4.identity
-            |> translate3 x 0 z
+            |> translate3 x y 0
             |> scale3 cubeSize cubeSize cubeSize
