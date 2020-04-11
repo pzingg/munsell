@@ -1,4 +1,5 @@
 import csv
+import math
 import sys
 from PIL import Image, ImageDraw, ImageFont
 
@@ -99,6 +100,17 @@ patch_h = 64
 patch_h_stride = patch_h + 20
 value_label_x0 = 80
 chroma_label_y0 = patch_y0 + 15
+gamma = 0.5
+
+def clamped_rgb_gamma(value):
+    clamped = max(0, min(value/100.0, 1.0))
+    return max(0, min(int(round(math.pow(clamped, gamma) * 255.0)), 255))
+
+def rgb_gamma(color):
+    r = clamped_rgb_gamma(color['R'])
+    g = clamped_rgb_gamma(color['G'])
+    b = clamped_rgb_gamma(color['B'])
+    return (r, g, b)
 
 class MunsellPage:
     def __init__(self, hue, c):
@@ -145,9 +157,7 @@ class MunsellPage:
             y1 = y0 - patch_h
             xy = [x0, y0, x1, y1]
             color = self.color_data[idx]
-            r = max(0, min(int(round(color['R'] * 255.0/100.0)), 255))
-            g = max(0, min(int(round(color['G'] * 255.0/100.0)), 255))
-            b = max(0, min(int(round(color['B'] * 255.0/100.0)), 255))
+            r, g, b = rgb_gamma(color)
             fill = '#{:02X}{:02X}{:02X}'.format(r, g, b)
             # print('spec{} idx {} xy {} fill {}'.format(spec, idx, xy, fill))
             self.draw.rectangle(xy, fill = fill)
@@ -189,11 +199,9 @@ class MunsellBook:
             parsed_row[k] = filter(k, v)
         return parsed_row
 
-    def print_colors(self):
+    def print_rgb_colors(self):
         for idx, color in enumerate(self.c):
-            r = max(0, min(int(round(color['R'] * 255.0/100.0)), 255))
-            g = max(0, min(int(round(color['G'] * 255.0/100.0)), 255))
-            b = max(0, min(int(round(color['B'] * 255.0/100.0)), 255))
+            r, g, b = rgb_gamma(color)
             print('idx {} rgb {} hex {}'.format(idx, (color['R'], color['G'], color['B']), '#{:02X}{:02X}{:02X}'.format(r, g, b)))
 
     def print_pages(self, page_max = -1):
@@ -215,4 +223,5 @@ class MunsellBook:
 
 book = MunsellBook()
 book.read_data()
+# book.print_rgb_colors()
 book.print_pages()
