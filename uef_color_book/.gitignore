@@ -1,0 +1,13 @@
+# Desktop Services Store on macOS
+.DS_Store
+
+# Python build products
+*.pyc
+*.pyo
+__pycache__/
+
+# Create csv files from Matlab data
+*.csv
+
+# Don't store output files
+*.png
