@@ -4,10 +4,7 @@ import operator
 import sys
 from PIL import Image, ImageDraw, ImageFont
 
-
-# From http://cs.joensuu.fi/~spectral/databases/programs.htm
-# Convert Matlab formats into csv files.
-
+# Column headers from UEF tables
 s_colnames = [
     'h', 'V', 'C'
 ]
@@ -22,6 +19,11 @@ munsell_colnames = [
     '{}'.format(wavelength) for wavelength in range(400, 700+5, 5)
 ]
 
+# Gamma correction for UEF data (see munsellpageaotf.m)
+gamma = 0.5
+
+
+# Page (color wheel) order
 ordered_hues = [
     'N',
     '2.5R',
@@ -66,20 +68,24 @@ ordered_hues = [
     '10RP'
 ]
 
-
-font_size = 18
-font_size_large = 32
+# Page parameters for PIL
 image_w = 1100
 image_h = 850
+
+small_font_size = 18
+large_font_size = 32
+small_font = ImageFont.truetype('./RobotoMono-BoldItalic.ttf', small_font_size)
+large_font = ImageFont.truetype('./RobotoMono-BoldItalic.ttf', large_font_size)
+
 patch_x0 = 100
 value_label_x0 = patch_x0 - 50
 patch_w = 72
-patch_w_stride = patch_w + 20
+patch_w_stride = patch_w + 12
+
 patch_y0 = 780
 chroma_label_y0 = patch_y0 + 15
-patch_h = 64
-patch_h_stride = patch_h + 20
-gamma = 0.5
+patch_h = 72
+patch_h_stride = patch_h + 12
 
 
 def cast(row, filter):
@@ -113,21 +119,28 @@ def new_color_source(name):
     else:
         return RITColorSource(name)
 
+
 # Munsell value (*10) and dRGB value
 neutrals = [
-    ( 95, 255 ),
-    ( 90, 243 ),
+    ( 95, 243 ),
+    ( 90, 232 ),
+    ( 85, 220 ),
     ( 80, 203 ),
     ( 70, 179 ),
     ( 60, 150 ),
     ( 50, 124 ),
     ( 40, 97 ),
     ( 30, 70 ),
+    ( 25, 59 ),
     ( 20, 48 ),
     ( 10, 28 )
 ]
 
-neutral_colors = [{'h': 'N', 'V': v, 'C': 0, 'dR': rgb_val, 'dG': rgb_val, 'dB': rgb_val} for (v, rgb_val) in neutrals]
+neutral_colors = [{
+        'h': 'N', 'V': v, 'C': 0,
+        'dR': rgb_val, 'dG': rgb_val, 'dB': rgb_val
+    } for (v, rgb_val) in neutrals]
+
 
 class ColorSource:
     def __init__(self, name):
@@ -165,6 +178,7 @@ class ColorSource:
         for idx, color in enumerate(self.data):
             r, g, b = self.get_rgb(color)
             print('idx {} rgb {} hex {}'.format(idx, (color['R'], color['G'], color['B']), '#{:02X}{:02X}{:02X}'.format(r, g, b)))
+
 
 class UEFColorSource(ColorSource):
     chroma_labels = [
@@ -228,7 +242,7 @@ class RITColorSource(ColorSource):
     ]
 
     value_labels = [
-        (10, '  1/'),
+        # (10, '  1/'),
         (20, '  2/'),
         (30, '  3/'),
         (40, '  4/'),
@@ -236,6 +250,7 @@ class RITColorSource(ColorSource):
         (60, '  6/'),
         (70, '  7/'),
         (80, '  8/'),
+        (85, '8.5/'),
         (90, '  9/')
     ]
 
@@ -245,9 +260,6 @@ class RITColorSource(ColorSource):
         data.sort(key = operator.itemgetter('h', 'V', 'C'))
         self.data = neutral_colors + data
 
-
-small_font = ImageFont.truetype('./RobotoMono-BoldItalic.ttf', font_size)
-large_font = ImageFont.truetype('./RobotoMono-BoldItalic.ttf', font_size_large)
 
 class MunsellPage:
     def __init__(self, source, hue):
@@ -331,6 +343,7 @@ class MunsellBook:
         if self.current_page is not None:
             self.current_page.print()
 
-book = MunsellBook('rit')
-book.read_data()
-book.print_pages()
+if __name__ == '__main__':
+    book = MunsellBook('rit')
+    book.read_data()
+    book.print_pages()
