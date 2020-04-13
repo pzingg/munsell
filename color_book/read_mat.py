@@ -15,11 +15,11 @@ def parse_spectrum(s):
     m = re.match(r'([_0-9]+)(.+)V([0-9]+)C([0-9]+)\.', s)
     if not m:
         raise 'No match for {}'.format(s)
-    hue_num = float(m.group(1).replace('_', '.'))
+    hue_num = m.group(1).replace('_', '.')
     hue_name = m.group(2).upper()
     value = int(m.group(3))
     chroma = int(m.group(4))
-    return ['{:.1f}{}'.format(hue_num, hue_name), str(value), str(chroma)]
+    return ['{}{}'.format(hue_num, hue_name), str(value), str(chroma)]
 
 def write_list(file_name, spectrum_list, header):
     with open(file_name, 'w') as f:
@@ -34,7 +34,7 @@ def print_shape(data, key):
     print('{}: shape {}'.format(key, data[key].shape))
 
 s_colnames = [
-    'h', 'v', 'c'
+    'h', 'V', 'C'
 ]
 
 c_colnames = [
