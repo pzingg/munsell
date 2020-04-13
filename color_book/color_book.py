@@ -322,8 +322,6 @@ class MunsellBook:
         self.source = new_color_source(source_name)
         self.current_hue = ''
         self.current_page = None
-
-    def read_data(self):
         self.source.read_data()
 
     def print_pages(self, page_max = -1):
@@ -345,5 +343,4 @@ class MunsellBook:
 
 if __name__ == '__main__':
     book = MunsellBook('rit')
-    book.read_data()
     book.print_pages()
