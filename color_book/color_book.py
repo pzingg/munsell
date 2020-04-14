@@ -68,26 +68,6 @@ ordered_hues = [
     '10RP'
 ]
 
-# Page parameters for PIL
-image_w = 1100
-image_h = 850
-
-small_font_size = 18
-large_font_size = 32
-small_font = ImageFont.truetype('./RobotoMono-BoldItalic.ttf', small_font_size)
-large_font = ImageFont.truetype('./RobotoMono-BoldItalic.ttf', large_font_size)
-
-patch_x0 = 100
-value_label_x0 = patch_x0 - 50
-patch_w = 72
-patch_w_stride = patch_w + 12
-
-patch_y0 = 780
-chroma_label_y0 = patch_y0 + 15
-patch_h = 72
-patch_h_stride = patch_h + 12
-
-
 def cast(row, filter):
     parsed_row = dict()
     for k, v in row.items():
@@ -118,6 +98,11 @@ def new_color_source(name):
         return UEFColorSource(name)
     else:
         return RITColorSource(name)
+
+def draw_text_ralign(draw, xy, text, font):
+    (w, h) = draw.textsize(text, font = font)
+    (x, y) = xy
+    draw.text((x - w, y), text, font = font, fill = '#000000')
 
 
 # Munsell value (*10) and dRGB value
@@ -152,27 +137,35 @@ class ColorSource:
     def get_rgb(self, color):
         return [color[key] for key in ['dR', 'dG', 'dB']]
 
-    def find_chroma_x(self, h, c):
+    def find_chroma(self, h, c):
         if h == 'N':
             return (0, '')
-        for x, chroma in enumerate(self.chroma_labels):
-            (c_test, c_label) = chroma
-            if (c == c_test):
-                return (x, c_label)
-        return None
+        found = next( ((x, label) for (x, c_test, label) in self.chroma_labels if c_test == c), None)
+        return found
 
-    def find_location(self, color):
+    def find_value(self, v):
+        found = next( ((y, label) for (y, v_test, label) in self.value_labels if v_test == v), None)
+        return found
+
+    def location_on_page(self, color):
         h = color['h']
         v = color['V']
         c = color['C']
-        found = self.find_chroma_x(h, c)
-        if found is not None:
-            (x, c_label) = found
-            for y, value in enumerate(self.value_labels):
-                (v_test, v_label) = value
-                if (v == v_test):
-                    return (x, y, v_label, c_label)
+        found_c = self.find_chroma(h, c)
+        if found_c is not None:
+            (x, c_label) = found_c
+            found_y = self.self.find_value(v)
+            if found_y is not None:
+                (y, v_label) = found_v
+                return (x, y, v_label, c_label)
         return None
+
+    # Get highest chromas
+    def get_chroma_range(self, hue, value, max):
+        chromas = [color for color in self.data
+            if color['h'] == hue and color['V'] == value and self.find_chroma(hue, color['C']) is not None]
+        chromas.sort(key = lambda x: x['C'])
+        return chromas[-max:]
 
     def print_colors(self):
         for idx, color in enumerate(self.data):
@@ -181,7 +174,7 @@ class ColorSource:
 
 
 class UEFColorSource(ColorSource):
-    chroma_labels = [
+    chroma_labels = [(idx, c, label) for idx, (c, label) in enumerate([
         (1, '/1 '),
         (2, '/2 '),
         (4, '/4 '),
@@ -191,9 +184,9 @@ class UEFColorSource(ColorSource):
         (12, '/12'),
         (14, '/14'),
         (16, '/16')
-    ]
+    ])]
 
-    value_labels = [
+    value_labels = [(idx, v, label) for idx, (v, label) in enumerate([
         (25, '2.5/'),
         (30, '  3/'),
         (40, '  4/'),
@@ -203,7 +196,7 @@ class UEFColorSource(ColorSource):
         (80, '  8/'),
         (85, '8.5/'),
         (90, '  9/')
-    ]
+    ])]
 
     def read_data(self):
         with open('munsell400_700_5.munsell.csv') as munsell_file:
@@ -228,7 +221,7 @@ class UEFColorSource(ColorSource):
 
 
 class RITColorSource(ColorSource):
-    chroma_labels = [
+    chroma_labels = [(idx, c, label) for idx, (c, label) in enumerate([
         (2, '/2 '),
         (4, '/4 '),
         (6, '/6 '),
@@ -239,9 +232,9 @@ class RITColorSource(ColorSource):
         (16, '/16'),
         (18, '/18'),
         (20, '/20')
-    ]
+    ])]
 
-    value_labels = [
+    value_labels = [(idx, v, label) for idx, (v, label) in enumerate([
         # (10, '  1/'),
         (20, '  2/'),
         (30, '  3/'),
@@ -252,7 +245,7 @@ class RITColorSource(ColorSource):
         (80, '  8/'),
         (85, '8.5/'),
         (90, '  9/')
-    ]
+    ])]
 
     def read_data(self):
         with open('rit_munsell.csv') as c_file:
@@ -261,49 +254,63 @@ class RITColorSource(ColorSource):
         self.data = neutral_colors + data
 
 
+# Formats an 8 1/2 by 11 inch page in the Munsell book
 class MunsellPage:
+    # Page parameters for PIL
+    dpi = 100
+    image_w = 1100
+    image_h = 850
+
+    small_font_size = 18
+    large_font_size = 32
+    small_font = ImageFont.truetype('./RobotoMono-BoldItalic.ttf', small_font_size)
+    large_font = ImageFont.truetype('./RobotoMono-BoldItalic.ttf', large_font_size)
+
+    patch_x0 = 100
+    value_label_x0 = patch_x0 - 50
+    patch_w = 72
+    patch_w_stride = patch_w + 12
+
+    patch_y0 = image_h - 50
+    chroma_label_y0 = patch_y0 + 15
+    patch_h = 72
+    patch_h_stride = patch_h + 12
+
     def __init__(self, source, hue):
         self.page_num = ordered_hues.index(hue) + 1
         self.h = hue
         self.source = source
         self.init_image()
 
-    def text_ralign(self, xy, text, font):
-        (w, h) = self.draw.textsize(text, font = font)
-        (x, y) = xy
-        self.draw.text((x - w, y), text, font = font, fill = '#000000')
-
     def init_image(self):
-        self.img = Image.new('RGB', (image_w, image_h), color = 'white')
+        self.img = Image.new('RGB', (self.image_w, self.image_h), color = 'white')
         self.draw = ImageDraw.Draw(self.img)
 
-        x0 = patch_x0 + (len(self.source.chroma_labels) * patch_w_stride)
-        y0 = patch_y0 - (len(self.source.value_labels) * patch_h_stride)
+        x0 = self.patch_x0 + (len(self.source.chroma_labels) * self.patch_w_stride)
+        y0 = self.patch_y0 - (len(self.source.value_labels) * self.patch_h_stride)
         # print('{} {}'.format((x0, y0), self.h))
-        self.text_ralign((x0, y0), self.h, large_font)
-        self.text_ralign((x0, y0 + 40), 'p. {}'.format(self.page_num), small_font)
+        draw_text_ralign(self.draw, (x0, y0), self.h, self.large_font)
+        draw_text_ralign(self.draw, (x0, y0 + 40), 'p. {}'.format(self.page_num), self.small_font)
 
-        for y, vl in enumerate(self.source.value_labels):
-            (v, label) = vl
-            y0 = patch_y0 - patch_h - (y * patch_h_stride)
+        for (y, v, label) in self.source.value_labels:
+            y0 = self.patch_y0 - self.patch_h - (y * self.patch_h_stride)
             # print('{} {}'.format((value_label_x0, y0), label))
-            self.draw.text((value_label_x0, y0), label, font = small_font, fill = '#000000', align = 'left')
+            self.draw.text((value_label_x0, y0), label, font = self.small_font, fill = '#000000', align = 'left')
 
         if self.h != 'N':
-            for x, cl in enumerate(self.source.chroma_labels):
-                (c, label) = cl
-                x0 = patch_x0 + (x * patch_w_stride)
+            for (x, c, label) in self.source.chroma_labels:
+                x0 = self.patch_x0 + (x * self.patch_w_stride)
                 # print('{} {}'.format((x0, chroma_label_y0), label))
-                self.draw.text((x0, chroma_label_y0), label, font = small_font, fill = '#000000', align = 'left')
+                self.draw.text((x0, chroma_label_y0), label, font = self.small_font, fill = '#000000', align = 'left')
 
     def add_patch(self, color):
-        location = self.source.find_location(color)
+        location = self.source.location_on_page(color)
         if location:
             (x, y, v_label, c_label) = location
-            x0 = patch_x0 + (x * patch_w_stride)
-            y0 = patch_y0 - (y * patch_h_stride)
-            x1 = x0 + patch_w
-            y1 = y0 - patch_h
+            x0 = self.patch_x0 + (x * self.patch_w_stride)
+            y0 = self.patch_y0 - (y * self.patch_h_stride)
+            x1 = x0 + self.patch_w
+            y1 = y0 - self.patch_h
             xy = [x0, y0, x1, y1]
             r, g, b = self.source.get_rgb(color)
             fill = '#{:02X}{:02X}{:02X}'.format(r, g, b)
@@ -313,8 +320,57 @@ class MunsellPage:
             print('Patch {} {}/{} will not be printed'.format(color['h'], color['V'], color['C']))
 
     def print(self):
-        self.img.save('{}_{:03d}_{}.png'.format(self.source.name, self.page_num, self.h.replace(' ', '_')))
-        pass
+        file_name = '{}_{:03d}_{}.png'.format(self.source.name, self.page_num, self.h.replace(' ', '_'))
+        self.img.save(file_name, dpi = (self.dpi, self.dpi))
+
+
+# Formats a 4 by 6 1/2 inch card of one hue and value
+class MunsellCard:
+    # Card parameters for PIL
+    dpi = 100
+    image_w = 650
+    image_h = 400
+
+    small_font_size = 18
+    small_font = ImageFont.truetype('./RobotoMono-BoldItalic.ttf', small_font_size)
+
+    patch_x0 = 75
+    patch_w = 120
+    patch_w_stride = patch_w + 12
+
+    patch_y0 = image_h - 60
+    patch_h = 120
+    patch_h_stride = patch_h + 50
+
+    def __init__(self, source, hue, value):
+        self.h = hue
+        self.v = value
+        self.source = source
+        self.init_image()
+
+    def init_image(self):
+        self.img = Image.new('RGB', (self.image_w, self.image_h), color = 'white')
+        self.draw = ImageDraw.Draw(self.img)
+
+    def add_patch(self, idx, color):
+        (y, x) = divmod(idx, 4)
+        x0 = self.patch_x0 + (x * self.patch_w_stride)
+        y0 = self.patch_y0 - (y * self.patch_h_stride)
+        x1 = x0 + self.patch_w
+        y1 = y0 - self.patch_h
+        xy = [x0, y0, x1, y1]
+        r, g, b = self.source.get_rgb(color)
+        fill = '#{:02X}{:02X}{:02X}'.format(r, g, b)
+        # print('spec{} idx {} xy {} fill {}'.format(spec, idx, xy, fill))
+        self.draw.rectangle(xy, fill = fill)
+        (d, m) = divmod(color['V'], 10)
+        v_str = str(d) if m == 0 else '{}.{}'.format(d, m)
+        label = '{} {}/{}'.format(color['h'], v_str, color['C'])
+        self.draw.text((x0, y0 + 10), label, font = self.small_font, fill = '#000000', align = 'left')
+
+    def print(self):
+        file_name = '{}c_{}_{}.png'.format(self.source.name, self.h.replace(' ', '_'), self.v)
+        self.img.save(file_name, dpi = (self.dpi, self.dpi))
 
 
 class MunsellBook:
@@ -323,6 +379,13 @@ class MunsellBook:
         self.current_hue = ''
         self.current_page = None
         self.source.read_data()
+
+    def print_card(self, hue, value):
+        card = MunsellCard(self.source, hue, value)
+        chroma_range = self.source.get_chroma_range(hue, value, 8)
+        for idx, color in enumerate(chroma_range):
+            card.add_patch(idx, color)
+        card.print()
 
     def print_pages(self, page_max = -1):
         page_count = 0
@@ -343,4 +406,5 @@ class MunsellBook:
 
 if __name__ == '__main__':
     book = MunsellBook('rit')
-    book.print_pages()
+    # book.print_pages()
+    book.print_card('10YR', 80)
