@@ -362,16 +362,19 @@ class MunsellCard:
         self.h = hue
         self.v = value
         self.source = source
-        self.init_image()
 
-    def init_image(self):
-        self.img = Image.new('RGB', (self.image_w, self.image_h), color = 'white')
-        self.draw = ImageDraw.Draw(self.img)
+        # More patches on N card, please
         if self.h == 'N':
             self.patches_per_row = 5
             self.max_patches = self.patch_rows * self.patches_per_row
             self.patch_w = 92
             self.patch_w_stride = self.patch_w + 12
+
+        self.init_image()
+
+    def init_image(self):
+        self.img = Image.new('RGB', (self.image_w, self.image_h), color = 'white')
+        self.draw = ImageDraw.Draw(self.img)
 
     def add_patches(self):
         if self.h == 'N':
