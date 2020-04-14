@@ -154,8 +154,8 @@ class ColorSource:
         found_c = self.find_chroma(h, c)
         if found_c is not None:
             (x, c_label) = found_c
-            found_y = self.self.find_value(v)
-            if found_y is not None:
+            found_v = self.find_value(v)
+            if found_v is not None:
                 (y, v_label) = found_v
                 return (x, y, v_label, c_label)
         return None
@@ -243,7 +243,7 @@ class RITColorSource(ColorSource):
         (60, '  6/'),
         (70, '  7/'),
         (80, '  8/'),
-        (85, '8.5/'),
+        # (85, '8.5/'),
         (90, '  9/')
     ])]
 
@@ -294,14 +294,14 @@ class MunsellPage:
 
         for (y, v, label) in self.source.value_labels:
             y0 = self.patch_y0 - self.patch_h - (y * self.patch_h_stride)
-            # print('{} {}'.format((value_label_x0, y0), label))
-            self.draw.text((value_label_x0, y0), label, font = self.small_font, fill = '#000000', align = 'left')
+            # print('{} {}'.format((self.value_label_x0, y0), label))
+            self.draw.text((self.value_label_x0, y0), label, font = self.small_font, fill = '#000000', align = 'left')
 
         if self.h != 'N':
             for (x, c, label) in self.source.chroma_labels:
                 x0 = self.patch_x0 + (x * self.patch_w_stride)
-                # print('{} {}'.format((x0, chroma_label_y0), label))
-                self.draw.text((x0, chroma_label_y0), label, font = self.small_font, fill = '#000000', align = 'left')
+                # print('{} {}'.format((x0, self.chroma_label_y0), label))
+                self.draw.text((x0, self.chroma_label_y0), label, font = self.small_font, fill = '#000000', align = 'left')
 
     def add_patch(self, color):
         location = self.source.location_on_page(color)
@@ -352,6 +352,16 @@ class MunsellCard:
         self.img = Image.new('RGB', (self.image_w, self.image_h), color = 'white')
         self.draw = ImageDraw.Draw(self.img)
 
+    def add_patches(self):
+        chroma_range = self.source.get_chroma_range(hue, value, 8)
+        if len(chroma_range) == 0:
+            print('No patches found for {} {}'.format(self.h, self.v))
+            return False
+
+        for idx, color in enumerate(chroma_range):
+            self.add_patch(idx, color)
+        return True
+
     def add_patch(self, idx, color):
         (y, x) = divmod(idx, 4)
         x0 = self.patch_x0 + (x * self.patch_w_stride)
@@ -369,11 +379,12 @@ class MunsellCard:
         self.draw.text((x0, y0 + 10), label, font = self.small_font, fill = '#000000', align = 'left')
 
     def print(self):
-        file_name = '{}c_{}_{}.png'.format(self.source.name, self.h.replace(' ', '_'), self.v)
-        self.img.save(file_name, dpi = (self.dpi, self.dpi))
+        if self.add_patches():
+            file_name = '{}c_{}_{}.png'.format(self.source.name, self.h.replace(' ', '_'), self.v)
+            self.img.save(file_name, dpi = (self.dpi, self.dpi))
 
 
-class MunsellBook:
+class Munsell:
     def __init__(self, source_name = 'rit'):
         self.source = new_color_source(source_name)
         self.current_hue = ''
@@ -382,21 +393,15 @@ class MunsellBook:
 
     def print_card(self, hue, value):
         card = MunsellCard(self.source, hue, value)
-        chroma_range = self.source.get_chroma_range(hue, value, 8)
-        for idx, color in enumerate(chroma_range):
-            card.add_patch(idx, color)
         card.print()
 
-    def print_pages(self, page_max = -1):
-        page_count = 0
+    def print_book(self):
         for idx, color in enumerate(self.source.data):
             hue = color['h']
             if hue != self.current_hue:
-                if page_count == page_max:
-                    break
                 if self.current_page is not None:
                     self.current_page.print()
-                page_count = page_count + 1
+
                 self.current_hue = color['h']
                 self.current_page = MunsellPage(self.source, hue)
             self.current_page.add_patch(color)
@@ -405,6 +410,23 @@ class MunsellBook:
             self.current_page.print()
 
 if __name__ == '__main__':
-    book = MunsellBook('rit')
-    # book.print_pages()
-    book.print_card('10YR', 80)
+    import argparse
+    import re
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--source', help='data source: rit or uef', default='rit')
+    parser.add_argument('--card', help='output card for a specific hue and value, like 10YR 8')
+    args = parser.parse_args()
+
+    mun = Munsell(args.source)
+    if args.card is not None:
+        print('args.card {}'.format(args.card))
+        m = re.match(r'([.0-9]+)\s*([A-Z]+)\s*([.0-9]+)', args.card)
+        if m:
+            hue = '{}{}'.format(m.group(1), m.group(2))
+            value = int(round(float(m.group(3)) * 10.0))
+            mun.print_card(hue, value)
+        else:
+            print('Bad card argument: {}'.format(args.card))
+    else:
+        mun.print_book()
