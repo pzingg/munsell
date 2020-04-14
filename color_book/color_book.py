@@ -107,18 +107,18 @@ def draw_text_ralign(draw, xy, text, font):
 
 # Munsell value (*10) and dRGB value
 neutrals = [
-    ( 95, 243 ),
-    ( 90, 232 ),
-    ( 85, 220 ),
-    ( 80, 203 ),
-    ( 70, 179 ),
-    ( 60, 150 ),
-    ( 50, 124 ),
-    ( 40, 97 ),
-    ( 30, 70 ),
-    ( 25, 59 ),
+    ( 10, 28 ),
     ( 20, 48 ),
-    ( 10, 28 )
+    ( 25, 59 ),
+    ( 30, 70 ),
+    ( 40, 97 ),
+    ( 50, 124 ),
+    ( 60, 150 ),
+    ( 70, 179 ),
+    ( 80, 203 ),
+    ( 85, 220 ),
+    ( 90, 232 ),
+    ( 95, 243 )
 ]
 
 neutral_colors = [{
@@ -134,8 +134,17 @@ class ColorSource:
     def read_data(self):
         raise Exception('Must use subclass!')
 
-    def get_rgb(self, color):
+    def rgb(self, color):
         return [color[key] for key in ['dR', 'dG', 'dB']]
+
+    def label(self, color):
+        (d, m) = divmod(color['V'], 10)
+        v_str = str(d) if m == 0 else '{}.{}'.format(d, m)
+        if color['h'] == 'N':
+            label = 'N {}'.format(v_str)
+        else:
+            label = '{} {}/{}'.format(color['h'], v_str, color['C'])
+        return label
 
     def find_chroma(self, h, c):
         if h == 'N':
@@ -161,7 +170,7 @@ class ColorSource:
         return None
 
     # Get highest chromas
-    def get_chroma_range(self, hue, value, max):
+    def get_chroma_colors(self, hue, value, max):
         chromas = [color for color in self.data
             if color['h'] == hue and color['V'] == value and self.find_chroma(hue, color['C']) is not None]
         chromas.sort(key = lambda x: x['C'])
@@ -169,8 +178,11 @@ class ColorSource:
 
     def print_colors(self):
         for idx, color in enumerate(self.data):
-            r, g, b = self.get_rgb(color)
-            print('idx {} rgb {} hex {}'.format(idx, (color['R'], color['G'], color['B']), '#{:02X}{:02X}{:02X}'.format(r, g, b)))
+            r, g, b = self.rgb(color)
+            label = self.label(color)
+            print('idx {} label {} rgb {} hex {}'.format(idx, label,
+                (color['R'], color['G'], color['B']),
+                '#{:02X}{:02X}{:02X}'.format(r, g, b)))
 
 
 class UEFColorSource(ColorSource):
@@ -312,7 +324,7 @@ class MunsellPage:
             x1 = x0 + self.patch_w
             y1 = y0 - self.patch_h
             xy = [x0, y0, x1, y1]
-            r, g, b = self.source.get_rgb(color)
+            r, g, b = self.source.rgb(color)
             fill = '#{:02X}{:02X}{:02X}'.format(r, g, b)
             # print('spec{} idx {} xy {} fill {}'.format(spec, idx, xy, fill))
             self.draw.rectangle(xy, fill = fill)
@@ -328,13 +340,17 @@ class MunsellPage:
 class MunsellCard:
     # Card parameters for PIL
     dpi = 100
-    image_w = 650
+    image_w = 600
     image_h = 400
+
+    patches_per_row = 4
+    patch_rows = 2
+    max_patches = patch_rows * patches_per_row
 
     small_font_size = 18
     small_font = ImageFont.truetype('./RobotoMono-BoldItalic.ttf', small_font_size)
 
-    patch_x0 = 75
+    patch_x0 = 40
     patch_w = 120
     patch_w_stride = patch_w + 12
 
@@ -351,31 +367,38 @@ class MunsellCard:
     def init_image(self):
         self.img = Image.new('RGB', (self.image_w, self.image_h), color = 'white')
         self.draw = ImageDraw.Draw(self.img)
+        if self.h == 'N':
+            self.patches_per_row = 5
+            self.max_patches = self.patch_rows * self.patches_per_row
+            self.patch_w = 92
+            self.patch_w_stride = self.patch_w + 12
 
     def add_patches(self):
-        chroma_range = self.source.get_chroma_range(hue, value, 8)
-        if len(chroma_range) == 0:
+        if self.h == 'N':
+            colors = neutral_colors[-self.max_patches:]
+        else:
+            colors = self.source.get_chroma_colors(self.h, self.v, self.max_patches)
+
+        if len(colors) == 0:
             print('No patches found for {} {}'.format(self.h, self.v))
             return False
 
-        for idx, color in enumerate(chroma_range):
+        for idx, color in enumerate(colors):
             self.add_patch(idx, color)
         return True
 
     def add_patch(self, idx, color):
-        (y, x) = divmod(idx, 4)
+        (y, x) = divmod(idx, self.patches_per_row)
         x0 = self.patch_x0 + (x * self.patch_w_stride)
         y0 = self.patch_y0 - (y * self.patch_h_stride)
         x1 = x0 + self.patch_w
         y1 = y0 - self.patch_h
         xy = [x0, y0, x1, y1]
-        r, g, b = self.source.get_rgb(color)
+        r, g, b = self.source.rgb(color)
+        label = self.source.label(color)
         fill = '#{:02X}{:02X}{:02X}'.format(r, g, b)
         # print('spec{} idx {} xy {} fill {}'.format(spec, idx, xy, fill))
         self.draw.rectangle(xy, fill = fill)
-        (d, m) = divmod(color['V'], 10)
-        v_str = str(d) if m == 0 else '{}.{}'.format(d, m)
-        label = '{} {}/{}'.format(color['h'], v_str, color['C'])
         self.draw.text((x0, y0 + 10), label, font = self.small_font, fill = '#000000', align = 'left')
 
     def print(self):
@@ -394,6 +417,16 @@ class Munsell:
     def print_card(self, hue, value):
         card = MunsellCard(self.source, hue, value)
         card.print()
+
+    def print_all_cards(self):
+        for hue in ordered_hues:
+            if hue == 'N':
+                card = MunsellCard(self.source, 'N', 0)
+                card.print()
+            else:
+                for value in range(20, 100, 10):
+                    card = MunsellCard(self.source, hue, value)
+                    card.print()
 
     def print_book(self):
         for idx, color in enumerate(self.source.data):
@@ -414,19 +447,24 @@ if __name__ == '__main__':
     import re
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('--source', help='data source: rit or uef', default='rit')
-    parser.add_argument('--card', help='output card for a specific hue and value, like 10YR 8')
+    parser.add_argument('--source', help='data source: "rit" or "uef"', default='rit')
+    parser.add_argument('--book', help='output all colors in book format', action='store_true')
+    parser.add_argument('--card', help='output card for a specific hue and value, like "N", "10YR8"; or "all" to output all cards')
     args = parser.parse_args()
 
-    mun = Munsell(args.source)
-    if args.card is not None:
-        print('args.card {}'.format(args.card))
+    if args.book:
+        Munsell(args.source).print_book()
+    elif args.card is None:
+        parser.error("please choose output, either --book or --card")
+    elif args.card == 'all':
+        Munsell(args.source).print_all_cards()
+    elif args.card == 'N':
+        Munsell(args.source).print_card('N', 0)
+    else:
         m = re.match(r'([.0-9]+)\s*([A-Z]+)\s*([.0-9]+)', args.card)
         if m:
             hue = '{}{}'.format(m.group(1), m.group(2))
             value = int(round(float(m.group(3)) * 10.0))
-            mun.print_card(hue, value)
+            Munsell(args.source).print_card(hue, value)
         else:
             print('Bad card argument: {}'.format(args.card))
-    else:
-        mun.print_book()
