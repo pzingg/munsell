@@ -130,6 +130,7 @@ neutral_colors = [{
 class ColorSource:
     def __init__(self, name):
         self.name = name
+        self.read_data()
 
     def read_data(self):
         raise Exception('Must use subclass!')
@@ -290,7 +291,7 @@ class MunsellPage:
 
     def __init__(self, source, hue):
         self.page_num = ordered_hues.index(hue) + 1
-        self.h = hue
+        self.hue = hue
         self.source = source
         self.init_image()
 
@@ -300,20 +301,22 @@ class MunsellPage:
 
         x0 = self.patch_x0 + (len(self.source.chroma_labels) * self.patch_w_stride)
         y0 = self.patch_y0 - (len(self.source.value_labels) * self.patch_h_stride)
-        # print('{} {}'.format((x0, y0), self.h))
-        draw_text_ralign(self.draw, (x0, y0), self.h, self.large_font)
+        # print('{} {}'.format((x0, y0), self.hue))
+        draw_text_ralign(self.draw, (x0, y0), self.hue, self.large_font)
         draw_text_ralign(self.draw, (x0, y0 + 40), 'p. {}'.format(self.page_num), self.small_font)
 
         for (y, v, label) in self.source.value_labels:
             y0 = self.patch_y0 - self.patch_h - (y * self.patch_h_stride)
             # print('{} {}'.format((self.value_label_x0, y0), label))
-            self.draw.text((self.value_label_x0, y0), label, font = self.small_font, fill = '#000000', align = 'left')
+            self.draw.text((self.value_label_x0, y0),
+                label, font = self.small_font, fill = '#000000', align = 'left')
 
-        if self.h != 'N':
+        if self.hue != 'N':
             for (x, c, label) in self.source.chroma_labels:
                 x0 = self.patch_x0 + (x * self.patch_w_stride)
                 # print('{} {}'.format((x0, self.chroma_label_y0), label))
-                self.draw.text((x0, self.chroma_label_y0), label, font = self.small_font, fill = '#000000', align = 'left')
+                self.draw.text((x0, self.chroma_label_y0),
+                    label, font = self.small_font, fill = '#000000', align = 'left')
 
     def add_patch(self, color):
         location = self.source.location_on_page(color)
@@ -329,10 +332,11 @@ class MunsellPage:
             # print('spec{} idx {} xy {} fill {}'.format(spec, idx, xy, fill))
             self.draw.rectangle(xy, fill = fill)
         else:
-            print('Patch {} {}/{} will not be printed'.format(color['h'], color['V'], color['C']))
+            print('Patch {} {}/{} will not be printed'.format(
+                color['h'], color['V'], color['C']))
 
     def print(self):
-        file_name = '{}_{:03d}_{}.png'.format(self.source.name, self.page_num, self.h.replace(' ', '_'))
+        file_name = '{}_{:03d}_{}.png'.format(self.source.name, self.page_num, self.hue)
         self.img.save(file_name, dpi = (self.dpi, self.dpi))
 
 
@@ -359,12 +363,12 @@ class MunsellCard:
     patch_h_stride = patch_h + 50
 
     def __init__(self, source, hue, value):
-        self.h = hue
-        self.v = value
+        self.hue = hue
+        self.value = value
         self.source = source
 
         # More patches on N card, please
-        if self.h == 'N':
+        if self.hue == 'N':
             self.patches_per_row = 5
             self.max_patches = self.patch_rows * self.patches_per_row
             self.patch_w = 92
@@ -377,17 +381,20 @@ class MunsellCard:
         self.draw = ImageDraw.Draw(self.img)
 
     def add_patches(self):
-        if self.h == 'N':
+        if self.hue == 'N':
             colors = neutral_colors[-self.max_patches:]
         else:
-            colors = self.source.get_chroma_colors(self.h, self.v, self.max_patches)
+            colors = self.source.get_chroma_colors(
+                self.hue, self.value, self.max_patches)
 
-        if len(colors) == 0:
-            print('No patches found for {} {}'.format(self.h, self.v))
+        num_patches = len(colors)
+        if num_patches == 0:
+            print('No patches found for {} {}'.format(self.hue, self.value))
             return False
 
+        offset = self.max_patches - num_patches
         for idx, color in enumerate(colors):
-            self.add_patch(idx, color)
+            self.add_patch(idx + offset, color)
         return True
 
     def add_patch(self, idx, color):
@@ -406,44 +413,43 @@ class MunsellCard:
 
     def print(self):
         if self.add_patches():
-            file_name = '{}c_{}_{}.png'.format(self.source.name, self.h.replace(' ', '_'), self.v)
+            page_num = ordered_hues.index(self.hue) + 1
+            file_name = 'card_{}_{:03d}_{}_{}.png'.format(
+                self.source.name, page_num, self.hue, self.value)
             self.img.save(file_name, dpi = (self.dpi, self.dpi))
 
 
 class Munsell:
     def __init__(self, source_name = 'rit'):
         self.source = new_color_source(source_name)
-        self.current_hue = ''
-        self.current_page = None
-        self.source.read_data()
 
     def print_card(self, hue, value):
-        card = MunsellCard(self.source, hue, value)
-        card.print()
+        MunsellCard(self.source, hue, value).print()
 
     def print_all_cards(self):
         for hue in ordered_hues:
             if hue == 'N':
-                card = MunsellCard(self.source, 'N', 0)
-                card.print()
+                MunsellCard(self.source, 'N', 0).print()
             else:
                 for value in range(20, 100, 10):
-                    card = MunsellCard(self.source, hue, value)
-                    card.print()
+                    MunsellCard(self.source, hue, value).print()
 
     def print_book(self):
+        current_hue = None
+        current_page = None
+
         for idx, color in enumerate(self.source.data):
             hue = color['h']
-            if hue != self.current_hue:
-                if self.current_page is not None:
-                    self.current_page.print()
+            if hue != current_hue:
+                if current_page is not None:
+                    current_page.print()
 
-                self.current_hue = color['h']
-                self.current_page = MunsellPage(self.source, hue)
-            self.current_page.add_patch(color)
+                current_hue = color['h']
+                current_page = MunsellPage(self.source, hue)
+            current_page.add_patch(color)
 
-        if self.current_page is not None:
-            self.current_page.print()
+        if current_page is not None:
+            current_page.print()
 
 if __name__ == '__main__':
     import argparse
