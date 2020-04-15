@@ -139,12 +139,15 @@ class ColorSource:
         return [color[key] for key in ['dR', 'dG', 'dB']]
 
     def label(self, color):
-        (d, m) = divmod(color['V'], 10)
+        return self.hvc_label(color['h'], color['V'], color['C'])
+
+    def hvc_label(self, hue, value, chroma):
+        (d, m) = divmod(value, 10)
         v_str = str(d) if m == 0 else '{}.{}'.format(d, m)
-        if color['h'] == 'N':
+        if hue == 'N':
             label = 'N {}'.format(v_str)
         else:
-            label = '{} {}/{}'.format(color['h'], v_str, color['C'])
+            label = '{} {}/{}'.format(hue, v_str, chroma)
         return label
 
     def find_chroma(self, h, c):
@@ -170,12 +173,40 @@ class ColorSource:
                 return (x, y, v_label, c_label)
         return None
 
+    def find_highest_chroma(self, hue, value, chroma):
+        highest_chroma = -2
+        highest_color = None
+        for color in self.data:
+            if color['h'] == hue and color['V'] == value and color['C'] <= chroma and color['C'] > highest_chroma:
+                highest_chroma = color['C']
+                highest_color = color
+
+        if highest_color is None:
+                raise Exception('No chroma found for {}'.format(
+                    self.hvc_label(hue, value, chroma)))
+        return highest_color
+
     # Get highest chromas
     def get_chroma_colors(self, hue, value, max):
         chromas = [color for color in self.data
             if color['h'] == hue and color['V'] == value and self.find_chroma(hue, color['C']) is not None]
         chromas.sort(key = lambda x: x['C'])
         return chromas[-max:]
+
+    def get_bracket_colors(self, hue, value, chroma, num):
+        idx_last = len(ordered_hues) - 1
+        idx = ordered_hues.index(hue)
+        colors = []
+        for offset in range(-num, num + 1):
+            i = idx + offset
+            if i < 1:
+                i = i + idx_last
+            elif i > idx_last:
+                i = i - idx_last
+            target_hue = ordered_hues[i]
+            color = self.find_highest_chroma(target_hue, value, chroma)
+            colors.append(color)
+        return colors
 
     def print_colors(self):
         for idx, color in enumerate(self.data):
@@ -336,7 +367,8 @@ class MunsellPage:
                 color['h'], color['V'], color['C']))
 
     def print(self):
-        file_name = '{}_{:03d}_{}.png'.format(self.source.name, self.page_num, self.hue)
+        file_name = '{}_{:03d}_{}.png'.format(
+            self.source.name, self.page_num, self.hue)
         self.img.save(file_name, dpi = (self.dpi, self.dpi))
 
 
@@ -362,10 +394,12 @@ class MunsellCard:
     patch_h = 120
     patch_h_stride = patch_h + 50
 
-    def __init__(self, source, hue, value):
+    def __init__(self, source, hue, value, chroma, mode):
+        self.source = source
         self.hue = hue
         self.value = value
-        self.source = source
+        self.chroma = chroma
+        self.mode = mode
 
         # More patches on N card, please
         if self.hue == 'N':
@@ -383,9 +417,14 @@ class MunsellCard:
     def add_patches(self):
         if self.hue == 'N':
             colors = neutral_colors[-self.max_patches:]
-        else:
+        elif self.mode == 'chroma':
             colors = self.source.get_chroma_colors(
                 self.hue, self.value, self.max_patches)
+        else:
+            num_brackets = (self.max_patches - 1) // 2
+            colors = self.source.get_bracket_colors(
+                self.hue, self.value, self.chroma, num_brackets)
+            # self.chroma = colors[num_brackets]['C']
 
         num_patches = len(colors)
         if num_patches == 0:
@@ -414,8 +453,12 @@ class MunsellCard:
     def print(self):
         if self.add_patches():
             page_num = ordered_hues.index(self.hue) + 1
-            file_name = 'card_{}_{:03d}_{}_{}.png'.format(
-                self.source.name, page_num, self.hue, self.value)
+            if self.mode == 'chroma':
+                file_name = 'card_{}_{:03d}_{}_{:02d}.png'.format(
+                    self.source.name, page_num, self.hue, self.value)
+            else:
+                file_name = 'hues_{}_{:03d}_{}_{:02d}_{:02d}.png'.format(
+                    self.source.name, page_num, self.hue, self.value, self.chroma)
             self.img.save(file_name, dpi = (self.dpi, self.dpi))
 
 
@@ -423,16 +466,16 @@ class Munsell:
     def __init__(self, source_name = 'rit'):
         self.source = new_color_source(source_name)
 
-    def print_card(self, hue, value):
-        MunsellCard(self.source, hue, value).print()
+    def print_card(self, hue, value, chroma=None, mode='chroma'):
+        MunsellCard(self.source, hue, value, chroma, mode).print()
 
     def print_all_cards(self):
         for hue in ordered_hues:
             if hue == 'N':
-                MunsellCard(self.source, 'N', 0).print()
+                MunsellCard(self.source, 'N', None, None, 'chroma').print()
             else:
                 for value in range(20, 100, 10):
-                    MunsellCard(self.source, hue, value).print()
+                    MunsellCard(self.source, hue, value, None, 'chroma').print()
 
     def print_book(self):
         current_hue = None
@@ -457,14 +500,25 @@ if __name__ == '__main__':
 
     parser = argparse.ArgumentParser()
     parser.add_argument('--source', help='data source: "rit" or "uef"', default='rit')
-    parser.add_argument('--book', help='output all colors in book format', action='store_true')
-    parser.add_argument('--card', help='output card for a specific hue and value, like "N", "10YR8"; or "all" to output all cards')
+    output_group = parser.add_mutually_exclusive_group()
+    output_group.add_argument('--book', help='print all colors in book format', action='store_true')
+    output_group.add_argument('--card', help='print a card for a specific hue and value, like "N", "10YR8"; or "all" to output all cards')
+    output_group.add_argument('--hues', help='print a card bracketing the colors near a given color, like "10YR8/12"')
     args = parser.parse_args()
 
     if args.book:
         Munsell(args.source).print_book()
+    elif args.hues is not None:
+        m = re.match(r'([.0-9]+)\s*([A-Z]+)\s*([.0-9]+)\s*/\s*([0-9]+)', args.hues)
+        if m:
+            hue = '{}{}'.format(m.group(1), m.group(2))
+            value = int(round(float(m.group(3)) * 10.0))
+            chroma = int(m.group(4))
+            Munsell(args.source).print_card(hue, value, chroma, mode='hue')
+        else:
+            print('invalid --hues argument: {}'.format(args.hues))
     elif args.card is None:
-        parser.error("please choose output, either --book or --card")
+        parser.error("please choose output, either --book --card or --hues")
     elif args.card == 'all':
         Munsell(args.source).print_all_cards()
     elif args.card == 'N':
@@ -476,4 +530,4 @@ if __name__ == '__main__':
             value = int(round(float(m.group(3)) * 10.0))
             Munsell(args.source).print_card(hue, value)
         else:
-            print('Bad card argument: {}'.format(args.card))
+            print('invalid --card argument: {}'.format(args.card))
