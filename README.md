@@ -1,24 +1,18 @@
 # munsell
 
-Elm-WebGL project to explore Munsell color space.
+Various projects related to the Munsell color system.
 
-Eventually I will have two views:
+See the README files in each project for more details.
 
-1. Color wheel, with filters on value.
-2. Two-sided hue page, showing selected hue and clockwise and counter-clockwise neighbors.
+- `color_book` is a Python 3 script to print out a facsimile of the
+  Munsell Color Book, using RGB data from RIT.
 
-The source for the Munsell-to-sRGB/dRGB conversion table is from the RIT Munsell website:
-https://www.rit.edu/cos/colorscience/rc_munsell_renotation.php
+- `color_space` is an Elm / WebGL application to visualize the
+  Munsell color as a sphere that you can move around.
 
-The direct file link (located in the section named "real.dat") is
-http://www.rit-mcsl.org/MunsellRenotation/real_sRGB.xls
+- `nupastel_match` is a Python 3 script to find the closest Munsell colors
+  for each of the 96 Prismacolor Nupastel hard pastel colors.
 
-Also, Paul Centore's website has a ton of color science data, programs, etc:
-http://www.munsellcolourscienceforpainters.com/MunsellAndKubelkaMunkToolbox/MunsellAndKubelkaMunkToolbox.html
-
-On Centore's "Munsell Resources" page is another conversion file with slightly different color values on it:
-http://www.munsellcolourscienceforpainters.com/MunsellAndKubelkaMunkToolbox/MunsellAndKubelkaMunkToolboxFeb2017/DataFiles/MunsellRenotationTosRGB.txt
-
-## Notes
-
-This project is bootstrapped with [Create Elm App](https://github.com/halfzebra/create-elm-app).
+- `nupastel_spider` is a Python 3 web crawler that downloads the
+  data used by `nupastel_match`.
+  

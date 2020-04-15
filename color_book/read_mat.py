@@ -1,3 +1,5 @@
+#!/usr/bin/python3
+
 from scipy.io import loadmat
 import numpy as np
 import re
