@@ -171,9 +171,9 @@ getSceneElementCmd =
 
 {-| Number of pixels per second we are moving the camera via animation
 -}
-dragRate : Float
-dragRate =
-    0.005
+spinRate : Float
+spinRate =
+    0.0005
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -194,7 +194,7 @@ update msg model =
                         True ->
                             let
                                 deltaX =
-                                    dt * dragRate * model.windowRect.width
+                                    dt * spinRate * model.windowRect.width
                             in
                             { model | camera = dragCamera cameraDistance deltaX 0 model.camera }
 
