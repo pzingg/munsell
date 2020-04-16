@@ -1,28 +1,29 @@
 module ColorWheel exposing (..)
 
 import Dict exposing (Dict)
-import Math.Matrix4 as Mat4 exposing (Mat4, scale3, translate3, rotate)
-import Math.Vector3 as Vec3 exposing (Vec3, vec3)
 import Geometry as Geom
     exposing
         ( AppMesh
-        , GeometryObject
         , BallColors
+        , GeometryObject
         , cylinderPoints
+        , indexedTriangleMesh
         , makeColor
         , makeCube
         , makeCylinder
         , makeWireframeBall
-        , indexedTriangleMesh
         , polylineMeshes
         )
+import Math.Matrix4 as Mat4 exposing (Mat4, rotate, scale3, translate3)
+import Math.Vector3 as Vec3 exposing (Vec3, vec3)
 import Munsell
     exposing
         ( ColorDict
-        , hueRange
         , chromaRange
+        , hueRange
         , valueRange
         )
+
 
 
 ---- CONSTANTS ----
@@ -71,12 +72,12 @@ cylinderForValue : Int -> GeometryObject
 cylinderForValue value =
     let
         grayValue =
-            (toFloat value) / 10.0
+            toFloat value / 10.0
 
         color =
             vec3 grayValue grayValue grayValue
     in
-        makeCylinder color (xfCylinder value)
+    makeCylinder color (xfCylinder value)
 
 
 xfCylinder : Int -> Mat4
@@ -88,7 +89,7 @@ xfCylinder value =
 
 cubesForValue : ColorDict -> Int -> List GeometryObject
 cubesForValue colors value =
-    List.foldl (\hue acc -> (cubesForHV colors hue value) ++ acc) [] hueRange
+    List.foldl (\hue acc -> cubesForHV colors hue value ++ acc) [] hueRange
 
 
 cubesForHV : ColorDict -> Int -> Int -> List GeometryObject
@@ -126,21 +127,21 @@ xfCube : Int -> Int -> Int -> Mat4
 xfCube hue value chroma =
     let
         theta =
-            (toFloat hue) * 2 * pi / 1000
+            toFloat hue * 2 * pi / 1000
 
         band =
             (chroma // 2) - 1
 
         x =
-            r0 + ((toFloat band) * rSpacing)
+            r0 + (toFloat band * rSpacing)
 
         sz =
             scaleCube hue value chroma cubeSize
     in
-        Mat4.identity
-            |> rotate theta Geom.worldUp
-            |> translate3 x (valueY value) 0
-            |> scale3 cubeSize cubeSize sz
+    Mat4.identity
+        |> rotate theta Geom.worldUp
+        |> translate3 x (valueY value) 0
+        |> scale3 cubeSize cubeSize sz
 
 
 
@@ -174,7 +175,7 @@ scaleCube _ _ chroma size =
                 _ ->
                     1
     in
-        x * size
+    x * size
 
 
 
@@ -205,4 +206,4 @@ meshForValue colors value =
         cubes =
             cubesForValue colors value
     in
-        indexedTriangleMesh (cylinder :: cubes)
+    indexedTriangleMesh (cylinder :: cubes)

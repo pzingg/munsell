@@ -1,19 +1,18 @@
-module Munsell
-    exposing
-        ( MunsellColor
-        , ColorDict
-        , hueRange
-        , valueRange
-        , chromaRange
-        , loadColors
-        , findColor
-        , munsellHueName
-        , munsellColorName
-        )
+module Munsell exposing
+    ( ColorDict
+    , MunsellColor
+    , chromaRange
+    , findColor
+    , hueRange
+    , loadColors
+    , munsellColorName
+    , munsellHueName
+    , valueRange
+    )
 
 import Array exposing (Array)
-import Dict exposing (Dict)
 import Csv exposing (..)
+import Dict exposing (Dict)
 
 
 type alias MunsellColor =
@@ -44,7 +43,7 @@ munsellHueName hue =
             remainderBy 25 hue
 
         h1 =
-            (hue - r1)
+            hue - r1
 
         i1 =
             h1 // 100
@@ -55,14 +54,14 @@ munsellHueName hue =
                     ( modBy 10 (i1 + 9), "10" )
 
                 r ->
-                    ( i1, String.fromFloat <| (toFloat r) / 10.0 )
+                    ( i1, String.fromFloat <| toFloat r / 10.0 )
     in
-        case Array.get i munsellHueNames of
-            Just abbr ->
-                Ok <| h ++ abbr
+    case Array.get i munsellHueNames of
+        Just abbr ->
+            Ok <| h ++ abbr
 
-            Nothing ->
-                Err <| "could not get hue name for " ++ String.fromInt hue
+        Nothing ->
+            Err <| "could not get hue name for " ++ String.fromInt hue
 
 
 munsellColorName : Int -> Int -> Int -> Result String String
@@ -86,16 +85,15 @@ findColor colors hue value chroma =
                 _ ->
                     let
                         msg =
-                            (name
+                            name
                                 ++ ", hue "
                                 ++ String.fromInt hue
                                 ++ ", value "
                                 ++ String.fromInt value
                                 ++ ", chroma "
                                 ++ String.fromInt chroma
-                            )
                     in
-                        Err <| "no record for " ++ msg
+                    Err <| "no record for " ++ msg
 
         Err e ->
             Err e
@@ -138,17 +136,17 @@ recordToColorEntry headers record =
                 name =
                     hue ++ " " ++ value ++ "/" ++ chroma
             in
-                Ok
-                    ( name
-                    , { name = name
-                      , hue = hue
-                      , value = String.toInt value |> Maybe.withDefault 0
-                      , chroma = String.toInt chroma |> Maybe.withDefault 0
-                      , red = String.toFloat r |> Maybe.withDefault 0.0
-                      , green = String.toFloat g |> Maybe.withDefault 0.0
-                      , blue = String.toFloat b |> Maybe.withDefault 0.0
-                      }
-                    )
+            Ok
+                ( name
+                , { name = name
+                  , hue = hue
+                  , value = String.toInt value |> Maybe.withDefault 0
+                  , chroma = String.toInt chroma |> Maybe.withDefault 0
+                  , red = String.toFloat r |> Maybe.withDefault 0.0
+                  , green = String.toFloat g |> Maybe.withDefault 0.0
+                  , blue = String.toFloat b |> Maybe.withDefault 0.0
+                  }
+                )
 
         _ ->
             Err "line failed"
@@ -160,18 +158,18 @@ loadColors =
         csv =
             Csv.parseWith "," rawData
     in
-        csv.records
-            |> List.foldl
-                (\r acc ->
-                    case recordToColorEntry csv.headers r of
-                        Ok entry ->
-                            entry :: acc
+    csv.records
+        |> List.foldl
+            (\r acc ->
+                case recordToColorEntry csv.headers r of
+                    Ok entry ->
+                        entry :: acc
 
-                        Err _ ->
-                            acc
-                )
-                []
-            |> Dict.fromList
+                    Err _ ->
+                        acc
+            )
+            []
+        |> Dict.fromList
 
 
 rawData : String

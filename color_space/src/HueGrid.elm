@@ -1,17 +1,18 @@
 module HueGrid exposing (gridMesh)
 
-import Math.Matrix4 as Mat4 exposing (Mat4, scale3, translate3)
-import Math.Vector3 as Vec3 exposing (Vec3, vec3)
 import Geometry as Geom
     exposing
-        ( GeometryObject
-        , AppMesh
+        ( AppMesh
+        , GeometryObject
+        , indexedTriangleMesh
         , makeColor
         , makeCube
         , makeCylinder
-        , indexedTriangleMesh
         )
-import Munsell exposing (ColorDict, hueRange, chromaRange, valueRange)
+import Math.Matrix4 as Mat4 exposing (Mat4, scale3, translate3)
+import Math.Vector3 as Vec3 exposing (Vec3, vec3)
+import Munsell exposing (ColorDict, chromaRange, hueRange, valueRange)
+
 
 
 ---- CONSTANTS ----
@@ -56,19 +57,19 @@ gridMesh colors hue =
         cubes =
             gridCubes colors hue
     in
-        indexedTriangleMesh (cylinders ++ cubes)
+    indexedTriangleMesh (cylinders ++ cubes)
 
 
 cylinderForValue : Int -> GeometryObject
 cylinderForValue value =
     let
         grayValue =
-            (toFloat value) / 10.0
+            toFloat value / 10.0
 
         color =
             vec3 grayValue grayValue grayValue
     in
-        makeCylinder color (xfCylinder value)
+    makeCylinder color (xfCylinder value)
 
 
 xfCylinder : Int -> Mat4
@@ -85,10 +86,10 @@ gridCubes colors hue =
             (\i acc ->
                 let
                     thetaRight =
-                        (toFloat i) * pi / 8
+                        toFloat i * pi / 8
 
                     thetaLeft =
-                        (toFloat (8 - i)) * pi / 8
+                        toFloat (8 - i) * pi / 8
 
                     xfRight =
                         Mat4.makeRotate thetaRight Geom.worldUp
@@ -102,16 +103,16 @@ gridCubes colors hue =
                     hueLeft =
                         modBy 1000 (hue + 500 + (i * 25))
                 in
-                    acc
-                        ++ cubesForHue colors hueRight xfRight
-                        ++ cubesForHue colors hueLeft xfLeft
+                acc
+                    ++ cubesForHue colors hueRight xfRight
+                    ++ cubesForHue colors hueLeft xfLeft
             )
             []
 
 
 cubesForHue : ColorDict -> Int -> Mat4 -> List GeometryObject
 cubesForHue colors hue xf =
-    List.foldl (\value acc -> (cubesForHV colors hue value xf) ++ acc) [] valueRange
+    List.foldl (\value acc -> cubesForHV colors hue value xf ++ acc) [] valueRange
 
 
 cubesForHV : ColorDict -> Int -> Int -> Mat4 -> List GeometryObject
@@ -150,11 +151,11 @@ xfCube : Int -> Int -> Int -> Mat4
 xfCube _ value chroma =
     let
         x =
-            x0 + (toFloat ((chroma // 2) - 1)) * spacing
+            x0 + toFloat ((chroma // 2) - 1) * spacing
 
         y =
-            (toFloat (value - 5)) * spacing
+            toFloat (value - 5) * spacing
     in
-        Mat4.identity
-            |> translate3 x y 0
-            |> scale3 cubeSize cubeSize cubeSize
+    Mat4.identity
+        |> translate3 x y 0
+        |> scale3 cubeSize cubeSize cubeSize

@@ -1,9 +1,9 @@
 module Geometry exposing (..)
 
-import WebGL exposing (Mesh)
-import Math.Matrix4 as Mat4 exposing (Mat4, transform, translate, rotate)
+import Math.Matrix4 as Mat4 exposing (Mat4, rotate, transform, translate)
 import Math.Vector3 as Vec3 exposing (Vec3, vec3)
 import Munsell exposing (ColorDict, findColor)
+import WebGL exposing (Mesh)
 
 
 {-| World Coordinate System - Cartesian
@@ -15,8 +15,8 @@ import Munsell exposing (ColorDict, findColor)
 Camera (Eye) Coordinates - Radial
 
   - theta is vertical angle (positive y) between camera position and z axis,
-    with -0.5 * pi <= theta <= 0.5 * pi, 0 <= cos theta <= 1, -1 <= sin theta <= 1
-  - phi is horizontal angle (positive x) between camera position and z axis, 0 <= phi < 2 * pi
+    with -0.5 \* pi <= theta <= 0.5 \* pi, 0 <= cos theta <= 1, -1 <= sin theta <= 1
+  - phi is horizontal angle (positive x) between camera position and z axis, 0 <= phi < 2 \* pi
 
 -}
 worldUp : Vec3
@@ -57,10 +57,10 @@ type alias Camera =
 involving floating point numbers.
 The sign of the result is the same as the sign of the `modulus`
 in `fractionalModBy modulus x`.
-    fractionalModBy 2.5 5 --> 0
-    fractionalModBy 2 4.5 == 0.5
-    fractionalModBy 2 -4.5 == 1.5
-    fractionalModBy -2 4.5 == -1.5
+fractionalModBy 2.5 5 --> 0
+fractionalModBy 2 4.5 == 0.5
+fractionalModBy 2 -4.5 == 1.5
+fractionalModBy -2 4.5 == -1.5
 -}
 fractionalModBy : Float -> Float -> Float
 fractionalModBy modulus x =
@@ -102,10 +102,10 @@ dragCamera cameraDistance deltaX deltaY { position, phi } =
         -- Subtract deltaTheta and deltaPhi
         theta =
             (currentTheta - deltaTheta)
-                |> (Basics.max (-0.5 * pi))
-                |> (Basics.min (0.5 * pi))
+                |> Basics.max (-0.5 * pi)
+                |> Basics.min (0.5 * pi)
     in
-        makeCamera cameraDistance theta (phi - deltaPhi)
+    makeCamera cameraDistance theta (phi - deltaPhi)
 
 
 {-| camera.position positive y: { 0 = 0, 1 = 5240, 2 = 0 }
@@ -139,53 +139,53 @@ cameraMatrix { position, phi } =
         dot =
             Vec3.dot normal worldUp
     in
-        case dot > 0.99999 of
-            True ->
-                Mat4.fromRecord
-                    { m11 = 1
-                    , m21 = 0
-                    , m31 = 0
-                    , m41 = 0
-                    , m12 = 0
-                    , m22 = 0
-                    , m32 = 1
-                    , m42 = 0
-                    , m13 = 0
-                    , m23 = -1
-                    , m33 = 0
-                    , m43 = 0
-                    , m14 = 0
-                    , m24 = 0
-                    , m34 = -cameraDistance
-                    , m44 = 1
-                    }
-                    |> Mat4.rotate -phi Vec3.j
+    case dot > 0.99999 of
+        True ->
+            Mat4.fromRecord
+                { m11 = 1
+                , m21 = 0
+                , m31 = 0
+                , m41 = 0
+                , m12 = 0
+                , m22 = 0
+                , m32 = 1
+                , m42 = 0
+                , m13 = 0
+                , m23 = -1
+                , m33 = 0
+                , m43 = 0
+                , m14 = 0
+                , m24 = 0
+                , m34 = -cameraDistance
+                , m44 = 1
+                }
+                |> Mat4.rotate -phi Vec3.j
 
-            False ->
-                case dot < -0.99999 of
-                    True ->
-                        Mat4.fromRecord
-                            { m11 = 1
-                            , m21 = 0
-                            , m31 = 0
-                            , m41 = 0
-                            , m12 = 0
-                            , m22 = 0
-                            , m32 = -1
-                            , m42 = 0
-                            , m13 = 0
-                            , m23 = 1
-                            , m33 = 0
-                            , m43 = 0
-                            , m14 = 0
-                            , m24 = 0
-                            , m34 = -cameraDistance
-                            , m44 = 1
-                            }
-                            |> Mat4.rotate -phi Vec3.j
+        False ->
+            case dot < -0.99999 of
+                True ->
+                    Mat4.fromRecord
+                        { m11 = 1
+                        , m21 = 0
+                        , m31 = 0
+                        , m41 = 0
+                        , m12 = 0
+                        , m22 = 0
+                        , m32 = -1
+                        , m42 = 0
+                        , m13 = 0
+                        , m23 = 1
+                        , m33 = 0
+                        , m43 = 0
+                        , m14 = 0
+                        , m24 = 0
+                        , m34 = -cameraDistance
+                        , m44 = 1
+                        }
+                        |> Mat4.rotate -phi Vec3.j
 
-                    False ->
-                        Mat4.makeLookAt position worldCenter worldUp
+                False ->
+                    Mat4.makeLookAt position worldCenter worldUp
 
 
 type alias Uniforms =
@@ -281,7 +281,7 @@ indexedTriangleMesh objects =
         ( v, i ) =
             buildTriangleIndices objects
     in
-        WebGL.indexedTriangles v i
+    WebGL.indexedTriangles v i
 
 
 buildTriangleIndices : List GeometryObject -> ( List Vertex, List ( Int, Int, Int ) )
@@ -297,9 +297,9 @@ buildTriangleIndices objects =
                         base =
                             List.length accv
                     in
-                        ( List.append accv (getVertices object)
-                        , List.append acci (getVertexIndices base object)
-                        )
+                    ( List.append accv (getVertices object)
+                    , List.append acci (getVertexIndices base object)
+                    )
         )
         ( [], [] )
         objects
@@ -323,9 +323,9 @@ cylinderFaceVertex : Color -> Mat4 -> Float -> Int -> Vertex
 cylinderFaceVertex color xf y i =
     let
         t =
-            pi * (toFloat ((i - 1) * 2)) / (toFloat cylinderFacePoints)
+            pi * toFloat ((i - 1) * 2) / toFloat cylinderFacePoints
     in
-        Vertex (transform xf (vec3 (0.5 * sin t) y (0.5 * cos t))) color
+    Vertex (transform xf (vec3 (0.5 * sin t) y (0.5 * cos t))) color
 
 
 makeCylinder : Color -> Mat4 -> GeometryObject
@@ -339,11 +339,11 @@ makeCylinder color xf =
             List.range 1 cylinderFacePoints
                 |> List.map (cylinderFaceVertex color xf -0.5)
     in
-        List.concat
-            [ Vertex (transform xf (vec3 0 0.5 0)) color :: topFace
-            , Vertex (transform xf (vec3 0 -0.5 0)) color :: bottomFace
-            ]
-            |> GeometryObject Cylinder
+    List.concat
+        [ Vertex (transform xf (vec3 0 0.5 0)) color :: topFace
+        , Vertex (transform xf (vec3 0 -0.5 0)) color :: bottomFace
+        ]
+        |> GeometryObject Cylinder
 
 
 cylinderIndices : Int -> List ( Int, Int, Int )
@@ -357,6 +357,7 @@ cylinderIndices base =
                         , base + i
                         , if i < cylinderFacePoints then
                             base + i + 1
+
                           else
                             base + 1
                         )
@@ -376,6 +377,7 @@ cylinderIndices base =
                               , base + i
                               )
                             ]
+
                         else
                             [ ( base + cylinderFacePoints
                               , base + 2 * cylinderFacePoints + 1
@@ -398,12 +400,13 @@ cylinderIndices base =
                         , base + i
                         , if i > cylinderFacePoints then
                             base + i - 1
+
                           else
                             base + 2 * cylinderFacePoints + 1
                         )
                     )
     in
-        List.concat [ top, sides, bottom ]
+    List.concat [ top, sides, bottom ]
 
 
 
@@ -489,9 +492,9 @@ makeWireframeBall colors xf =
                     (\i ->
                         let
                             angle =
-                                (toFloat i) * 2 * pi / (toFloat cylinderFacePoints)
+                                toFloat i * 2 * pi / toFloat cylinderFacePoints
                         in
-                            segment colors.oPos colors.oNeg angle xf
+                        segment colors.oPos colors.oNeg angle xf
                     )
            )
         |> List.concat
@@ -506,9 +509,9 @@ equator colorPos colorNeg xf =
                     (\i ->
                         let
                             theta =
-                                (toFloat i) * 2 * pi / (toFloat cylinderFacePoints)
+                                toFloat i * 2 * pi / toFloat cylinderFacePoints
                         in
-                            Vertex (transform xf (vec3 (0.5 * sin theta) 0 (0.5 * cos theta))) colorPos
+                        Vertex (transform xf (vec3 (0.5 * sin theta) 0 (0.5 * cos theta))) colorPos
                     )
                 |> GeometryObject Polyline
 
@@ -518,13 +521,13 @@ equator colorPos colorNeg xf =
                     (\i ->
                         let
                             theta =
-                                (toFloat i) * 2 * pi / (toFloat cylinderFacePoints)
+                                toFloat i * 2 * pi / toFloat cylinderFacePoints
                         in
-                            Vertex (transform xf (vec3 (0.5 * sin theta) 0 (0.5 * cos theta))) colorNeg
+                        Vertex (transform xf (vec3 (0.5 * sin theta) 0 (0.5 * cos theta))) colorNeg
                     )
                 |> GeometryObject Polyline
     in
-        [ posHalf, negHalf ]
+    [ posHalf, negHalf ]
 
 
 segment : Color -> Color -> Float -> Mat4 -> List GeometryObject
@@ -536,12 +539,12 @@ segment colorPos colorNeg angle xf =
                     (\i ->
                         let
                             theta =
-                                (toFloat i) * 2 * pi / (toFloat cylinderFacePoints)
+                                toFloat i * 2 * pi / toFloat cylinderFacePoints
 
                             xf_ =
                                 Mat4.rotate angle worldUp xf
                         in
-                            Vertex (transform xf_ (vec3 (0.5 * cos theta) (0.5 * sin theta) 0)) colorPos
+                        Vertex (transform xf_ (vec3 (0.5 * cos theta) (0.5 * sin theta) 0)) colorPos
                     )
                 |> GeometryObject Polyline
 
@@ -551,13 +554,13 @@ segment colorPos colorNeg angle xf =
                     (\i ->
                         let
                             theta =
-                                (toFloat i) * 2 * pi / (toFloat cylinderFacePoints)
+                                toFloat i * 2 * pi / toFloat cylinderFacePoints
 
                             xf_ =
                                 Mat4.rotate angle worldUp xf
                         in
-                            Vertex (transform xf_ (vec3 (0.5 * cos theta) (0.5 * sin theta) 0)) colorNeg
+                        Vertex (transform xf_ (vec3 (0.5 * cos theta) (0.5 * sin theta) 0)) colorNeg
                     )
                 |> GeometryObject Polyline
     in
-        [ posHalf, negHalf ]
+    [ posHalf, negHalf ]
