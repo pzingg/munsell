@@ -5,7 +5,6 @@ module Munsell
         , hueRange
         , valueRange
         , chromaRange
-        , numericFromString
         , loadColors
         , findColor
         , munsellHueName
@@ -42,7 +41,7 @@ munsellHueName : Int -> Result String String
 munsellHueName hue =
     let
         r1 =
-            rem hue 25
+            remainderBy 25 hue
 
         h1 =
             (hue - r1)
@@ -51,26 +50,26 @@ munsellHueName hue =
             h1 // 100
 
         ( i, h ) =
-            case rem h1 100 of
+            case remainderBy 100 h1 of
                 0 ->
-                    ( (i1 + 9) % 10, "10" )
+                    ( modBy 10 (i1 + 9), "10" )
 
                 r ->
-                    ( i1, toString ((toFloat r) / 10.0) )
+                    ( i1, String.fromFloat <| (toFloat r) / 10.0 )
     in
         case Array.get i munsellHueNames of
             Just abbr ->
                 Ok <| h ++ abbr
 
             Nothing ->
-                Err <| "could not get hue name for " ++ toString hue
+                Err <| "could not get hue name for " ++ String.fromInt hue
 
 
 munsellColorName : Int -> Int -> Int -> Result String String
 munsellColorName hue value chroma =
     case munsellHueName hue of
         Ok hueName ->
-            Ok <| hueName ++ " " ++ toString value ++ "/" ++ toString chroma
+            Ok <| hueName ++ " " ++ String.fromInt value ++ "/" ++ String.fromInt chroma
 
         Err e ->
             Err e
@@ -89,11 +88,11 @@ findColor colors hue value chroma =
                         msg =
                             (name
                                 ++ ", hue "
-                                ++ toString hue
+                                ++ String.fromInt hue
                                 ++ ", value "
-                                ++ toString value
+                                ++ String.fromInt value
                                 ++ ", chroma "
-                                ++ toString chroma
+                                ++ String.fromInt chroma
                             )
                     in
                         Err <| "no record for " ++ msg
@@ -131,16 +130,6 @@ chromaRange =
         |> List.map ((*) 2)
 
 
-numericFromString : b -> Result a b -> b
-numericFromString value res =
-    case res of
-        Ok v ->
-            v
-
-        Err _ ->
-            value
-
-
 recordToColorEntry : List String -> List String -> Result String ( String, MunsellColor )
 recordToColorEntry headers record =
     case record of
@@ -153,11 +142,11 @@ recordToColorEntry headers record =
                     ( name
                     , { name = name
                       , hue = hue
-                      , value = String.toInt value |> numericFromString 0
-                      , chroma = String.toInt chroma |> numericFromString 0
-                      , red = String.toFloat r |> numericFromString 0.0
-                      , green = String.toFloat g |> numericFromString 0.0
-                      , blue = String.toFloat b |> numericFromString 0.0
+                      , value = String.toInt value |> Maybe.withDefault 0
+                      , chroma = String.toInt chroma |> Maybe.withDefault 0
+                      , red = String.toFloat r |> Maybe.withDefault 0.0
+                      , green = String.toFloat g |> Maybe.withDefault 0.0
+                      , blue = String.toFloat b |> Maybe.withDefault 0.0
                       }
                     )
 

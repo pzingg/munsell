@@ -1,7 +1,10 @@
 import './main.css';
-import { Main } from './Main.elm';
+import { Elm } from './Main.elm';
 import registerServiceWorker from './registerServiceWorker';
 
-Main.embed(document.getElementById('root'));
+const app = Elm.Main.init({
+  node: document.getElementById('root'),
+  flags: Date.now()
+});
 
 registerServiceWorker();

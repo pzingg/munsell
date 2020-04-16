@@ -97,10 +97,10 @@ gridCubes colors hue =
                         Mat4.makeRotate thetaLeft Geom.worldUp
 
                     hueRight =
-                        (hue + (i * 25)) % 1000
+                        modBy 1000 (hue + (i * 25))
 
                     hueLeft =
-                        (hue + 500 + (i * 25)) % 1000
+                        modBy 1000 (hue + 500 + (i * 25))
                 in
                     acc
                         ++ cubesForHue colors hueRight xfRight

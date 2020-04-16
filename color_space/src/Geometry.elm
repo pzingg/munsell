@@ -1,6 +1,5 @@
 module Geometry exposing (..)
 
-import Basics.Extra exposing (fmod)
 import WebGL exposing (Mesh)
 import Math.Matrix4 as Mat4 exposing (Mat4, transform, translate, rotate)
 import Math.Vector3 as Vec3 exposing (Vec3, vec3)
@@ -54,6 +53,20 @@ type alias Camera =
     }
 
 
+{-| Perform [modular arithmetic](https://en.wikipedia.org/wiki/Modular_arithmetic)
+involving floating point numbers.
+The sign of the result is the same as the sign of the `modulus`
+in `fractionalModBy modulus x`.
+    fractionalModBy 2.5 5 --> 0
+    fractionalModBy 2 4.5 == 0.5
+    fractionalModBy 2 -4.5 == 1.5
+    fractionalModBy -2 4.5 == -1.5
+-}
+fractionalModBy : Float -> Float -> Float
+fractionalModBy modulus x =
+    x - modulus * toFloat (floor (x / modulus))
+
+
 makeCamera : Float -> Float -> Float -> Camera
 makeCamera cameraDistance theta phi =
     { position =
@@ -61,7 +74,7 @@ makeCamera cameraDistance theta phi =
             (cameraDistance * cos theta * sin phi)
             (cameraDistance * sin theta)
             (cameraDistance * cos theta * cos phi)
-    , phi = fmod phi (2 * pi)
+    , phi = fractionalModBy (2 * pi) phi
     }
 
 

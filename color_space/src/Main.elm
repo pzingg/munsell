@@ -1,31 +1,33 @@
 module Main exposing (..)
 
-import AnimationFrame
-import Dict exposing (Dict)
-import Html exposing (Html, div, p, text, label, input, button)
-import Html.Attributes as HA exposing (type_, value, src, width, height, style, checked)
-import Html.Events exposing (onClick, onInput)
-import WebGL exposing (Mesh, Shader, Entity)
-import Math.Vector3 as Vec3 exposing (Vec3, vec3)
-import Time exposing (Time)
-import Task
-import Window
-import ElementRelativeMouseEvents exposing (Point, onMouseDown, onMouseUp, onMouseMove)
-import Geometry as Geom exposing (..)
+import Browser
+import Browser.Events exposing (onAnimationFrameDelta,
+  onMouseDown, onMouseMove, onMouseUp, onResize)
 import ColorWheel
+import Dict exposing (Dict)
+import Geometry as Geom exposing (..)
+import Html exposing (Html, div, p, text, label, input, button)
+import Html.Attributes as HA exposing (type_, value, src, checked)
+import Html.Events exposing (onClick, onInput)
 import HueGrid
+import Json.Decode as Decode exposing (Decoder)
+import Math.Vector2 as Vec2 exposing (Vec2, vec2)
+import Math.Vector3 as Vec3 exposing (Vec3, vec3)
 import Munsell
     exposing
         ( MunsellColor
         , ColorDict
         , munsellHueName
-        , numericFromString
         , findColor
         , loadColors
         )
+import WebGL exposing (Mesh, Shader, Entity)
 
 
 ---- MODEL ----
+
+
+type alias Flags = Int
 
 
 type ColorView
@@ -33,14 +35,21 @@ type ColorView
     | HueGridView
 
 
+type alias Rect a =
+    { width : a
+    , height : a
+    }
+
+type alias WindowSize = Rect Int
+
 {-| value is integer range 1 to 9
 0 = black
 10 = white
 -}
 type alias Model =
-    { windowRect : Window.Size
+    { windowRect : WindowSize
     , camera : Camera
-    , lastDragPosition : Maybe Point
+    , lastDragPosition : Maybe Vec2
     , colors : ColorDict
     , view : ColorView
     , hueIndex : String
@@ -59,13 +68,14 @@ cameraDistance =
     3 * ColorWheel.sceneSize
 
 
-init : ( Model, Cmd Msg )
-init =
+
+init : Flags -> ( Model, Cmd Msg )
+init ts =
     let
         colors =
             loadColors
     in
-        ( { windowRect = Window.Size 800 800
+        ( { windowRect = { width = 800, height = 800 }
           , camera = makeCamera cameraDistance 0 0
           , lastDragPosition = Nothing
           , colors = colors
@@ -79,7 +89,8 @@ init =
           , wheelMeshes = ColorWheel.wheelMeshes colors
           , hueMesh = buildHueGrid colors "0"
           }
-        , Task.perform WindowResize Window.size
+        , Cmd.none
+        -- Task.perform WindowResize Window.size
         )
 
 
@@ -91,14 +102,14 @@ buildHueGrid colors hueIndex =
 
 toValue : String -> Int
 toValue value =
-    String.toInt value |> numericFromString 7
+    String.toInt value |> Maybe.withDefault 7
 
 
 toHue : String -> Int
 toHue hueIndex =
     let
         hue =
-            String.toInt hueIndex |> numericFromString 0
+            String.toInt hueIndex |> Maybe.withDefault 0
     in
         hue * 25
 
@@ -108,17 +119,17 @@ toHue hueIndex =
 
 
 type Msg
-    = FrameTick Time
+    = FrameTick Float
     | ToggleView
     | ValueInput String
     | HueIndexInput String
     | AnimatingClick
     | ShowBallClick
     | ShowCoordinatesClick
-    | WindowResize Window.Size
-    | MouseDown Point
-    | MouseUp Point
-    | MouseMove Point
+    | Resize Float Float
+    | MouseMove Float Float
+    | MouseDown Float Float
+    | MouseUp Float Float
 
 
 {-| Number of pixels per second we are dragging via animation
@@ -138,7 +149,7 @@ update msg model =
                         True ->
                             let
                                 deltaX =
-                                    Time.inSeconds dt * dragRate * toFloat model.windowRect.width
+                                    dt * dragRate * toFloat model.windowRect.width
                             in
                                 { model | camera = dragCamera cameraDistance deltaX 0 model.camera }
 
@@ -179,35 +190,60 @@ update msg model =
         ShowCoordinatesClick ->
             ( { model | showCoordinates = not model.showCoordinates }, Cmd.none )
 
-        WindowResize size ->
-            ( { model | windowRect = size }, Cmd.none )
+        Resize newWidth newHeight ->
+            ( { model | windowRect = { width = truncate newWidth, height = truncate newHeight }  }, Cmd.none )
 
-        MouseDown position ->
-            ( { model | lastDragPosition = Just position }, Cmd.none )
+        MouseDown x y ->
+            -- Convert to element coordinates?
+            ( { model | lastDragPosition = Just <| vec2 x y }, Cmd.none )
 
-        MouseUp position ->
+        MouseUp x y ->
+            -- Convert to element coordinates?
             ( { model | lastDragPosition = Nothing }, Cmd.none )
 
-        MouseMove position ->
+        MouseMove x y ->
+            -- Convert to element coordinates?
             case model.lastDragPosition of
                 Just lastPosition ->
                     let
                         camera =
                             dragCamera
                                 cameraDistance
-                                (position.x - lastPosition.x)
-                                (position.y - lastPosition.y)
+                                (x - Vec2.getX lastPosition)
+                                (y - Vec2.getY lastPosition)
                                 model.camera
                     in
                         ( { model
                             | camera = camera
-                            , lastDragPosition = Just position
+                            , lastDragPosition = Just <| vec2 x y
                           }
                         , Cmd.none
                         )
 
                 Nothing ->
                     ( model, Cmd.none )
+
+
+
+mousePosition : Decoder Msg
+mousePosition =
+    Decode.map2 MouseMove
+        (Decode.field "pageX" Decode.float)
+        (Decode.field "pageY" Decode.float)
+
+
+mouseUp : Decoder Msg
+mouseUp =
+    Decode.map2 MouseUp
+        (Decode.field "pageX" Decode.float)
+        (Decode.field "pageY" Decode.float)
+
+
+mouseDown : Decoder Msg
+mouseDown =
+    Decode.map2 MouseDown
+        (Decode.field "pageX" Decode.float)
+        (Decode.field "pageY" Decode.float)
 
 
 
@@ -223,23 +259,19 @@ view : Model -> Html Msg
 view model =
     div []
         [ div
-            [ style
-                [ ( "position", "absolute" )
-                , ( "z-index", "1" )
-                , ( "left", "0px" )
-                , ( "top", "0px" )
-                ]
+            [ HA.style "position" "absolute"
+            , HA.style "z-index" "1"
+            , HA.style "left" "0px"
+            , HA.style "top" "0px"
             ]
             [ viewMesh model ]
         , div
-            [ style
-                [ ( "position", "absolute" )
-                , ( "z-index", "2" )
-                , ( "left", toString (model.windowRect.width - toolboxWidth) ++ "px" )
-                , ( "top", "0px" )
-                , ( "width", toString toolboxWidth ++ "px" )
-                , ( "text-align", "left" )
-                ]
+            [ HA.style "position" "absolute"
+            , HA.style "z-index" "2"
+            , HA.style "left" (String.fromInt (model.windowRect.width - toolboxWidth) ++ "px")
+            , HA.style "top" "0px"
+            , HA.style "width" (String.fromInt toolboxWidth ++ "px")
+            , HA.style "text-align" "left"
             ]
             (viewSlider model
                 ++ [ div []
@@ -315,7 +347,7 @@ viewSlider model =
                     toHue model.hueIndex
 
                 nameLeft =
-                    case munsellHueName ((hue + 500) % 1000) of
+                    case munsellHueName (modBy 1000 (hue + 500)) of
                         Ok n ->
                             n
 
@@ -355,7 +387,7 @@ viewCoordinates model =
                 , text
                     (case model.lastDragPosition of
                         Just pos ->
-                            toString <| pos.x
+                            String.fromFloat <| Vec2.getX pos
 
                         Nothing ->
                             ""
@@ -366,7 +398,7 @@ viewCoordinates model =
                 , text
                     (case model.lastDragPosition of
                         Just pos ->
-                            toString <| pos.y
+                            String.fromFloat <| Vec2.getY pos
 
                         Nothing ->
                             ""
@@ -374,19 +406,19 @@ viewCoordinates model =
                 ]
             , div []
                 [ label [] [ text "Camera X " ]
-                , text (toString <| Vec3.getX model.camera.position)
+                , text (String.fromFloat <| Vec3.getX model.camera.position)
                 ]
             , div []
                 [ label [] [ text "Camera Y " ]
-                , text (toString <| Vec3.getY model.camera.position)
+                , text (String.fromFloat <| Vec3.getY model.camera.position)
                 ]
             , div []
                 [ label [] [ text "Camera Z " ]
-                , text (toString <| Vec3.getZ model.camera.position)
+                , text (String.fromFloat <| Vec3.getZ model.camera.position)
                 ]
             , div []
                 [ label [] [ text "Camera phi " ]
-                , text (toString <| model.camera.phi * 180 / pi)
+                , text (String.fromFloat <| model.camera.phi * 180 / pi)
                 ]
             ]
 
@@ -432,7 +464,7 @@ toEntity uniforms mesh =
         uniforms
 
 
-viewColorWheel : Window.Size -> Camera -> Int -> List AppMesh -> Dict Int AppMesh -> Html Msg
+viewColorWheel : WindowSize -> Camera -> Int -> List AppMesh -> Dict Int AppMesh -> Html Msg
 viewColorWheel windowRect camera value ballMeshes meshes =
     let
         w =
@@ -445,12 +477,9 @@ viewColorWheel windowRect camera value ballMeshes meshes =
             makeUniforms w h ColorWheel.sceneSize camera
     in
         WebGL.toHtml
-            [ width windowRect.width
-            , height windowRect.height
-            , style [ ( "display", "block" ) ]
-            , onMouseDown MouseDown
-            , onMouseUp MouseUp
-            , onMouseMove MouseMove
+            [ HA.width windowRect.width
+            , HA.height windowRect.height
+            , HA.style "display" "block"
             ]
             (List.range 1 value
                 |> List.map (\v -> Dict.get v meshes)
@@ -467,7 +496,7 @@ viewColorWheel windowRect camera value ballMeshes meshes =
             )
 
 
-viewHueGrids : Window.Size -> Camera -> List AppMesh -> Html Msg
+viewHueGrids : WindowSize -> Camera -> List AppMesh -> Html Msg
 viewHueGrids windowRect camera meshes =
     let
         w =
@@ -480,12 +509,9 @@ viewHueGrids windowRect camera meshes =
             makeUniforms w h ColorWheel.sceneSize camera
     in
         WebGL.toHtml
-            [ width windowRect.width
-            , height windowRect.height
-            , style [ ( "display", "block" ) ]
-            , onMouseDown MouseDown
-            , onMouseUp MouseUp
-            , onMouseMove MouseMove
+            [ HA.width windowRect.width
+            , HA.height windowRect.height
+            , HA.style "display" "block"
             ]
             (List.map (toEntity uniforms) meshes)
 
@@ -524,13 +550,13 @@ fragmentShader =
 ---- PROGRAM ----
 
 
-main : Program Never Model Msg
+main : Program Flags Model Msg
 main =
-    Html.program
-        { view = view
-        , init = init
-        , update = update
+    Browser.element
+        { init = init
         , subscriptions = subscriptions
+        , update = update
+        , view = view
         }
 
 
@@ -538,11 +564,14 @@ subscriptions : Model -> Sub Msg
 subscriptions model =
     let
         subAlways =
-            Window.resizes WindowResize
+          Sub.batch
+            [ onMouseMove mousePosition
+            , onResize (\w h -> Resize (toFloat w) (toFloat h))
+            ]
     in
         case model.animating of
             True ->
-                Sub.batch [ AnimationFrame.diffs FrameTick, subAlways ]
+                Sub.batch [ onAnimationFrameDelta FrameTick, subAlways ]
 
             False ->
                 subAlways

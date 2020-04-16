@@ -39,7 +39,7 @@ munsellHueName : Int -> Result String String
 munsellHueName hue =
     let
         r1 =
-            rem hue 25
+            remainderBy 25 hue
 
         h1 =
             (hue - r1)
@@ -48,7 +48,7 @@ munsellHueName hue =
             h1 // 100
 
         ( i, h ) =
-            case rem h1 100 of
+            case remainderBy 100 h1 of
                 0 ->
                     ( (i1 + 9) % 10, "10" )
 
