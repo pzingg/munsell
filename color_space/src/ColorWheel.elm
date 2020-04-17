@@ -1,37 +1,25 @@
-module ColorWheel exposing (..)
+module ColorWheel exposing (globe, sceneSize, wheel)
 
+import Angle exposing (Angle)
+import Axis3d
+import Color exposing (Color)
 import Dict exposing (Dict)
-import Geometry as Geom
-    exposing
-        ( AppMesh
-        , BallColors
-        , GeometryObject
-        , cylinderPoints
-        , indexedTriangleMesh
-        , makeColor
-        , makeCube
-        , makeCylinder
-        , makeWireframeBall
-        , polylineMeshes
-        )
-import Math.Matrix4 as Mat4 exposing (Mat4, rotate, scale3, translate3)
-import Math.Vector3 as Vec3 exposing (Vec3, vec3)
-import Munsell
-    exposing
-        ( ColorDict
-        , chromaRange
-        , hueRange
-        , valueRange
-        )
+import Length exposing (Length)
+import Munsell exposing (ColorDict)
+import Point3d
+import Scene3d
+import Vector3d
+import World exposing (GlobeColors, WorldEntity, WorldEntityList)
 
 
 
 ---- CONSTANTS ----
+{- All these are measured in centimeters. -}
 
 
-cylinderSize : Float
-cylinderSize =
-    120
+cylinderRadius : Float
+cylinderRadius =
+    30
 
 
 cubeSize : Float
@@ -41,7 +29,7 @@ cubeSize =
 
 r0 : Float
 r0 =
-    (cylinderSize / 2) + cubeSize + 20
+    cylinderRadius + cubeSize + 20
 
 
 rSpacing : Float
@@ -59,75 +47,112 @@ zSpacing =
     90
 
 
-valueY : Int -> Float
-valueY value =
+zForValue : Int -> Float
+zForValue value =
     toFloat (value - 5) * zSpacing
 
 
+defaultGlobeColors : GlobeColors
+defaultGlobeColors =
+    { xPos = Color.fromRGB ( 255, 0, 0 )
+    , xNeg = Color.fromRGB ( 0, 255, 0 )
+    , yPos = Color.fromRGB ( 150, 150, 0 )
+    , yNeg = Color.fromRGB ( 0, 150, 150 )
+    , oPos = Color.fromRGB ( 0, 0, 255 )
+    , oNeg = Color.fromRGB ( 150, 0, 150 )
+    }
 
----- GL OBJECTS ----
 
 
-cylinderForValue : Int -> GeometryObject
+---- ENTITIES: POLYLINE GLOBE POLYLINES
+
+
+globe : WorldEntityList
+globe =
+    World.globe (Length.centimeters sceneSize) defaultGlobeColors
+
+
+
+---- ENTITIES: MUNSELL COLOR WHEEL CYLINDERS AND CUBES
+
+
+wheel : ColorDict -> Dict Int WorldEntityList
+wheel colors =
+    Munsell.valueRange
+        |> List.map (\value -> ( value, entitiesForValue colors value ))
+        |> Dict.fromList
+
+
+entitiesForValue : ColorDict -> Int -> WorldEntityList
+entitiesForValue colors value =
+    let
+        cylinder =
+            cylinderForValue value
+
+        cubes =
+            cubesForValue colors value
+    in
+    cylinder :: cubes
+
+
+cylinderForValue : Int -> WorldEntity
 cylinderForValue value =
     let
-        grayValue =
-            toFloat value / 10.0
+        z =
+            zForValue value
+
+        origin =
+            Point3d.centimeters 0 0 z
 
         color =
-            vec3 grayValue grayValue grayValue
+            Munsell.neutralColor value
     in
-    makeCylinder color (xfCylinder value)
+    World.matteCylinderAt origin
+        { radius = Length.centimeters cylinderRadius
+        , length = Length.centimeters cubeSize
+        }
+        color
 
 
-xfCylinder : Int -> Mat4
-xfCylinder value =
-    Mat4.identity
-        |> translate3 0 (valueY value) 0
-        |> scale3 cylinderSize cubeSize cylinderSize
-
-
-cubesForValue : ColorDict -> Int -> List GeometryObject
+cubesForValue : ColorDict -> Int -> WorldEntityList
 cubesForValue colors value =
-    List.foldl (\hue acc -> cubesForHV colors hue value ++ acc) [] hueRange
+    Munsell.hueRange
+        |> List.foldl (\hue acc -> cubesForHV colors hue value ++ acc) []
 
 
-cubesForHV : ColorDict -> Int -> Int -> List GeometryObject
+cubesForHV : ColorDict -> Int -> Int -> WorldEntityList
 cubesForHV colors hue value =
-    List.foldl
-        (\chroma acc ->
-            case cubeInGamut colors hue value chroma of
-                Just rect ->
-                    rect :: acc
+    Munsell.chromaRange
+        |> List.foldl
+            (\chroma acc ->
+                case cubeInGamut colors hue value chroma of
+                    Just cube ->
+                        cube :: acc
 
-                Nothing ->
-                    acc
-        )
-        []
-        chromaRange
+                    Nothing ->
+                        acc
+            )
+            []
 
 
-cubeInGamut : ColorDict -> Int -> Int -> Int -> Maybe GeometryObject
+cubeInGamut : ColorDict -> Int -> Int -> Int -> Maybe WorldEntity
 cubeInGamut colors hue value chroma =
-    case makeColor colors hue value chroma of
-        Just color ->
+    case Munsell.findColor colors hue value chroma of
+        Just { color } ->
             Just (cubeWithColor color hue value chroma)
 
         Nothing ->
             Nothing
 
 
-cubeWithColor : Vec3 -> Int -> Int -> Int -> GeometryObject
+cubeWithColor : Color -> Int -> Int -> Int -> WorldEntity
 cubeWithColor color hue value chroma =
-    xfCube hue value chroma
-        |> makeCube color
-
-
-xfCube : Int -> Int -> Int -> Mat4
-xfCube hue value chroma =
     let
+        scaledSize =
+            scaleCube hue value chroma cubeSize
+
         theta =
-            toFloat hue * 2 * pi / 1000
+            toFloat hue * 360.0 / 1000.0
 
         band =
             (chroma // 2) - 1
@@ -135,21 +160,17 @@ xfCube hue value chroma =
         x =
             r0 + (toFloat band * rSpacing)
 
-        sz =
-            scaleCube hue value chroma cubeSize
+        z =
+            zForValue value
+
+        origin =
+            Point3d.centimeters x 0 z
     in
-    Mat4.identity
-        |> rotate theta Geom.worldUp
-        |> translate3 x (valueY value) 0
-        |> scale3 cubeSize cubeSize sz
+    World.matteCubeAt origin scaledSize color
+        |> Scene3d.rotateAround Axis3d.z (Angle.degrees theta)
 
 
-
--- |> translate (vec3 0 y z)
--- |> rotate theta (vec3 0 0 1)
-
-
-scaleCube : Int -> Int -> Int -> Float -> Float
+scaleCube : Int -> Int -> Int -> Float -> Length
 scaleCube _ _ chroma size =
     let
         x =
@@ -175,35 +196,4 @@ scaleCube _ _ chroma size =
                 _ ->
                     1
     in
-    x * size
-
-
-
----- MESHES ----
-
-
-ballMeshes : BallColors -> Float -> List AppMesh
-ballMeshes colors size =
-    Mat4.identity
-        |> scale3 size size size
-        |> makeWireframeBall colors
-        |> polylineMeshes
-
-
-wheelMeshes : ColorDict -> Dict Int AppMesh
-wheelMeshes colors =
-    valueRange
-        |> List.map (\value -> ( value, meshForValue colors value ))
-        |> Dict.fromList
-
-
-meshForValue : ColorDict -> Int -> AppMesh
-meshForValue colors value =
-    let
-        cylinder =
-            cylinderForValue value
-
-        cubes =
-            cubesForValue colors value
-    in
-    indexedTriangleMesh (cylinder :: cubes)
+    Length.centimeters (x * size)

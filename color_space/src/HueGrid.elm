@@ -1,26 +1,26 @@
-module HueGrid exposing (gridMesh)
+module HueGrid exposing (gridForHue)
 
-import Geometry as Geom
-    exposing
-        ( AppMesh
-        , GeometryObject
-        , indexedTriangleMesh
-        , makeColor
-        , makeCube
-        , makeCylinder
-        )
-import Math.Matrix4 as Mat4 exposing (Mat4, scale3, translate3)
-import Math.Vector3 as Vec3 exposing (Vec3, vec3)
-import Munsell exposing (ColorDict, chromaRange, hueRange, valueRange)
+import Angle exposing (Angle)
+import Axis3d
+import Color exposing (Color)
+import Dict exposing (Dict)
+import Length exposing (Length)
+import Munsell exposing (ColorDict)
+import Point3d
+import Scene3d
+import Scene3d.Entity as Entity
+import Vector3d
+import World exposing (GlobeColors, WorldEntity, WorldEntityList)
 
 
 
 ---- CONSTANTS ----
+{- All these are measured in centimeters. -}
 
 
-cylinderSize : Float
-cylinderSize =
-    90
+cylinderRadius : Float
+cylinderRadius =
+    45
 
 
 cubeSize : Float
@@ -38,8 +38,18 @@ spacing =
     60
 
 
-valueY : Int -> Float
-valueY value =
+fanCount : Int
+fanCount =
+    8
+
+
+fanAngle : Float
+fanAngle =
+    180.0 / toFloat (fanCount - 1)
+
+
+zForValue : Int -> Float
+zForValue value =
     toFloat (value - 5) * spacing
 
 
@@ -47,55 +57,49 @@ valueY value =
 ---- HUE GRID CUBES ----
 
 
-gridMesh : ColorDict -> Int -> AppMesh
-gridMesh colors hue =
+gridForHue : ColorDict -> Int -> WorldEntityList
+gridForHue colors hue =
     let
         cylinders =
-            valueRange
+            Munsell.valueRange
                 |> List.map cylinderForValue
 
         cubes =
             gridCubes colors hue
     in
-    indexedTriangleMesh (cylinders ++ cubes)
+    cylinders ++ cubes
 
 
-cylinderForValue : Int -> GeometryObject
+cylinderForValue : Int -> WorldEntity
 cylinderForValue value =
     let
-        grayValue =
-            toFloat value / 10.0
+        z =
+            zForValue value
+
+        origin =
+            Point3d.centimeters 0 0 z
 
         color =
-            vec3 grayValue grayValue grayValue
+            Munsell.neutralColor value
     in
-    makeCylinder color (xfCylinder value)
+    World.matteCylinderAt origin
+        { radius = Length.centimeters cylinderRadius
+        , length = Length.centimeters cubeSize
+        }
+        color
 
 
-xfCylinder : Int -> Mat4
-xfCylinder value =
-    Mat4.identity
-        |> translate3 0 (valueY value) 0
-        |> scale3 cylinderSize cubeSize cylinderSize
-
-
-gridCubes : ColorDict -> Int -> List GeometryObject
+gridCubes : ColorDict -> Int -> WorldEntityList
 gridCubes colors hue =
-    List.range 0 3
+    List.range 0 ((fanCount // 2) - 1)
         |> List.foldl
             (\i acc ->
                 let
                     thetaRight =
-                        toFloat i * pi / 8
+                        toFloat i * fanAngle
 
                     thetaLeft =
-                        toFloat (8 - i) * pi / 8
-
-                    xfRight =
-                        Mat4.makeRotate thetaRight Geom.worldUp
-
-                    xfLeft =
-                        Mat4.makeRotate thetaLeft Geom.worldUp
+                        toFloat (fanCount - i - 1) * fanAngle
 
                     hueRight =
                         modBy 1000 (hue + (i * 25))
@@ -104,58 +108,54 @@ gridCubes colors hue =
                         modBy 1000 (hue + 500 + (i * 25))
                 in
                 acc
-                    ++ cubesForHue colors hueRight xfRight
-                    ++ cubesForHue colors hueLeft xfLeft
+                    ++ cubesForHue colors hueRight (Angle.degrees thetaRight)
+                    ++ cubesForHue colors hueLeft (Angle.degrees thetaLeft)
             )
             []
 
 
-cubesForHue : ColorDict -> Int -> Mat4 -> List GeometryObject
-cubesForHue colors hue xf =
-    List.foldl (\value acc -> cubesForHV colors hue value xf ++ acc) [] valueRange
+cubesForHue : ColorDict -> Int -> Angle -> WorldEntityList
+cubesForHue colors hue angle =
+    Munsell.valueRange
+        |> List.foldl (\value acc -> cubesForHV colors hue value angle ++ acc) []
 
 
-cubesForHV : ColorDict -> Int -> Int -> Mat4 -> List GeometryObject
-cubesForHV colors hue value xf =
-    List.foldl
-        (\chroma acc ->
-            case cubeInGamut colors hue value chroma xf of
-                Just grid ->
-                    grid :: acc
+cubesForHV : ColorDict -> Int -> Int -> Angle -> WorldEntityList
+cubesForHV colors hue value angle =
+    Munsell.chromaRange
+        |> List.foldl
+            (\chroma acc ->
+                case cubeInGamut colors hue value chroma angle of
+                    Just cube ->
+                        cube :: acc
 
-                Nothing ->
-                    acc
-        )
-        []
-        chromaRange
+                    Nothing ->
+                        acc
+            )
+            []
 
 
-cubeInGamut : ColorDict -> Int -> Int -> Int -> Mat4 -> Maybe GeometryObject
-cubeInGamut colors hue value chroma xf =
-    case makeColor colors hue value chroma of
-        Just color ->
-            Just (cubeWithColor color hue value chroma xf)
+cubeInGamut : ColorDict -> Int -> Int -> Int -> Angle -> Maybe WorldEntity
+cubeInGamut colors hue value chroma angle =
+    case Munsell.findColor colors hue value chroma of
+        Just { color } ->
+            Just (cubeWithColor color hue value chroma angle)
 
         Nothing ->
             Nothing
 
 
-cubeWithColor : Vec3 -> Int -> Int -> Int -> Mat4 -> GeometryObject
-cubeWithColor color hue value chroma xf =
-    xfCube hue value chroma
-        |> Mat4.mul xf
-        |> makeCube color
-
-
-xfCube : Int -> Int -> Int -> Mat4
-xfCube _ value chroma =
+cubeWithColor : Color -> Int -> Int -> Int -> Angle -> WorldEntity
+cubeWithColor color _ value chroma angle =
     let
         x =
             x0 + toFloat ((chroma // 2) - 1) * spacing
 
-        y =
-            toFloat (value - 5) * spacing
+        z =
+            zForValue value
+
+        origin =
+            Point3d.centimeters x 0 z
     in
-    Mat4.identity
-        |> translate3 x y 0
-        |> scale3 cubeSize cubeSize cubeSize
+    World.matteCubeAt origin (Length.centimeters cubeSize) color
+        |> Entity.rotateAround Axis3d.z angle

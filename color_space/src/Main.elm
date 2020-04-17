@@ -1,7 +1,8 @@
 module Main exposing (..)
 
+import Angle exposing (Angle)
 import Browser
-import Browser.Dom as Dom exposing (Error(..), getElement)
+import Browser.Dom as Dom exposing (Error(..), getElement, getViewport)
 import Browser.Events
     exposing
         ( onAnimationFrameDelta
@@ -10,26 +11,39 @@ import Browser.Events
         , onMouseUp
         , onResize
         )
+import Camera3d exposing (Camera3d)
+import Color
 import ColorWheel
 import Dict exposing (Dict)
-import Geometry as Geom exposing (..)
+import Direction3d exposing (Direction3d)
 import Html exposing (Html, button, div, input, label, p, text)
 import Html.Attributes as HA exposing (checked, src, type_, value)
 import Html.Events exposing (onClick, onInput)
 import HueGrid
 import Json.Decode as Decode exposing (Decoder)
-import Math.Vector3 as Vec3 exposing (Vec3, vec3)
-import Munsell
-    exposing
-        ( ColorDict
-        , MunsellColor
-        , findColor
-        , loadColors
-        , munsellHueName
-        )
+import Length exposing (Meters)
+import Munsell exposing (ColorDict)
+import Pixels exposing (Pixels)
+import Point3d
+import Quantity
 import Result exposing (Result)
+import Scene3d
+import SketchPlane3d
 import Task
+import Viewpoint3d exposing (Viewpoint3d)
 import WebGL exposing (Entity, Mesh, Shader)
+import World exposing (WorldCoordinates, WorldEntityList)
+
+
+{-| Modules from other packages imported by ianmackenzie/elm-3d-scene
+
+Angle, Length, Pixels, Quantity from ianmackenzie/elm-units
+Arc3d, Axis3d, Block3d, Cylinder3d, Direction3d, Frame3d, Point3d, Sphere3d from ianmackenzie/elm-geometry
+Camera3d, SketchPlane3d, Viewpoint3d from ianmackenzie/elm-3d-camera
+Color from tesk9/palette package
+Scene3d from ianmackenzie/elm-3d-scene
+
+-}
 
 
 
@@ -51,22 +65,14 @@ type alias Rect a =
     }
 
 
-type alias MouseEventLocation =
-    { pageX : Float
-    , pageY : Float
-    , offsetX : Float
-    , offsetY : Float
-    }
-
-
-type alias RelativePosition =
-    { x : Float
-    , y : Float
-    }
-
-
+{-| Size in browser pixels.
+-}
 type alias WindowSize =
     Rect Float
+
+
+type alias Camera =
+    Camera3d Meters World.WorldCoordinates
 
 
 {-| value is integer range 1 to 9
@@ -74,21 +80,26 @@ type alias WindowSize =
 10 = white
 -}
 type alias Model =
-    { windowRect : WindowSize
-    , sceneElement : Maybe Dom.Element
-    , camera : Camera
-    , lastDragPosition : Maybe RelativePosition
+    { windowSize : WindowSize
+    , azimuth : Angle
+    , elevation : Angle
+    , orbiting : Bool
     , colors : ColorDict
     , view : ColorView
     , hueIndex : String
     , value : String
     , animating : Bool
-    , showBall : Bool
+    , showGlobe : Bool
     , showCoordinates : Bool
-    , ballMeshes : List AppMesh
-    , wheelMeshes : Dict Int AppMesh
-    , hueMesh : AppMesh
+    , globe : WorldEntityList
+    , colorWheel : Dict Int WorldEntityList
+    , hueGrid : WorldEntityList
     }
+
+
+
+-- CONSTANTS
+{- These are in centimeters. -}
 
 
 cameraDistance : Float
@@ -96,44 +107,55 @@ cameraDistance =
     3 * ColorWheel.sceneSize
 
 
+clipDepth : Float
+clipDepth =
+    0.1 * ColorWheel.sceneSize
+
+
+
+-- INIT
+
+
 init : Flags -> ( Model, Cmd Msg )
 init ts =
     let
         colors =
-            loadColors
+            Munsell.loadColors
     in
-    ( { windowRect = { width = 800.0, height = 800.0 }
-      , sceneElement = Nothing
-      , camera = makeCamera cameraDistance 0 0
-      , lastDragPosition = Nothing
+    ( { windowSize = { width = 800.0, height = 800.0 }
+      , azimuth = Angle.degrees 45
+      , elevation = Angle.degrees 30
+      , orbiting = False
       , colors = colors
       , view = ColorWheelView
       , hueIndex = "0"
       , value = "7"
       , animating = False
-      , showBall = False
+      , showGlobe = False
       , showCoordinates = False
-      , ballMeshes = ColorWheel.ballMeshes Geom.defaultBallColors ColorWheel.sceneSize
-      , wheelMeshes = ColorWheel.wheelMeshes colors
-      , hueMesh = buildHueGrid colors "0"
+      , globe = ColorWheel.globe
+      , colorWheel = ColorWheel.wheel colors
+      , hueGrid = buildHueGrid colors "0"
       }
-    , Cmd.none
+    , Task.perform
+        (\{ viewport } -> WindowResized { width = viewport.width, height = viewport.height })
+        getViewport
     )
 
 
-buildHueGrid : ColorDict -> String -> AppMesh
+buildHueGrid : ColorDict -> String -> WorldEntityList
 buildHueGrid colors hueIndex =
-    toHue hueIndex
-        |> HueGrid.gridMesh colors
+    stringToHue hueIndex
+        |> HueGrid.gridForHue colors
 
 
-toValue : String -> Int
-toValue value =
+stringToValue : String -> Int
+stringToValue value =
     String.toInt value |> Maybe.withDefault 7
 
 
-toHue : String -> Int
-toHue hueIndex =
+stringToHue : String -> Int
+stringToHue hueIndex =
     let
         hue =
             String.toInt hueIndex |> Maybe.withDefault 0
@@ -159,21 +181,16 @@ type Msg
     | ShowBallCheckboxClicked
     | ShowCoordinatesCheckboxClicked
     | WindowResized WindowSize
-    | MouseMoved MouseEventLocation
-    | MouseWentDown MouseEventLocation
-    | MouseWentUp MouseEventLocation
-
-
-getSceneElementCmd : Cmd Msg
-getSceneElementCmd =
-    getElement "webgl-scene" |> Task.attempt GotSceneElement
+    | MouseMoved Float Float
+    | MouseWentDown
+    | MouseWentUp
 
 
 {-| Number of pixels per second we are moving the camera via animation
 -}
 spinRate : Float
 spinRate =
-    0.0005
+    0.005
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -181,39 +198,29 @@ update msg model =
     case msg of
         FrameTimeUpdated dt ->
             let
-                cmds =
-                    case model.sceneElement of
-                        Nothing ->
-                            getSceneElementCmd
-
-                        Just _ ->
-                            Cmd.none
-
-                nextModel =
+                newModel =
                     case model.animating of
                         True ->
                             let
-                                deltaX =
-                                    dt * spinRate * model.windowRect.width
+                                dx =
+                                    spinRate * 360.0
+
+                                newAzimuth =
+                                    model.azimuth |> Quantity.minus (Angle.degrees dx)
                             in
-                            { model | camera = dragCamera cameraDistance deltaX 0 model.camera }
+                            { model | azimuth = newAzimuth }
 
                         False ->
                             model
             in
-            ( nextModel, cmds )
+            ( newModel, Cmd.none )
 
         GotSceneElement result ->
-            case result of
-                Ok element ->
-                    ( { model | sceneElement = Just element }, Cmd.none )
-
-                Err error ->
-                    ( model, Cmd.none )
+            ( model, Cmd.none )
 
         ViewButtonClicked ->
             let
-                nextView =
+                newView =
                     case model.view of
                         ColorWheelView ->
                             HueGridView
@@ -221,7 +228,7 @@ update msg model =
                         _ ->
                             ColorWheelView
             in
-            ( { model | view = nextView }, Cmd.none )
+            ( { model | view = newView }, Cmd.none )
 
         ValueInputChanged newValue ->
             ( { model | value = newValue }, Cmd.none )
@@ -229,7 +236,7 @@ update msg model =
         HueInputChanged newHueIndex ->
             ( { model
                 | hueIndex = newHueIndex
-                , hueMesh = buildHueGrid model.colors newHueIndex
+                , hueGrid = buildHueGrid model.colors newHueIndex
               }
             , Cmd.none
             )
@@ -238,51 +245,39 @@ update msg model =
             ( { model | animating = not model.animating }, Cmd.none )
 
         ShowBallCheckboxClicked ->
-            ( { model | showBall = not model.showBall }, Cmd.none )
+            ( { model | showGlobe = not model.showGlobe }, Cmd.none )
 
         ShowCoordinatesCheckboxClicked ->
             ( { model | showCoordinates = not model.showCoordinates }, Cmd.none )
 
         WindowResized rect ->
-            ( { model | windowRect = rect }, getSceneElementCmd )
+            ( { model | windowSize = rect }, Cmd.none )
 
-        MouseWentDown pos ->
-            let
-                ( offsetX, offsetY ) =
-                    getOffsetRelativeTo model.sceneElement pos
-            in
-            ( { model | lastDragPosition = Just { x = offsetX, y = offsetY } }, Cmd.none )
+        MouseWentDown ->
+            ( { model | orbiting = True }, Cmd.none )
 
-        MouseWentUp pos ->
-            let
-                ( offsetX, offsetY ) =
-                    getOffsetRelativeTo model.sceneElement pos
-            in
-            ( { model | lastDragPosition = Nothing }, Cmd.none )
+        MouseWentUp ->
+            ( { model | orbiting = False }, Cmd.none )
 
-        MouseMoved pos ->
-            case model.lastDragPosition of
-                Just { x, y } ->
-                    let
-                        ( offsetX, offsetY ) =
-                            getOffsetRelativeTo model.sceneElement pos
+        MouseMoved dx dy ->
+            if model.orbiting then
+                let
+                    newAzimuth =
+                        model.azimuth |> Quantity.minus (Angle.degrees dx)
 
-                        camera =
-                            dragCamera
-                                cameraDistance
-                                (x - offsetX)
-                                (y - offsetY)
-                                model.camera
-                    in
-                    ( { model
-                        | camera = camera
-                        , lastDragPosition = Just { x = offsetX, y = offsetY }
-                      }
-                    , Cmd.none
-                    )
+                    newElevation =
+                        model.elevation
+                            |> Quantity.plus (Angle.degrees dy)
+                            |> Quantity.clamp
+                                (Angle.degrees -90)
+                                (Angle.degrees 90)
+                in
+                ( { model | azimuth = newAzimuth, elevation = newElevation }
+                , Cmd.none
+                )
 
-                Nothing ->
-                    ( model, Cmd.none )
+            else
+                ( model, Cmd.none )
 
 
 {-| mousedown, mouseup and mousemove events have the following values.
@@ -314,32 +309,33 @@ position of the target relative to the entire document,
 and then subtract.
 
 -}
-mouseEventDecoder : (MouseEventLocation -> Msg) -> Decoder Msg
-mouseEventDecoder tag =
-    Decode.map4 MouseEventLocation
-        (Decode.field "pageX" Decode.float)
-        (Decode.field "pageY" Decode.float)
-        (Decode.field "offsetX" Decode.float)
-        (Decode.field "offsetY" Decode.float)
-        |> Decode.map tag
-
-
 decodeMouseDown : Decoder Msg
 decodeMouseDown =
-    mouseEventDecoder MouseWentDown
+    Decode.succeed MouseWentDown
 
 
 decodeMouseUp : Decoder Msg
 decodeMouseUp =
-    mouseEventDecoder MouseWentUp
+    Decode.succeed MouseWentUp
 
 
 decodeMouseMove : Decoder Msg
 decodeMouseMove =
-    mouseEventDecoder MouseMoved
+    Decode.map2 MouseMoved
+        (Decode.field "movementX" Decode.float)
+        (Decode.field "movementY" Decode.float)
 
 
-getOffsetRelativeTo : Maybe Dom.Element -> MouseEventLocation -> ( Float, Float )
+{-| Not used.
+-}
+getSceneElementCmd : (SceneElementResult -> Msg) -> Cmd Msg
+getSceneElementCmd tag =
+    getElement "webgl-scene" |> Task.attempt tag
+
+
+{-| Not used.
+-}
+getOffsetRelativeTo : Maybe Dom.Element -> { pageX : Float, pageY : Float, offsetX : Float, offsetY : Float } -> ( Float, Float )
 getOffsetRelativeTo target { pageX, pageY, offsetX, offsetY } =
     case target of
         Just { element } ->
@@ -360,6 +356,26 @@ getOffsetRelativeTo target { pageX, pageY, offsetX, offsetY } =
 ---- VIEW ----
 
 
+getCamera : Angle -> Angle -> ( Camera, Direction3d WorldCoordinates )
+getCamera azimuth elevation =
+    let
+        viewpoint =
+            Viewpoint3d.orbit
+                { focalPoint = Point3d.origin
+                , groundPlane = SketchPlane3d.xy
+                , azimuth = azimuth
+                , elevation = elevation
+                , distance = Length.centimeters cameraDistance
+                }
+    in
+    ( Camera3d.perspective
+        { viewpoint = viewpoint
+        , verticalFieldOfView = Angle.degrees 30
+        }
+    , Viewpoint3d.viewDirection viewpoint
+    )
+
+
 toolboxWidth : Float
 toolboxWidth =
     400.0
@@ -374,11 +390,11 @@ view model =
             , HA.style "left" "0px"
             , HA.style "top" "0px"
             ]
-            [ viewMesh model ]
+            [ viewScene model ]
         , div
             [ HA.style "position" "absolute"
             , HA.style "z-index" "2"
-            , HA.style "left" (String.fromFloat (model.windowRect.width - toolboxWidth) ++ "px")
+            , HA.style "left" (String.fromFloat (model.windowSize.width - toolboxWidth) ++ "px")
             , HA.style "top" "0px"
             , HA.style "width" (String.fromFloat toolboxWidth ++ "px")
             , HA.style "text-align" "left"
@@ -411,7 +427,7 @@ view model =
                    , div []
                         [ input
                             [ type_ "checkbox"
-                            , checked model.showBall
+                            , checked model.showGlobe
                             , onClick ShowBallCheckboxClicked
                             ]
                             []
@@ -453,24 +469,19 @@ viewSlider model =
 
         HueGridView ->
             let
-                hue =
-                    toHue model.hueIndex
+                hueRight =
+                    stringToHue model.hueIndex
+
+                hueLeft =
+                    modBy 1000 (hueRight + 500)
 
                 nameLeft =
-                    case munsellHueName (modBy 1000 (hue + 500)) of
-                        Ok n ->
-                            n
-
-                        Err e ->
-                            e
+                    Munsell.munsellHueName hueLeft
+                        |> Maybe.withDefault ("No hue for " ++ String.fromInt hueLeft)
 
                 nameRight =
-                    case munsellHueName hue of
-                        Ok n ->
-                            n
-
-                        Err e ->
-                            e
+                    Munsell.munsellHueName hueRight
+                        |> Maybe.withDefault ("No hue for " ++ String.fromInt hueRight)
             in
             [ div []
                 [ label [] [ text "Hue" ]
@@ -493,42 +504,12 @@ viewCoordinates model =
     case model.showCoordinates of
         True ->
             [ div []
-                [ label [] [ text "Drag Pos X " ]
-                , text
-                    (case model.lastDragPosition of
-                        Just { x } ->
-                            String.fromFloat x
-
-                        Nothing ->
-                            ""
-                    )
+                [ label [] [ text "Azimuth " ]
+                , text <| String.fromFloat <| Angle.inDegrees model.azimuth
                 ]
             , div []
-                [ label [] [ text "Drag Pos Y " ]
-                , text
-                    (case model.lastDragPosition of
-                        Just { y } ->
-                            String.fromFloat y
-
-                        Nothing ->
-                            ""
-                    )
-                ]
-            , div []
-                [ label [] [ text "Camera X " ]
-                , text (String.fromFloat <| Vec3.getX model.camera.position)
-                ]
-            , div []
-                [ label [] [ text "Camera Y " ]
-                , text (String.fromFloat <| Vec3.getY model.camera.position)
-                ]
-            , div []
-                [ label [] [ text "Camera Z " ]
-                , text (String.fromFloat <| Vec3.getZ model.camera.position)
-                ]
-            , div []
-                [ label [] [ text "Camera phi " ]
-                , text (String.fromFloat <| model.camera.phi * 180 / pi)
+                [ label [] [ text "Elevation " ]
+                , text <| String.fromFloat <| Angle.inDegrees model.elevation
                 ]
             ]
 
@@ -536,115 +517,55 @@ viewCoordinates model =
             []
 
 
-viewMesh : Model -> Html Msg
-viewMesh model =
+viewScene : Model -> Html Msg
+viewScene model =
     let
-        ballMeshes =
-            if model.showBall then
-                model.ballMeshes
+        ( camera, sunlightDirection ) =
+            getCamera model.azimuth model.elevation
+
+        globe =
+            if model.showGlobe then
+                model.globe
 
             else
                 []
-    in
-    case model.view of
-        ColorWheelView ->
-            viewColorWheel
-                model.windowRect
-                model.camera
-                (toValue model.value)
-                ballMeshes
-                model.wheelMeshes
 
-        HueGridView ->
-            viewHueGrids
-                model.windowRect
-                model.camera
-                (model.hueMesh :: ballMeshes)
+        scene =
+            case model.view of
+                ColorWheelView ->
+                    colorWheelForValue (stringToValue model.value) model.colorWheel
+
+                HueGridView ->
+                    model.hueGrid
+    in
+    div
+        [ HA.id "webgl-scene"
+        , HA.width (truncate model.windowSize.width)
+        , HA.height (truncate model.windowSize.height)
+        , HA.style "display" "block"
+        ]
+        [ Scene3d.sunny
+            { dimensions = ( Pixels.pixels model.windowSize.width, Pixels.pixels model.windowSize.height )
+            , sunlightDirection = sunlightDirection
+            , upDirection = Direction3d.z
+            , camera = camera
+            , clipDepth = Length.centimeters clipDepth
+            , background = Scene3d.transparentBackground
+            , shadows = False
+            }
+            (scene ++ globe)
+        ]
 
 
 
 ---- VIEW ----
 
 
-toEntity : Uniforms -> AppMesh -> Entity
-toEntity uniforms mesh =
-    WebGL.entity
-        vertexShader
-        fragmentShader
-        mesh
-        uniforms
-
-
-viewColorWheel : WindowSize -> Camera -> Int -> List AppMesh -> Dict Int AppMesh -> Html Msg
-viewColorWheel { width, height } camera value ballMeshes meshes =
-    let
-        uniforms =
-            makeUniforms width height ColorWheel.sceneSize camera
-    in
-    WebGL.toHtml
-        [ HA.id "webgl-scene"
-        , HA.width (truncate width)
-        , HA.height (truncate height)
-        , HA.style "display" "block"
-        ]
-        (List.range 1 value
-            |> List.map (\v -> Dict.get v meshes)
-            |> List.foldl
-                (\m acc ->
-                    case m of
-                        Just mesh ->
-                            toEntity uniforms mesh :: acc
-
-                        Nothing ->
-                            acc
-                )
-                (List.map (toEntity uniforms) ballMeshes)
-        )
-
-
-viewHueGrids : WindowSize -> Camera -> List AppMesh -> Html Msg
-viewHueGrids { width, height } camera meshes =
-    let
-        uniforms =
-            makeUniforms width height ColorWheel.sceneSize camera
-    in
-    WebGL.toHtml
-        [ HA.id "webgl-scene"
-        , HA.width (truncate width)
-        , HA.height (truncate height)
-        , HA.style "display" "block"
-        ]
-        (List.map (toEntity uniforms) meshes)
-
-
-
----- SHADERS ----
-
-
-vertexShader : Shader Vertex Uniforms { vcolor : Vec3 }
-vertexShader =
-    [glsl|
-        attribute vec3 position;
-        attribute vec3 color;
-        uniform mat4 camera;
-        uniform mat4 perspective;
-        varying vec3 vcolor;
-        void main () {
-            gl_Position = perspective * camera * vec4(position, 1.0);
-            vcolor = color;
-        }
-    |]
-
-
-fragmentShader : Shader {} Uniforms { vcolor : Vec3 }
-fragmentShader =
-    [glsl|
-        precision mediump float;
-        varying vec3 vcolor;
-        void main () {
-            gl_FragColor = vec4(vcolor, 1.0);
-        }
-    |]
+colorWheelForValue : Int -> Dict Int WorldEntityList -> WorldEntityList
+colorWheelForValue value wheel =
+    List.range 1 value
+        |> List.filterMap (\v -> Dict.get v wheel)
+        |> List.concat
 
 
 
@@ -664,17 +585,24 @@ main =
 subscriptions : Model -> Sub Msg
 subscriptions model =
     let
-        subAlways =
-            Sub.batch
-                [ onMouseDown decodeMouseDown
-                , onMouseUp decodeMouseUp
-                , onMouseMove decodeMouseMove
-                , onResize (\w h -> WindowResized { width = toFloat w, height = toFloat h })
-                ]
-    in
-    case ( model.sceneElement, model.animating ) of
-        ( Just _, False ) ->
-            subAlways
+        browserSubs =
+            onResize (\w h -> WindowResized { width = toFloat w, height = toFloat h })
 
-        _ ->
-            Sub.batch [ onAnimationFrameDelta FrameTimeUpdated, subAlways ]
+        animationSubs =
+            if model.animating then
+                onAnimationFrameDelta FrameTimeUpdated
+
+            else
+                Sub.none
+
+        mouseSubs =
+            if model.orbiting then
+                Sub.batch
+                    [ onMouseMove decodeMouseMove
+                    , onMouseUp decodeMouseUp
+                    ]
+
+            else
+                onMouseDown decodeMouseDown
+    in
+    Sub.batch [ browserSubs, animationSubs, mouseSubs ]
