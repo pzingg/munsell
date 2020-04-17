@@ -7,10 +7,12 @@ module Munsell exposing
     , loadColors
     , munsellColorName
     , munsellHueName
+    , neutralColor
     , valueRange
     )
 
 import Array exposing (Array)
+import Color exposing (Color)
 import Csv exposing (..)
 import Dict exposing (Dict)
 
@@ -20,9 +22,7 @@ type alias MunsellColor =
     , hue : String
     , value : Int
     , chroma : Int
-    , red : Float
-    , green : Float
-    , blue : Float
+    , color : Color
     }
 
 
@@ -36,7 +36,7 @@ munsellHueNames =
         |> Array.fromList
 
 
-munsellHueName : Int -> Result String String
+munsellHueName : Int -> Maybe String
 munsellHueName hue =
     let
         r1 =
@@ -56,47 +56,31 @@ munsellHueName hue =
                 r ->
                     ( i1, String.fromFloat <| toFloat r / 10.0 )
     in
-    case Array.get i munsellHueNames of
-        Just abbr ->
-            Ok <| h ++ abbr
-
-        Nothing ->
-            Err <| "could not get hue name for " ++ String.fromInt hue
+    Array.get i munsellHueNames
+        |> Maybe.map (\abbr -> h ++ abbr)
 
 
-munsellColorName : Int -> Int -> Int -> Result String String
+{-| Approximate neutral, although Munsell grayscale is not linear!
+-}
+neutralColor : Int -> Color
+neutralColor value =
+    let
+        grayValue =
+            toFloat value * 255.0 / 10.0
+    in
+    Color.fromRGB ( grayValue, grayValue, grayValue )
+
+
+munsellColorName : Int -> Int -> Int -> Maybe String
 munsellColorName hue value chroma =
-    case munsellHueName hue of
-        Ok hueName ->
-            Ok <| hueName ++ " " ++ String.fromInt value ++ "/" ++ String.fromInt chroma
-
-        Err e ->
-            Err e
+    munsellHueName hue
+        |> Maybe.map (\hueName -> hueName ++ " " ++ String.fromInt value ++ "/" ++ String.fromInt chroma)
 
 
-findColor : ColorDict -> Int -> Int -> Int -> Result String MunsellColor
+findColor : ColorDict -> Int -> Int -> Int -> Maybe MunsellColor
 findColor colors hue value chroma =
-    case munsellColorName hue value chroma of
-        Ok name ->
-            case Dict.get name colors of
-                Just mc ->
-                    Ok mc
-
-                _ ->
-                    let
-                        msg =
-                            name
-                                ++ ", hue "
-                                ++ String.fromInt hue
-                                ++ ", value "
-                                ++ String.fromInt value
-                                ++ ", chroma "
-                                ++ String.fromInt chroma
-                    in
-                    Err <| "no record for " ++ msg
-
-        Err e ->
-            Err e
+    munsellColorName hue value chroma
+        |> Maybe.andThen (\name -> Dict.get name colors)
 
 
 {-| integers, 0 to 975
@@ -135,6 +119,15 @@ recordToColorEntry headers record =
             let
                 name =
                     hue ++ " " ++ value ++ "/" ++ chroma
+
+                red =
+                    255.0 * (String.toFloat r |> Maybe.withDefault 0)
+
+                green =
+                    255.0 * (String.toFloat g |> Maybe.withDefault 0)
+
+                blue =
+                    255.0 * (String.toFloat b |> Maybe.withDefault 0)
             in
             Ok
                 ( name
@@ -142,9 +135,7 @@ recordToColorEntry headers record =
                   , hue = hue
                   , value = String.toInt value |> Maybe.withDefault 0
                   , chroma = String.toInt chroma |> Maybe.withDefault 0
-                  , red = String.toFloat r |> Maybe.withDefault 0.0
-                  , green = String.toFloat g |> Maybe.withDefault 0.0
-                  , blue = String.toFloat b |> Maybe.withDefault 0.0
+                  , color = Color.fromRGB ( red, green, blue )
                   }
                 )
 

@@ -9,6 +9,17 @@ The web application has two views:
 
 2. Two-sided hue page, showing selected hue and clockwise and counter-clockwise neighbors.
 
+Now refactored to use Ian Mackenzie's WebGL libraries.
+
+
+## Requirements
+
+This application uses as-yet-unreleased Elm package `ianmackenzie/elm-3d-scene`.
+
+To compile, clone the package from https://github.com/ianmackenzie/elm-3d-scene into a
+scratch directory and then copy the Elm source files (recursively) from `src` into the
+`elm-3d-scene/src` directory in this project.
+
 
 ## To build and run
 
