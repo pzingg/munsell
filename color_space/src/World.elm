@@ -22,6 +22,7 @@ import Direction3d
 import Frame3d
 import Length exposing (Length, Meters)
 import Munsell exposing (ColorDict)
+import Quantity
 import Point3d exposing (Point3d)
 import Scene3d
 import Scene3d.Material as Material
@@ -202,9 +203,12 @@ equatorCircle color radius =
 
         startPoint =
             Point3d.meters (Length.inMeters radius) 0 0
+
+        maxError =
+            Quantity.multiplyBy 0.01 radius
     in
     Arc3d.sweptAround Axis3d.z (Angle.degrees 360) startPoint
-        |> Arc3d.toPolyline { maxError = Length.meters (Length.inMeters radius / 100.0) }
+        |> Arc3d.toPolyline { maxError = maxError }
         |> Mesh.polyline
         |> Scene3d.mesh material
 
@@ -234,8 +238,11 @@ longitudeArc color yPoint radius angle =
         axis =
             Axis3d.x
                 |> Axis3d.rotateAround Axis3d.z angle
+
+        maxError =
+            Quantity.multiplyBy 0.01 radius
     in
     Arc3d.sweptAround axis (Angle.degrees 180) startPoint
-        |> Arc3d.toPolyline { maxError = Length.meters (Length.inMeters radius / 100.0) }
+        |> Arc3d.toPolyline { maxError = maxError }
         |> Mesh.polyline
         |> Scene3d.mesh material

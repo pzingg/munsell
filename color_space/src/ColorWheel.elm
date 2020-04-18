@@ -19,7 +19,7 @@ import World exposing (GlobeColors, WorldEntity, WorldEntityList)
 
 cylinderRadius : Float
 cylinderRadius =
-    30
+    60
 
 
 cubeSize : Float
