@@ -4,7 +4,7 @@
 
 An Elm-WebGL application to explore Munsell color space.
 
-Now refactored to use [https://github.com/ianmackenzie/elm-3d-scene](Ian Mackenzie's WebGL libraries).
+Now refactored to use [Ian Mackenzie's WebGL libraries](https://github.com/ianmackenzie/elm-3d-scene).
 
 The web application has two views:
 
