@@ -1,6 +1,6 @@
 # color_book
 
-![Example card output](hues_rit_008_7.5YR_10_16.png)
+![Example card output](hues_rit_008_7.5YR_70_16.png)
 
 Python3 scripts to create printable .png files for Munsell color ranges.
 These are hopefully useful for student artists who are learning about color matching.
