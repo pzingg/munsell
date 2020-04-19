@@ -14,7 +14,6 @@ The web application has two views:
 2. Two-sided hue page, showing selected hue and clockwise and counter-clockwise neighbors.
 
 
-
 ## Requirements
 
 This application uses as-yet-unreleased Elm package `ianmackenzie/elm-3d-scene`.

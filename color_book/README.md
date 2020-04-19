@@ -1,10 +1,26 @@
 # color_book
 
-Data from Univeristy of Eastern Finland: http://cs.joensuu.fi/~spectral/databases/programs.htm
+![Example card output](hues_rit_008_7.5YR_10_16.png)
 
-And from RIT: https://www.rit.edu/cos/colorscience/rc_munsell_renotation.php
+Python3 scripts to create printable .png files for Munsell color ranges.
+These are hopefully useful for student artists who are learning about color matching.
 
-To use the UEF data, you must convert from Matlab format to CSV files by running `python3 read_mat.py`
+Data from UEF Univeristy of Eastern Finland: http://cs.joensuu.fi/~spectral/databases/programs.htm
+
+And from RIT Rochester Institute of Technology: https://www.rit.edu/cos/colorscience/rc_munsell_renotation.php
+
+
+## Requirements
+
+`numpy` library to read the Matlab data.
+
+`Pillow` library for creating .png files.
+
+
+## Usage
+
+To import and use the UEF data, you must convert from the original Matlab format
+to CSV files by running `python3 read_mat.py`
 
 Then make `png` pages of Munsell book by running `python3 color_book.py [args]`
 
@@ -16,6 +32,7 @@ with the `--card` argument.
 Or print out a 4 x 6 inch card showing the hues that neighbor a specified
 Munsell color with the `--hues` argument.
 
-Requirements: `numpy` and `Pillow` libraries.
+
+## Additional References
 
 More info on coverting to sRGB here: http://pteromys.melonisland.net/munsell
