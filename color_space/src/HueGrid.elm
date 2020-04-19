@@ -1,4 +1,4 @@
-module HueGrid exposing (gridForHue)
+module HueGrid exposing (gridForHue, sceneRadius)
 
 import Angle exposing (Angle)
 import Axis3d
@@ -10,7 +10,7 @@ import Point3d
 import Scene3d
 import Scene3d.Entity as Entity
 import Vector3d
-import World exposing (GlobeColors, WorldEntity, WorldEntityList)
+import World exposing (WorldEntity, WorldEntityList)
 
 
 
@@ -51,6 +51,11 @@ fanAngle =
 zForValue : Int -> Float
 zForValue value =
     toFloat (value - 5) * spacing
+
+
+sceneRadius : Float
+sceneRadius =
+    x0 + (8 * spacing) + cubeSize
 
 
 

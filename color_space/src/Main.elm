@@ -21,7 +21,7 @@ import Html.Attributes as HA exposing (checked, src, type_, value)
 import Html.Events exposing (onClick, onInput)
 import HueGrid
 import Json.Decode as Decode exposing (Decoder)
-import Length exposing (Meters)
+import Length exposing (Length, Meters)
 import Munsell exposing (ColorDict)
 import Pixels exposing (Pixels)
 import Point3d
@@ -32,7 +32,7 @@ import SketchPlane3d
 import Task
 import Viewpoint3d exposing (Viewpoint3d)
 import WebGL exposing (Entity, Mesh, Shader)
-import World exposing (WorldCoordinates, WorldEntityList)
+import World exposing (GlobeColors, WorldCoordinates, WorldEntityList)
 
 
 {-| Modules from other packages imported by ianmackenzie/elm-3d-scene
@@ -86,8 +86,9 @@ type alias Model =
     , orbiting : Bool
     , colors : ColorDict
     , view : ColorView
-    , hueIndex : String
-    , value : String
+    , munsellHueIndex : String
+    , munsellValue : String
+    , cameraDistance : String
     , animating : Bool
     , showGlobe : Bool
     , showCoordinates : Bool
@@ -102,14 +103,19 @@ type alias Model =
 {- These are in centimeters. -}
 
 
-cameraDistance : Float
-cameraDistance =
-    3 * ColorWheel.sceneSize
+sceneRadius : Float
+sceneRadius =
+    max ColorWheel.sceneRadius HueGrid.sceneRadius
+
+
+initCameraDistance : Float
+initCameraDistance =
+    5 * sceneRadius
 
 
 clipDepth : Float
 clipDepth =
-    0.1 * ColorWheel.sceneSize
+    0.1 * sceneRadius
 
 
 
@@ -128,12 +134,13 @@ init ts =
       , orbiting = False
       , colors = colors
       , view = ColorWheelView
-      , hueIndex = "0"
-      , value = "7"
+      , munsellHueIndex = "0"
+      , munsellValue = "7"
+      , cameraDistance = String.fromFloat initCameraDistance
       , animating = False
       , showGlobe = False
       , showCoordinates = False
-      , globe = ColorWheel.globe
+      , globe = buildGlobe
       , colorWheel = ColorWheel.wheel colors
       , hueGrid = buildHueGrid colors "0"
       }
@@ -143,9 +150,29 @@ init ts =
     )
 
 
+
+---- ENTITIES: POLYLINE GLOBE POLYLINES
+
+
+defaultGlobeColors : GlobeColors
+defaultGlobeColors =
+    { xPos = Color.fromRGB ( 255, 0, 0 )
+    , xNeg = Color.fromRGB ( 0, 255, 0 )
+    , yPos = Color.fromRGB ( 150, 150, 0 )
+    , yNeg = Color.fromRGB ( 0, 150, 150 )
+    , oPos = Color.fromRGB ( 0, 0, 255 )
+    , oNeg = Color.fromRGB ( 150, 0, 150 )
+    }
+
+
+buildGlobe : WorldEntityList
+buildGlobe =
+    World.globe (Length.centimeters sceneRadius) defaultGlobeColors
+
+
 buildHueGrid : ColorDict -> String -> WorldEntityList
-buildHueGrid colors hueIndex =
-    stringToHue hueIndex
+buildHueGrid colors munsellHueIndex =
+    stringToHue munsellHueIndex
         |> HueGrid.gridForHue colors
 
 
@@ -155,10 +182,10 @@ stringToValue value =
 
 
 stringToHue : String -> Int
-stringToHue hueIndex =
+stringToHue munsellHueIndex =
     let
         hue =
-            String.toInt hueIndex |> Maybe.withDefault 0
+            String.toInt munsellHueIndex |> Maybe.withDefault 0
     in
     hue * 25
 
@@ -177,6 +204,7 @@ type Msg
     | ViewButtonClicked
     | ValueInputChanged String
     | HueInputChanged String
+    | CameraDistanceInputChanged String
     | AnimatingCheckboxClicked
     | ShowBallCheckboxClicked
     | ShowCoordinatesCheckboxClicked
@@ -208,7 +236,7 @@ update msg model =
                                 newAzimuth =
                                     model.azimuth |> Quantity.minus (Angle.degrees dx)
                             in
-                            { model | azimuth = newAzimuth }
+                            { model | azimuth = clampedAzimuth newAzimuth }
 
                         False ->
                             model
@@ -230,16 +258,19 @@ update msg model =
             in
             ( { model | view = newView }, Cmd.none )
 
-        ValueInputChanged newValue ->
-            ( { model | value = newValue }, Cmd.none )
+        ValueInputChanged newMunsellValue ->
+            ( { model | munsellValue = newMunsellValue }, Cmd.none )
 
-        HueInputChanged newHueIndex ->
+        HueInputChanged newMunsellHueIndex ->
             ( { model
-                | hueIndex = newHueIndex
-                , hueGrid = buildHueGrid model.colors newHueIndex
+                | munsellHueIndex = newMunsellHueIndex
+                , hueGrid = buildHueGrid model.colors newMunsellHueIndex
               }
             , Cmd.none
             )
+
+        CameraDistanceInputChanged newCameraDistance ->
+            ( { model | cameraDistance = newCameraDistance }, Cmd.none )
 
         AnimatingCheckboxClicked ->
             ( { model | animating = not model.animating }, Cmd.none )
@@ -263,21 +294,39 @@ update msg model =
             if model.orbiting then
                 let
                     newAzimuth =
-                        model.azimuth |> Quantity.minus (Angle.degrees dx)
+                        model.azimuth
+                            |> Quantity.minus (Angle.degrees dx)
 
                     newElevation =
                         model.elevation
                             |> Quantity.plus (Angle.degrees dy)
-                            |> Quantity.clamp
-                                (Angle.degrees -90)
-                                (Angle.degrees 90)
                 in
-                ( { model | azimuth = newAzimuth, elevation = newElevation }
+                ( { model | azimuth = clampedAzimuth newAzimuth, elevation = clampedElevation newElevation }
                 , Cmd.none
                 )
 
             else
                 ( model, Cmd.none )
+
+
+clampedAzimuth : Angle -> Angle
+clampedAzimuth az =
+    if Quantity.lessThan (Angle.degrees -180) az then
+        Quantity.plus (Angle.degrees 360) az
+
+    else if Quantity.greaterThan (Angle.degrees 180) az then
+        Quantity.minus (Angle.degrees 360) az
+
+    else
+        az
+
+
+clampedElevation : Angle -> Angle
+clampedElevation el =
+    Quantity.clamp
+        (Angle.degrees -90)
+        (Angle.degrees 90)
+        el
 
 
 {-| mousedown, mouseup and mousemove events have the following values.
@@ -356,8 +405,8 @@ getOffsetRelativeTo target { pageX, pageY, offsetX, offsetY } =
 ---- VIEW ----
 
 
-getCamera : Angle -> Angle -> ( Camera, Direction3d WorldCoordinates )
-getCamera azimuth elevation =
+getCamera : Angle -> Angle -> Length -> ( Camera, Direction3d WorldCoordinates )
+getCamera azimuth elevation cameraDistance =
     let
         viewpoint =
             Viewpoint3d.orbit
@@ -365,7 +414,7 @@ getCamera azimuth elevation =
                 , groundPlane = SketchPlane3d.xy
                 , azimuth = azimuth
                 , elevation = elevation
-                , distance = Length.centimeters cameraDistance
+                , distance = cameraDistance
                 }
     in
     ( Camera3d.perspective
@@ -399,7 +448,7 @@ view model =
             , HA.style "width" (String.fromFloat toolboxWidth ++ "px")
             , HA.style "text-align" "left"
             ]
-            (viewSlider model
+            (viewSliders model
                 ++ [ div []
                         [ button
                             [ type_ "button"
@@ -431,7 +480,7 @@ view model =
                             , onClick ShowBallCheckboxClicked
                             ]
                             []
-                        , label [] [ text "Show Ball" ]
+                        , label [] [ text "Show Globe" ]
                         ]
                    , div []
                         [ input
@@ -448,55 +497,83 @@ view model =
         ]
 
 
-viewSlider : Model -> List (Html Msg)
-viewSlider model =
+viewSliders : Model -> List (Html Msg)
+viewSliders model =
     case model.view of
         ColorWheelView ->
-            [ div []
-                [ label [] [ text "Value" ]
-                , input
-                    [ type_ "range"
-                    , HA.min "1"
-                    , HA.max "9"
-                    , value model.value
-                    , onInput ValueInputChanged
-                    ]
-                    []
-                ]
-            , div []
-                [ label [] [ text model.value ] ]
-            ]
+            viewValueSlider model.munsellValue ++ viewCameraSlider model.cameraDistance
 
         HueGridView ->
-            let
-                hueRight =
-                    stringToHue model.hueIndex
+            viewHueSlider model.munsellHueIndex ++ viewCameraSlider model.cameraDistance
 
-                hueLeft =
-                    modBy 1000 (hueRight + 500)
 
-                nameLeft =
-                    Munsell.munsellHueName hueLeft
-                        |> Maybe.withDefault ("No hue for " ++ String.fromInt hueLeft)
-
-                nameRight =
-                    Munsell.munsellHueName hueRight
-                        |> Maybe.withDefault ("No hue for " ++ String.fromInt hueRight)
-            in
-            [ div []
-                [ label [] [ text "Hue" ]
-                , input
-                    [ type_ "range"
-                    , HA.min "1"
-                    , HA.max "39"
-                    , value model.hueIndex
-                    , onInput HueInputChanged
-                    ]
-                    []
-                ]
-            , div []
-                [ label [] [ text (nameLeft ++ " " ++ nameRight) ] ]
+viewValueSlider : String -> List (Html Msg)
+viewValueSlider munsellValue =
+    [ div []
+        [ label [] [ text "Value" ]
+        , input
+            [ type_ "range"
+            , HA.min "1"
+            , HA.max "9"
+            , value munsellValue
+            , onInput ValueInputChanged
             ]
+            []
+        ]
+    , div []
+        [ label [] [ text munsellValue ] ]
+    ]
+
+
+viewHueSlider : String -> List (Html Msg)
+viewHueSlider munsellHueIndex =
+    let
+        hueRight =
+            stringToHue munsellHueIndex
+
+        hueLeft =
+            modBy 1000 (hueRight + 500)
+
+        nameLeft =
+            Munsell.munsellHueName hueLeft
+                |> Maybe.withDefault ("No hue for " ++ String.fromInt hueLeft)
+
+        nameRight =
+            Munsell.munsellHueName hueRight
+                |> Maybe.withDefault ("No hue for " ++ String.fromInt hueRight)
+    in
+    [ div []
+        [ label [] [ text "Hue" ]
+        , input
+            [ type_ "range"
+            , HA.min "1"
+            , HA.max "39"
+            , value munsellHueIndex
+            , onInput HueInputChanged
+            ]
+            []
+        ]
+    , div []
+        [ label [] [ text (nameLeft ++ " " ++ nameRight) ] ]
+    ]
+
+
+viewCameraSlider : String -> List (Html Msg)
+viewCameraSlider distance =
+    [ div []
+        [ label [] [ text "Zoom" ]
+        , input
+            [ type_ "range"
+            , HA.min (String.fromInt (truncate initCameraDistance // 4))
+            , HA.max (String.fromInt (truncate initCameraDistance))
+            , value distance
+            , onInput CameraDistanceInputChanged
+            ]
+            []
+        ]
+    , div []
+        [ label [] [ text distance ] ]
+    ]
 
 
 viewCoordinates : Model -> List (Html Msg)
@@ -505,11 +582,11 @@ viewCoordinates model =
         True ->
             [ div []
                 [ label [] [ text "Azimuth " ]
-                , text <| String.fromFloat <| Angle.inDegrees model.azimuth
+                , text <| String.fromInt <| truncate <| Angle.inDegrees model.azimuth
                 ]
             , div []
                 [ label [] [ text "Elevation " ]
-                , text <| String.fromFloat <| Angle.inDegrees model.elevation
+                , text <| String.fromInt <| truncate <| Angle.inDegrees model.elevation
                 ]
             ]
 
@@ -520,8 +597,13 @@ viewCoordinates model =
 viewScene : Model -> Html Msg
 viewScene model =
     let
+        cameraDistance =
+            String.toFloat model.cameraDistance
+                |> Maybe.withDefault initCameraDistance
+                |> Length.centimeters
+
         ( camera, sunlightDirection ) =
-            getCamera model.azimuth model.elevation
+            getCamera model.azimuth model.elevation cameraDistance
 
         globe =
             if model.showGlobe then
@@ -533,7 +615,7 @@ viewScene model =
         scene =
             case model.view of
                 ColorWheelView ->
-                    colorWheelForValue (stringToValue model.value) model.colorWheel
+                    colorWheelForValue (stringToValue model.munsellValue) model.colorWheel
 
                 HueGridView ->
                     model.hueGrid

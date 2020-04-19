@@ -22,11 +22,12 @@ import Direction3d
 import Frame3d
 import Length exposing (Length, Meters)
 import Munsell exposing (ColorDict)
-import Quantity
 import Point3d exposing (Point3d)
+import Quantity
 import Scene3d
 import Scene3d.Material as Material
 import Scene3d.Mesh as Mesh
+import SketchPlane3d
 import Sphere3d
 
 
@@ -50,61 +51,6 @@ type alias WorldEntity =
 
 type alias WorldEntityList =
     List WorldEntity
-
-
-
----- OBJECT TYPES ----
-
-
-{-| A WorldEntity is made up of vertices.
-A Box has 4 corner points (top face) and 4 on the bottom face = 8 total.
-A Cylinder has 1 center point plus 'longitudeLineCount' on the circumference
-of both the top and bottom faces.
--}
-type ObjectKind
-    = Cube
-    | Cylinder
-    | Sphere
-    | Polyline
-
-
-cubeSize : Length
-cubeSize =
-    Length.centimeters 90
-
-
-sphereRadius : Length
-sphereRadius =
-    Length.centimeters 45
-
-
-cylinderRadius : Length
-cylinderRadius =
-    Length.centimeters 20
-
-
-cylinderLength : Length
-cylinderLength =
-    Length.centimeters 20
-
-
-longitudeLineCount : Int
-longitudeLineCount =
-    30
-
-
-
----- COLORS ----
-
-
-type alias GlobeColors =
-    { xPos : Color
-    , xNeg : Color
-    , yPos : Color
-    , yNeg : Color
-    , oPos : Color
-    , oNeg : Color
-    }
 
 
 
@@ -169,7 +115,31 @@ matteCylinderAt origin size color =
 
 
 
----- POLYLINES
+---- GLOBE COLORS ----
+
+
+type alias GlobeColors =
+    { xPos : Color
+    , xNeg : Color
+    , yPos : Color
+    , yNeg : Color
+    , oPos : Color
+    , oNeg : Color
+    }
+
+
+
+---- GLOBE POLYLINES
+
+
+longitudeLineCount : Int
+longitudeLineCount =
+    12
+
+
+halfLatitudeLineCount : Int
+halfLatitudeLineCount =
+    6
 
 
 globe : Length -> GlobeColors -> WorldEntityList
@@ -185,24 +155,35 @@ globe radius colors =
             Point3d.meters 0 -rInMeters 0
     in
     List.concat
-        [ [ equatorCircle colors.xPos radius ]
+        [ latitudeArcs colors.xPos radius
         , longitudeArcs colors.yPos pointPos radius
         , longitudeArcs colors.yNeg pointNeg radius
         ]
 
 
+latitudeArcs : Color -> Length -> WorldEntityList
+latitudeArcs color radius =
+    List.range (1 - halfLatitudeLineCount) (halfLatitudeLineCount - 1)
+        |> List.map
+            (\a ->
+                latitudeArc color
+                    radius
+                    (Angle.degrees (90.0 * toFloat a / toFloat halfLatitudeLineCount))
+            )
 
-{- / Construct a circular polyline Entity in the sketch plane (xy). -}
 
-
-equatorCircle : Color -> Length -> WorldEntity
-equatorCircle color radius =
+{-| Construct a 360 degree arc entity around the z axis.
+-}
+latitudeArc : Color -> Length -> Angle -> WorldEntity
+latitudeArc color radius angle =
     let
         material =
             Material.color color
 
         startPoint =
-            Point3d.meters (Length.inMeters radius) 0 0
+            Point3d.rThetaOn SketchPlane3d.xz
+                radius
+                angle
 
         maxError =
             Quantity.multiplyBy 0.01 radius
@@ -215,16 +196,18 @@ equatorCircle color radius =
 
 longitudeArcs : Color -> WorldPoint3d -> Length -> WorldEntityList
 longitudeArcs color yPoint radius =
-    List.range 0 15
+    List.range 0 longitudeLineCount
         |> List.map
             (\a ->
                 longitudeArc color
                     yPoint
                     radius
-                    (Angle.degrees (toFloat a * (360.0 / 15.0)))
+                    (Angle.degrees (360.0 * toFloat a / toFloat longitudeLineCount))
             )
 
 
+{-| Construct a 180 degree arc entity through one of the poles.
+-}
 longitudeArc : Color -> WorldPoint3d -> Length -> Angle -> WorldEntity
 longitudeArc color yPoint radius angle =
     let

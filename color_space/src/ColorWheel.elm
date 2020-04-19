@@ -1,4 +1,4 @@
-module ColorWheel exposing (globe, sceneSize, wheel)
+module ColorWheel exposing (sceneRadius, wheel)
 
 import Angle exposing (Angle)
 import Axis3d
@@ -9,7 +9,7 @@ import Munsell exposing (ColorDict)
 import Point3d
 import Scene3d
 import Vector3d
-import World exposing (GlobeColors, WorldEntity, WorldEntityList)
+import World exposing (WorldEntity, WorldEntityList)
 
 
 
@@ -37,11 +37,6 @@ rSpacing =
     50
 
 
-sceneSize : Float
-sceneSize =
-    2 * (r0 + (8 * rSpacing) + (cubeSize / 2))
-
-
 zSpacing : Float
 zSpacing =
     90
@@ -52,24 +47,9 @@ zForValue value =
     toFloat (value - 5) * zSpacing
 
 
-defaultGlobeColors : GlobeColors
-defaultGlobeColors =
-    { xPos = Color.fromRGB ( 255, 0, 0 )
-    , xNeg = Color.fromRGB ( 0, 255, 0 )
-    , yPos = Color.fromRGB ( 150, 150, 0 )
-    , yNeg = Color.fromRGB ( 0, 150, 150 )
-    , oPos = Color.fromRGB ( 0, 0, 255 )
-    , oNeg = Color.fromRGB ( 150, 0, 150 )
-    }
-
-
-
----- ENTITIES: POLYLINE GLOBE POLYLINES
-
-
-globe : WorldEntityList
-globe =
-    World.globe (Length.centimeters sceneSize) defaultGlobeColors
+sceneRadius : Float
+sceneRadius =
+    r0 + (8 * rSpacing) + cubeSize
 
 
 
