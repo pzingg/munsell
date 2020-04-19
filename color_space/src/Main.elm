@@ -457,10 +457,10 @@ view model =
                             [ text
                                 (case model.view of
                                     ColorWheelView ->
-                                        "Hue Grid Page"
+                                        "Switch to Hue Grid"
 
                                     _ ->
-                                        "Color Wheel Page"
+                                        "Switch to Color Wheel"
                                 )
                             ]
                         ]
