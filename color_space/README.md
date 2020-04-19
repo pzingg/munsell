@@ -1,6 +1,10 @@
 # color_space Application
 
+![Screenshot](color-wheel-screenshot.png)
+
 An Elm-WebGL application to explore Munsell color space.
+
+Now refactored to use [https://github.com/ianmackenzie/elm-3d-scene](Ian Mackenzie's WebGL libraries).
 
 The web application has two views:
 
@@ -9,14 +13,13 @@ The web application has two views:
 
 2. Two-sided hue page, showing selected hue and clockwise and counter-clockwise neighbors.
 
-Now refactored to use Ian Mackenzie's WebGL libraries.
 
 
 ## Requirements
 
 This application uses as-yet-unreleased Elm package `ianmackenzie/elm-3d-scene`.
 
-To compile, clone the package from https://github.com/ianmackenzie/elm-3d-scene into a
+To compile, clone the elm-3d-scene package from https://github.com/ianmackenzie/elm-3d-scene into a
 scratch directory and then copy the Elm source files (recursively) from `src` into the
 `elm-3d-scene/src` directory in this project.
 
