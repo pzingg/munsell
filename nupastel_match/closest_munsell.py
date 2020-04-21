@@ -43,19 +43,19 @@ def hsv_keys(h, s, v):
     value_key = (v_val * 1000 * 100) + (h_val * 100) + c_val
     return (hue_key, value_key)
 
-def read_nupastel(fname = 'nupastel_data.json'):
+def read_jsonline(fname):
     colors = []
     with open(fname) as f:
-        data = json.load(f)
-        for row in data['maincolors']:
-            c, m, y, k = [ float(s)/100.0 for s in row['CMYK'].split(',') ]
+        for line in f.readlines():
+            row = json.loads(line)
+            c, m, y, k = [ float(row[s])/100.0 for s in ['c', 'm', 'y', 'k'] ]
             cmyk_color = CMYKColor(c, m, y, k)
             lab_color = convert_color(cmyk_color, LabColor)
             hsv_color = convert_color(cmyk_color, HSVColor)
             hue_key, value_key = hsv_keys(hsv_color.hsv_h, hsv_color.hsv_s, hsv_color.hsv_v)
-            r, g, b = [ int(s) for s in row['rgb'].split(',') ]
+            r, g, b = [ int(row[s]) for s in ['r', 'g', 'b'] ]
             rgb = '#{0:02x}{1:02x}{2:02x}'.format(r, g, b)
-            color = NamedColor(row['colorCode'], [ row['colorName'] ],
+            color = NamedColor(row['identifier'], [ row['name'] ],
                 lab_color, rgb, hue_key, value_key)
             colors.append(color)
     if ORDER_BY_VALUE:
@@ -63,43 +63,14 @@ def read_nupastel(fname = 'nupastel_data.json'):
     else:
         return sorted(colors, key = lambda x: x.hue_key)
 
-def read_unison(fname = 'unison_data.csv'):
-    colors = []
-    with open(fname) as f:
-        reader = csv.DictReader(f)
-        for row in reader:
-            r, g, b = int(row['r']), int(row['g']), int(row['b'])
-            rgb_color = sRGBColor(r, g, b, is_upscaled=True)
-            lab_color = convert_color(rgb_color, LabColor)
-            hsv_color = convert_color(rgb_color, HSVColor)
-            hue_key, value_key = hsv_keys(hsv_color.hsv_h, hsv_color.hsv_s, hsv_color.hsv_v)
-            rgb = '#{0:02x}{1:02x}{2:02x}'.format(r, g, b)
-            color = NamedColor(row['id'], [ row['name'] ],
-                lab_color, rgb, hue_key, value_key)
-            colors.append(color)
-    if ORDER_BY_VALUE:
-        return sorted(colors, key = lambda x: x.value_key)
-    else:
-        return sorted(colors, key = lambda x: x.hue_key)
-
-def generate_nupastel_csv():
-    colors = read_nupastel()
-    with open('nupastel_munsell.csv', 'w') as csvfile:
+def generate_csv(name):
+    colors = read_jsonline('{}.jsonl'.format(name))
+    with open('{}_munsell.csv'.format(name), 'w') as csvfile:
         writer = csv.writer(csvfile)
         writer.writerow(['id', 'name', 'h', 'v', 'c'])
-        for ni, nupastel_color in enumerate(colors):
-            hue, value, chroma = interpolate(nupastel_color)
-            writer.writerow([nupastel_color.name[0:3], nupastel_color.data[0],
-                hue, '{:g}'.format(value), '{:g}'.format(chroma)])
-
-def generate_unison_csv():
-    colors = read_unison()
-    with open('unison_munsell.csv', 'w') as csvfile:
-        writer = csv.writer(csvfile)
-        writer.writerow(['id', 'name', 'h', 'v', 'c'])
-        for ni, nupastel_color in enumerate(colors):
-            hue, value, chroma = interpolate(nupastel_color)
-            writer.writerow([nupastel_color.name[0:3], nupastel_color.data[0],
+        for ni, color in enumerate(colors):
+            hue, value, chroma = interpolate(color)
+            writer.writerow([color.name, color.data[0],
                 hue, '{:g}'.format(value), '{:g}'.format(chroma)])
 
 def interpolate(color):
@@ -118,4 +89,6 @@ def interpolate(color):
     return (hue, value, chroma)
 
 if __name__ == '__main__':
-    generate_unison_csv()
+    generate_csv('sennelier')
+    generate_csv('unison')
+    generate_csv('nupastel')
