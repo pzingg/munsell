@@ -8,7 +8,7 @@
 import scrapy
 
 
-class NupastelItem(scrapy.Item):
+class ArtPaintsItem(scrapy.Item):
     name = scrapy.Field()
     identifier = scrapy.Field()
     html = scrapy.Field()

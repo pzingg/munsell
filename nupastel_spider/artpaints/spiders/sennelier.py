@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 import scrapy
-from nupastel.items import NupastelItem
+from artpaints.items import ArtPaintsItem
 
 
 
@@ -8,10 +8,10 @@ def list_of_numbers(str):
     return [int(x.strip()) for x in str.split(',')]
 
 
-class NupastelSpider(scrapy.Spider):
-    name = 'nupastel'
+class SennelierSpider(scrapy.Spider):
+    name = 'sennelier'
     allowed_domains = ['art-paints.com']
-    start_urls = [ 'http://www.art-paints.com/Paints/Pastel/Prismacolor/Nupastel-96-Set/Prismacolor-Nupastel-96-Set.html' ]
+    start_urls = [ 'http://www.art-paints.com/Paints/Pastel/Sennelier/Soft/Sennelier-Soft.html' ]
 
     def parse(self, response):
         table = response.xpath('//center/table[5]')
@@ -32,5 +32,6 @@ class NupastelSpider(scrapy.Spider):
         texts = [strong.xpath('.//text()').get() for strong in strongs]
         cmyk = list_of_numbers(texts[3])
         rgb = list_of_numbers(texts[4])
-        yield NupastelItem(name=texts[0], identifier=texts[1],
+        id = 'SENN{:03d}'.format(int(texts[1]))
+        yield ArtPaintsItem(name=texts[0], identifier=id,
             html=texts[2], c=cmyk[0], m=cmyk[1], y=cmyk[2], k=cmyk[3], r=rgb[0], g=rgb[1], b=rgb[2])
