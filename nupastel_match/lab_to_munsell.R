@@ -2,6 +2,11 @@
 
 library(munsellinterpol)
 
+grays <- paste0("N", seq(0, 10, 0.5))
+rgb <- MunsellTosRGB(grays)
+write.csv(rgb, "munsell_neutrals.csv")
+quit("no")
+
 args <- commandArgs(trailingOnly = TRUE)
 lab <- strsplit(args[[1]], " ", fixed = TRUE)
 lab <- unlist(lapply(lab, as.numeric))
