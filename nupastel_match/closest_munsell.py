@@ -199,36 +199,29 @@ def generate_html():
     print('</body></html>')
 
 def generate_csv():
-    munsell_colors = read_munsell()
     nupastel_colors = read_nupastel()
-    diffs = color_diffs(nupastel_colors, munsell_colors)
-    nupastel_to_munsell = []
-
-    for ni, nupastel_color in enumerate(nupastel_colors):
-        for closest in closest_target_for_source(diffs, nupastel_color.name):
-            mi = closest.target_index
-            nupastel_to_munsell.append((ni, mi))
-            break
-
     with open('nupastel-munsell.csv', 'w') as csvfile:
         writer = csv.writer(csvfile)
         writer.writerow(['id', 'name', 'h', 'v', 'c'])
-        for ni, mi in nupastel_to_munsell:
-            nupastel_color = nupastel_colors[ni]
-            munsell_color = munsell_colors[mi]
+        for ni, nupastel_color in enumerate(nupastel_colors):
+            hue, value, chroma = interpolate(nupastel_color)
             writer.writerow([nupastel_color.name[0:3], nupastel_color.data[0],
-                munsell_color.data[0], munsell_color.data[1], munsell_color.data[2]])
+                hue, '{:g}'.format(value), '{:g}'.format(chroma)])
 
-
-def test_interpol():
-    nupastel_colors = read_nupastel()
-    for ni, nupastel_color in enumerate(nupastel_colors):
-        l, a, b = nupastel_color.lab_color.get_value_tuple()
-        arg = '{:.4f} {:.4f} {:.4f}'.format(l, a, b)
-        result = subprocess.check_output([ '/usr/bin/Rscript', 'lab_to_munsell.R', arg ])
-        print('Python got {}'.format(result))
-        break
+def interpolate(color):
+    l, a, b = color.lab_color.get_value_tuple()
+    arg = '{:.4f} {:.4f} {:.4f}'.format(l, a, b)
+    result = subprocess.check_output([ '/usr/bin/Rscript', 'lab_to_munsell.R', arg ])
+    result = ''.join(map(chr, result)).strip()
+    hue, value, chroma = result.split(' ')
+    value = float(value)
+    if hue == 'NA':
+        hue = 'N'
+        chroma = 0
+    else:
+        chroma = float(chroma)
+    print('{} -> {} {:g}/{:g}'.format(color.data[0], hue, value, chroma))
+    return (hue, value, chroma)
 
 if __name__ == '__main__':
-    # generate_csv()
-    test_interpol()
+    generate_csv()
