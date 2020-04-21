@@ -6,7 +6,9 @@ from colormath.color_conversions import convert_color
 import csv
 import json
 import re
+import subprocess
 import sys
+
 
 HUES = [ 'R', 'YR', 'Y', 'GY', 'G', 'BG', 'B', 'PB', 'P', 'RP' ]
 VERBOSE = False
@@ -218,5 +220,15 @@ def generate_csv():
                 munsell_color.data[0], munsell_color.data[1], munsell_color.data[2]])
 
 
+def test_interpol():
+    nupastel_colors = read_nupastel()
+    for ni, nupastel_color in enumerate(nupastel_colors):
+        l, a, b = nupastel_color.lab_color.get_value_tuple()
+        arg = '{:.4f} {:.4f} {:.4f}'.format(l, a, b)
+        result = subprocess.check_output([ '/usr/bin/Rscript', 'lab_to_munsell.R', arg ])
+        print('Python got {}'.format(result))
+        break
+
 if __name__ == '__main__':
-    generate_csv()
+    # generate_csv()
+    test_interpol()
