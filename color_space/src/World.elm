@@ -67,7 +67,7 @@ cubeAt origin size material =
             Block3d.centeredOn frame
                 ( size, size, size )
     in
-    Scene3d.block Scene3d.castsShadows material shape
+    Scene3d.block material shape
 
 
 matteCubeAt : WorldPoint3d -> Length -> Color -> WorldEntity
@@ -85,7 +85,7 @@ sphereAt origin radius material =
         shape =
             Sphere3d.atPoint origin radius
     in
-    Scene3d.sphere Scene3d.castsShadows material shape
+    Scene3d.sphere material shape
 
 
 matteSphereAt : WorldPoint3d -> Length -> Color -> WorldEntity
@@ -106,7 +106,7 @@ cylinderAt origin size material =
                 Direction3d.z
                 size
     in
-    Scene3d.cylinder Scene3d.castsShadows material shape
+    Scene3d.cylinder material shape
 
 
 matteCylinderAt : WorldPoint3d -> { radius : Length, length : Length } -> Color -> WorldEntity

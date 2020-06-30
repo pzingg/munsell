@@ -68,7 +68,7 @@ type alias Rect a =
 {-| Size in browser pixels.
 -}
 type alias WindowSize =
-    Rect Float
+    Rect Int
 
 
 type alias Camera =
@@ -108,14 +108,29 @@ sceneRadius =
     max ColorWheel.sceneRadius HueGrid.sceneRadius
 
 
-initCameraDistance : Float
-initCameraDistance =
-    5 * sceneRadius
-
-
 clipDepth : Float
 clipDepth =
     0.1 * sceneRadius
+
+
+initialCameraDistance : Float
+initialCameraDistance =
+    5 * sceneRadius
+
+
+initialWidth : Int
+initialWidth =
+    800
+
+
+initialAzimuthDegrees : Float
+initialAzimuthDegrees =
+    45.0
+
+
+initialElevationDegrees : Float
+initialElevationDegrees =
+    30.0
 
 
 
@@ -128,15 +143,15 @@ init ts =
         colors =
             Munsell.loadColors
     in
-    ( { windowSize = { width = 800.0, height = 800.0 }
-      , azimuth = Angle.degrees 45
-      , elevation = Angle.degrees 30
+    ( { windowSize = { width = initialWidth, height = initialWidth }
+      , azimuth = Angle.degrees initialAzimuthDegrees
+      , elevation = Angle.degrees initialElevationDegrees
       , orbiting = False
       , colors = colors
       , view = ColorWheelView
       , munsellHueIndex = "0"
       , munsellValue = "7"
-      , cameraDistance = String.fromFloat initCameraDistance
+      , cameraDistance = String.fromFloat initialCameraDistance
       , animating = False
       , showGlobe = False
       , showCoordinates = False
@@ -145,7 +160,7 @@ init ts =
       , hueGrid = buildHueGrid colors "0"
       }
     , Task.perform
-        (\{ viewport } -> WindowResized { width = viewport.width, height = viewport.height })
+        (\{ viewport } -> WindowResized { width = truncate viewport.width, height = truncate viewport.height })
         getViewport
     )
 
@@ -156,12 +171,12 @@ init ts =
 
 defaultGlobeColors : GlobeColors
 defaultGlobeColors =
-    { xPos = Color.fromRGB ( 255, 0, 0 )
-    , xNeg = Color.fromRGB ( 0, 255, 0 )
-    , yPos = Color.fromRGB ( 150, 150, 0 )
-    , yNeg = Color.fromRGB ( 0, 150, 150 )
-    , oPos = Color.fromRGB ( 0, 0, 255 )
-    , oNeg = Color.fromRGB ( 150, 0, 150 )
+    { xPos = Color.rgb255 255 0 0
+    , xNeg = Color.rgb255 0 255 0
+    , yPos = Color.rgb255 150 150 0
+    , yNeg = Color.rgb255 0 150 150
+    , oPos = Color.rgb255 0 0 255
+    , oNeg = Color.rgb255 150 0 150
     }
 
 
@@ -405,7 +420,7 @@ getOffsetRelativeTo target { pageX, pageY, offsetX, offsetY } =
 ---- VIEW ----
 
 
-getCamera : Angle -> Angle -> Length -> ( Camera, Direction3d WorldCoordinates )
+getCamera : Angle -> Angle -> Length -> ( Camera3d Meters WorldCoordinates, Direction3d WorldCoordinates )
 getCamera azimuth elevation cameraDistance =
     let
         viewpoint =
@@ -425,9 +440,9 @@ getCamera azimuth elevation cameraDistance =
     )
 
 
-toolboxWidth : Float
+toolboxWidth : Int
 toolboxWidth =
-    400.0
+    400
 
 
 view : Model -> Html Msg
@@ -443,9 +458,9 @@ view model =
         , div
             [ HA.style "position" "absolute"
             , HA.style "z-index" "2"
-            , HA.style "left" (String.fromFloat (model.windowSize.width - toolboxWidth) ++ "px")
+            , HA.style "left" (String.fromInt (model.windowSize.width - toolboxWidth) ++ "px")
             , HA.style "top" "0px"
-            , HA.style "width" (String.fromFloat toolboxWidth ++ "px")
+            , HA.style "width" (String.fromInt toolboxWidth ++ "px")
             , HA.style "text-align" "left"
             ]
             (viewSliders model
@@ -564,8 +579,8 @@ viewCameraSlider distance =
         [ label [] [ text "Zoom" ]
         , input
             [ type_ "range"
-            , HA.min (String.fromInt (truncate initCameraDistance // 4))
-            , HA.max (String.fromInt (truncate initCameraDistance))
+            , HA.min (String.fromInt (truncate initialCameraDistance // 4))
+            , HA.max (String.fromInt (truncate initialCameraDistance))
             , value distance
             , onInput CameraDistanceInputChanged
             ]
@@ -599,7 +614,7 @@ viewScene model =
     let
         cameraDistance =
             String.toFloat model.cameraDistance
-                |> Maybe.withDefault initCameraDistance
+                |> Maybe.withDefault initialCameraDistance
                 |> Length.centimeters
 
         ( camera, sunlightDirection ) =
@@ -622,8 +637,8 @@ viewScene model =
     in
     div
         [ HA.id "webgl-scene"
-        , HA.width (truncate model.windowSize.width)
-        , HA.height (truncate model.windowSize.height)
+        , HA.width model.windowSize.width
+        , HA.height model.windowSize.height
         , HA.style "display" "block"
         ]
         [ Scene3d.sunny
@@ -634,8 +649,8 @@ viewScene model =
             , clipDepth = Length.centimeters clipDepth
             , background = Scene3d.transparentBackground
             , shadows = False
+            , entities = scene ++ globe
             }
-            (scene ++ globe)
         ]
 
 
@@ -668,7 +683,7 @@ subscriptions : Model -> Sub Msg
 subscriptions model =
     let
         browserSubs =
-            onResize (\w h -> WindowResized { width = toFloat w, height = toFloat h })
+            onResize (\width height -> WindowResized { width = width, height = height })
 
         animationSubs =
             if model.animating then

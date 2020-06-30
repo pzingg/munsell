@@ -8,7 +8,6 @@ import Length exposing (Length)
 import Munsell exposing (ColorDict)
 import Point3d
 import Scene3d
-import Scene3d.Entity as Entity
 import Vector3d
 import World exposing (WorldEntity, WorldEntityList)
 
@@ -163,4 +162,4 @@ cubeWithColor color _ value chroma angle =
             Point3d.centimeters x 0 z
     in
     World.matteCubeAt origin (Length.centimeters cubeSize) color
-        |> Entity.rotateAround Axis3d.z angle
+        |> Scene3d.rotateAround Axis3d.z angle

@@ -66,9 +66,9 @@ neutralColor : Int -> Color
 neutralColor value =
     let
         grayValue =
-            toFloat value * 255.0 / 10.0
+            toFloat value * 255.0 / 10.0 |> truncate
     in
-    Color.fromRGB ( grayValue, grayValue, grayValue )
+    Color.rgb255 grayValue grayValue grayValue
 
 
 munsellColorName : Int -> Int -> Int -> Maybe String
@@ -112,6 +112,8 @@ chromaRange =
         |> List.map ((*) 2)
 
 
+{-| Color data in color files is specified by RGB in range 0 to 1.
+-}
 recordToColorEntry : List String -> List String -> Result String ( String, MunsellColor )
 recordToColorEntry headers record =
     case record of
@@ -121,13 +123,13 @@ recordToColorEntry headers record =
                     hue ++ " " ++ value ++ "/" ++ chroma
 
                 red =
-                    255.0 * (String.toFloat r |> Maybe.withDefault 0)
+                    String.toFloat r |> Maybe.withDefault 0
 
                 green =
-                    255.0 * (String.toFloat g |> Maybe.withDefault 0)
+                    String.toFloat g |> Maybe.withDefault 0
 
                 blue =
-                    255.0 * (String.toFloat b |> Maybe.withDefault 0)
+                    String.toFloat b |> Maybe.withDefault 0
             in
             Ok
                 ( name
@@ -135,7 +137,7 @@ recordToColorEntry headers record =
                   , hue = hue
                   , value = String.toInt value |> Maybe.withDefault 0
                   , chroma = String.toInt chroma |> Maybe.withDefault 0
-                  , color = Color.fromRGB ( red, green, blue )
+                  , color = Color.rgb red green blue
                   }
                 )
 
