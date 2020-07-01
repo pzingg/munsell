@@ -21,7 +21,6 @@ import Cylinder3d
 import Direction3d
 import Frame3d
 import Length exposing (Length, Meters)
-import Munsell exposing (ColorDict)
 import Point3d exposing (Point3d)
 import Quantity
 import Scene3d

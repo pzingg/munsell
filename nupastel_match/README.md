@@ -8,4 +8,3 @@ We can scrape this data from pastel websites:
 
 * Prismacolor Nupastel
 * Unision Colour
-*

@@ -3,12 +3,10 @@ module HueGrid exposing (gridForHue, sceneRadius)
 import Angle exposing (Angle)
 import Axis3d
 import Color exposing (Color)
-import Dict exposing (Dict)
-import Length exposing (Length)
+import Length
 import Munsell exposing (ColorDict)
 import Point3d
 import Scene3d
-import Vector3d
 import World exposing (WorldEntity, WorldEntityList)
 
 
@@ -141,12 +139,8 @@ cubesForHV colors hue value angle =
 
 cubeInGamut : ColorDict -> Int -> Int -> Int -> Angle -> Maybe WorldEntity
 cubeInGamut colors hue value chroma angle =
-    case Munsell.findColor colors hue value chroma of
-        Just { color } ->
-            Just (cubeWithColor color hue value chroma angle)
-
-        Nothing ->
-            Nothing
+    Munsell.findColor colors hue value chroma
+        |> Maybe.andThen (\{ color } -> Just (cubeWithColor color hue value chroma angle))
 
 
 cubeWithColor : Color -> Int -> Int -> Int -> Angle -> WorldEntity

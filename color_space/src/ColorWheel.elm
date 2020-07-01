@@ -1,6 +1,6 @@
 module ColorWheel exposing (sceneRadius, wheel)
 
-import Angle exposing (Angle)
+import Angle
 import Axis3d
 import Color exposing (Color)
 import Dict exposing (Dict)
@@ -8,7 +8,6 @@ import Length exposing (Length)
 import Munsell exposing (ColorDict)
 import Point3d
 import Scene3d
-import Vector3d
 import World exposing (WorldEntity, WorldEntityList)
 
 
@@ -117,12 +116,11 @@ cubesForHV colors hue value =
 
 cubeInGamut : ColorDict -> Int -> Int -> Int -> Maybe WorldEntity
 cubeInGamut colors hue value chroma =
-    case Munsell.findColor colors hue value chroma of
-        Just { color } ->
-            Just (cubeWithColor color hue value chroma)
-
-        Nothing ->
-            Nothing
+    Munsell.findColor colors hue value chroma
+        |> Maybe.andThen
+            (\{ color } ->
+                Just (cubeWithColor color hue value chroma)
+            )
 
 
 cubeWithColor : Color -> Int -> Int -> Int -> WorldEntity

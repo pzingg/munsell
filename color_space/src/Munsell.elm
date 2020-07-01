@@ -115,7 +115,7 @@ chromaRange =
 {-| Color data in color files is specified by RGB in range 0 to 1.
 -}
 recordToColorEntry : List String -> List String -> Result String ( String, MunsellColor )
-recordToColorEntry headers record =
+recordToColorEntry _ record =
     case record of
         fileOrder :: hue :: value :: chroma :: x :: y :: bigY :: xC :: yC :: zC :: xD65 :: yD65 :: zD65 :: r :: g :: b :: _ ->
             let

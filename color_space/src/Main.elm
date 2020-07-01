@@ -16,22 +16,21 @@ import Color
 import ColorWheel
 import Dict exposing (Dict)
 import Direction3d exposing (Direction3d)
-import Html exposing (Html, button, div, input, label, p, text)
-import Html.Attributes as HA exposing (checked, src, type_, value)
+import Html exposing (Html, button, div, input, label, text)
+import Html.Attributes as HA exposing (checked, type_, value)
 import Html.Events exposing (onClick, onInput)
 import HueGrid
 import Json.Decode as Decode exposing (Decoder)
 import Length exposing (Length, Meters)
 import Munsell exposing (ColorDict)
-import Pixels exposing (Pixels)
+import Pixels
 import Point3d
 import Quantity
 import Result exposing (Result)
 import Scene3d
 import SketchPlane3d
 import Task
-import Viewpoint3d exposing (Viewpoint3d)
-import WebGL exposing (Entity, Mesh, Shader)
+import Viewpoint3d
 import World exposing (GlobeColors, WorldCoordinates, WorldEntityList)
 
 
@@ -138,7 +137,7 @@ initialElevationDegrees =
 
 
 init : Flags -> ( Model, Cmd Msg )
-init ts =
+init _ =
     let
         colors =
             Munsell.loadColors
@@ -239,26 +238,25 @@ spinRate =
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
-        FrameTimeUpdated dt ->
+        FrameTimeUpdated _ ->
             let
                 newModel =
-                    case model.animating of
-                        True ->
-                            let
-                                dx =
-                                    spinRate * 360.0
+                    if model.animating then
+                        let
+                            dx =
+                                spinRate * 360.0
 
-                                newAzimuth =
-                                    model.azimuth |> Quantity.minus (Angle.degrees dx)
-                            in
-                            { model | azimuth = clampedAzimuth newAzimuth }
+                            newAzimuth =
+                                model.azimuth |> Quantity.minus (Angle.degrees dx)
+                        in
+                        { model | azimuth = clampedAzimuth newAzimuth }
 
-                        False ->
-                            model
+                    else
+                        model
             in
             ( newModel, Cmd.none )
 
-        GotSceneElement result ->
+        GotSceneElement _ ->
             ( model, Cmd.none )
 
         ViewButtonClicked ->
@@ -593,20 +591,19 @@ viewCameraSlider distance =
 
 viewCoordinates : Model -> List (Html Msg)
 viewCoordinates model =
-    case model.showCoordinates of
-        True ->
-            [ div []
-                [ label [] [ text "Azimuth " ]
-                , text <| String.fromInt <| truncate <| Angle.inDegrees model.azimuth
-                ]
-            , div []
-                [ label [] [ text "Elevation " ]
-                , text <| String.fromInt <| truncate <| Angle.inDegrees model.elevation
-                ]
+    if model.showCoordinates then
+        [ div []
+            [ label [] [ text "Azimuth " ]
+            , text <| String.fromInt <| truncate <| Angle.inDegrees model.azimuth
             ]
+        , div []
+            [ label [] [ text "Elevation " ]
+            , text <| String.fromInt <| truncate <| Angle.inDegrees model.elevation
+            ]
+        ]
 
-        False ->
-            []
+    else
+        []
 
 
 viewScene : Model -> Html Msg
