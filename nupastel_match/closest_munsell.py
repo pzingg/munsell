@@ -1,4 +1,4 @@
-#/usr/bin/python3.5
+#!/usr/bin/env python3
 
 from colormath.color_objects import XYZColor, CMYKColor, sRGBColor, LabColor, HSVColor
 from colormath.color_diff import delta_e_cie1976
@@ -10,10 +10,11 @@ import subprocess
 import sys
 
 
-HUES = [ 'R', 'YR', 'Y', 'GY', 'G', 'BG', 'B', 'PB', 'P', 'RP' ]
+HUES = ['R', 'YR', 'Y', 'GY', 'G', 'BG', 'B', 'PB', 'P', 'RP']
 VERBOSE = False
 ORDER_BY_VALUE = False
 ORDER_BY_MUNSELL = False
+
 
 class NamedColor:
     def __init__(self, name, data, lab_color, rgb, hue_key, value_key):
@@ -35,6 +36,8 @@ class ColorDiff:
 
 # h is float in range(0, 360)
 # s and v are floats in range (0, 1)
+
+
 def hsv_keys(h, s, v):
     h_val = round(h * 10)      # in range(0, 3600)
     v_val = round(v * 100.0)   # in range(0, 100)
@@ -43,25 +46,28 @@ def hsv_keys(h, s, v):
     value_key = (v_val * 1000 * 100) + (h_val * 100) + c_val
     return (hue_key, value_key)
 
+
 def read_jsonline(fname):
     colors = []
     with open(fname) as f:
         for line in f.readlines():
             row = json.loads(line)
-            c, m, y, k = [ float(row[s])/100.0 for s in ['c', 'm', 'y', 'k'] ]
+            c, m, y, k = [float(row[s])/100.0 for s in ['c', 'm', 'y', 'k']]
             cmyk_color = CMYKColor(c, m, y, k)
             lab_color = convert_color(cmyk_color, LabColor)
             hsv_color = convert_color(cmyk_color, HSVColor)
-            hue_key, value_key = hsv_keys(hsv_color.hsv_h, hsv_color.hsv_s, hsv_color.hsv_v)
-            r, g, b = [ int(row[s]) for s in ['r', 'g', 'b'] ]
+            hue_key, value_key = hsv_keys(
+                hsv_color.hsv_h, hsv_color.hsv_s, hsv_color.hsv_v)
+            r, g, b = [int(row[s]) for s in ['r', 'g', 'b']]
             rgb = '#{0:02x}{1:02x}{2:02x}'.format(r, g, b)
-            color = NamedColor(row['identifier'], [ row['name'] ],
-                lab_color, rgb, hue_key, value_key)
+            color = NamedColor(row['identifier'], [row['name']],
+                               lab_color, rgb, hue_key, value_key)
             colors.append(color)
     if ORDER_BY_VALUE:
-        return sorted(colors, key = lambda x: x.value_key)
+        return sorted(colors, key=lambda x: x.value_key)
     else:
-        return sorted(colors, key = lambda x: x.hue_key)
+        return sorted(colors, key=lambda x: x.hue_key)
+
 
 def generate_csv(name):
     colors = read_jsonline('{}.jsonl'.format(name))
@@ -69,24 +75,42 @@ def generate_csv(name):
         writer = csv.writer(csvfile)
         writer.writerow(['id', 'name', 'h', 'v', 'c'])
         for ni, color in enumerate(colors):
-            hue, value, chroma = interpolate(color)
+            hue, value, chroma = color_to_munsell(color)
             writer.writerow([color.name, color.data[0],
-                hue, '{:g}'.format(value), '{:g}'.format(chroma)])
+                             hue, '{:g}'.format(value), '{:g}'.format(chroma)])
 
-def interpolate(color):
+
+def color_to_munsell(color):
     l, a, b = color.lab_color.get_value_tuple()
+    return lab_to_munsell(color.data[0], l, a, b)
+
+
+def lab_to_munsell(name, l, a, b):
     arg = '{:.4f} {:.4f} {:.4f}'.format(l, a, b)
-    result = subprocess.check_output([ '/usr/bin/Rscript', 'lab_to_munsell.R', arg ])
+    result = subprocess.check_output(
+        ['/usr/bin/Rscript', 'lab_to_munsell.R', arg])
     result = ''.join(map(chr, result)).strip()
-    hue, value, chroma = result.split(' ')
+    hue, rhue, value, chroma = result.split(' ')
     value = float(value)
     if hue == 'NA':
         hue = 'N'
+        rhue = 'N'
         chroma = 0
     else:
         chroma = float(chroma)
-    print('{} -> {} {:g}/{:g}'.format(color.data[0], hue, value, chroma))
+
+    rvalue = int(round(value))
+    rchroma = int(round(chroma / 2.0)) * 2
+    print_munsell(name, rhue, rvalue, rchroma)
     return (hue, value, chroma)
+
+
+def print_munsell(name, rhue, rvalue, rchroma):
+    if rhue == 'N':
+        print('{} -> {}{}'.format(name, rhue, rvalue))
+    else:
+        print('{} -> {}{}/{}'.format(name, rhue, rvalue, rchroma))
+
 
 if __name__ == '__main__':
     generate_csv('sennelier')
