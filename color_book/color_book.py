@@ -453,7 +453,7 @@ class MunsellCard:
     patch_w = 120
     patch_w_stride = patch_w + 12
 
-    patch_y0 = image_h - 60
+    patch_y0 = image_h - 70
     patch_h = 120
     patch_h_stride = patch_h + 50
 
@@ -515,14 +515,21 @@ class MunsellCard:
             y1 = y0 - self.patch_h
             xy = [x0, y0, x1, y1]
             r, g, b = self.source.rgb(color)
-            if name is None:
-                label = self.source.label(color)
-            else:
+            label2 = None
+            label = self.source.label(color)
+            label_y = y0 + 10
+            if name is not None:
+                label2 = label
                 label = name
+                label_y = y0 + 6
+                label2_y = label_y + self.small_font_size + 2 
             fill = '#{:02X}{:02X}{:02X}'.format(r, g, b)
             # print('spec{} idx {} xy {} fill {}'.format(spec, idx, xy, fill))
             self.draw.rectangle(xy, fill=fill)
-            self.draw.text((x0, y0 + 10), label, font=self.small_font,
+            self.draw.text((x0, label_y), label, font=self.small_font,
+                           fill='#000000', align='left')
+            if label2 is not None:
+                self.draw.text((x0, label2_y), label2, font=self.small_font,
                            fill='#000000', align='left')
             return True
         return False
