@@ -445,7 +445,7 @@ class MunsellCard:
     patch_rows = 2
     max_patches = patch_rows * patches_per_row
 
-    small_font_size = 18
+    small_font_size = 14
     small_font = ImageFont.truetype(
         './RobotoMono-BoldItalic.ttf', small_font_size)
 
@@ -505,16 +505,20 @@ class MunsellCard:
             self.add_patch(idx + offset, color)
         return True
 
-    def add_patch(self, idx, color):
+    def add_patch(self, idx, color, name=None):
         if idx < self.max_patches:
             (y, x) = divmod(idx, self.patches_per_row)
+            y = self.patch_rows - y - 1
             x0 = self.patch_x0 + (x * self.patch_w_stride)
             y0 = self.patch_y0 - (y * self.patch_h_stride)
             x1 = x0 + self.patch_w
             y1 = y0 - self.patch_h
             xy = [x0, y0, x1, y1]
             r, g, b = self.source.rgb(color)
-            label = self.source.label(color)
+            if name is None:
+                label = self.source.label(color)
+            else:
+                label = name
             fill = '#{:02X}{:02X}{:02X}'.format(r, g, b)
             # print('spec{} idx {} xy {} fill {}'.format(spec, idx, xy, fill))
             self.draw.rectangle(xy, fill=fill)
@@ -594,27 +598,41 @@ class Munsell:
             color = card.source.find_nearest(hvc['h'], hvc['V'], hvc['C'])
             if not color:
                 continue
-            if card.add_patch(idx, color):
+            if card.add_patch(idx, color, name=hvc['name']):
                 idx = idx + 1
             else:
                 card.print(page_num)
                 page_num = page_num + 1
                 idx = 0
                 card.init_image()
-                if card.add_patch(0, color):
+                if card.add_patch(0, color, name=hvc['name']):
                     idx = 1
         if idx > 0:
             card.print(page_num)
 
 
 def parse_color(arg):
+    arg = arg.strip()
+    if arg == '' or arg[0] == '#':
+        return None
+
+    if ':' in arg:
+        name, spec = arg.split(':', 1)
+        name = name.strip()
+        if name == '':
+            name = None
+    else:
+        name = None
+        spec = arg
+
     m = re.match(
-        r'([.0-9]+)\s*([A-Z]+)\s*([.0-9]+)[ /]+([0-9]+)', arg)
+        r'([.0-9]+)\s*([A-Z]+)\s*([.0-9]+)[ /]+([0-9]+)', spec)
     if m:
         hue = '{}{}'.format(m.group(1), m.group(2))
         value = int(round(float(m.group(3)) * 10.0))
         chroma = int(m.group(4))
-        return {'h': hue, 'V': value, 'C': chroma}
+        return {'name': name, 'h': hue, 'V': value, 'C': chroma}
+
     return None
 
 

@@ -1,0 +1,21 @@
+# cat larkspur.txt | xargs python color_book --chips
+Wings[L]:7.5YR8/2
+Wings[S]:10YR4/4
+LarkFace1[L]:10YR8/8
+LarkFace1[S]:2.5Y4/2
+LarkFace2[L]:10YR8/10
+LarkFace2[S]:2.5Y4/4
+Sign[S]:2.5YR2/6
+Letters[S]:7.5YR8/8
+MarqRed[L]:7.5R5/12
+MarqRed[S]:7.5R3/10
+MarkWht[L]:2.5Y9/4
+MarkWht[S]:10YR6/2
+Road[L]:2.5Y5/2
+Road[S]:10B2/2
+BlueRock[L]:2.5Y9/2
+BlueRock[S]:10B4/2
+TreeFG[L]:10Y4/4
+TreeBG1[L]:10Y5/2
+TreeBG2[L]:7.5G5/2
+TreeBG[S]:10B4/2
