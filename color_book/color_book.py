@@ -534,9 +534,11 @@ class MunsellCard:
             return True
         return False
 
-    def print(self, page_num=1):
+    def print(self, page_num=1, prefix=''):
         if self.mode == 'chips':
-            file_name = 'chips_{}.png'.format(page_num)
+            if prefix is None or prefix == '':
+                prefix = 'chips'
+            file_name = '{}_{}.png'.format(prefix, page_num)
         else:
             page_num = ordered_hues.index(self.hue) + 1
             if self.mode == 'chroma':
@@ -547,6 +549,61 @@ class MunsellCard:
                     self.source.name, page_num, self.hue, self.value, self.chroma)
         self.img.save(file_name, dpi=(self.dpi, self.dpi))
 
+
+# Formats a 7 inch wheel for a letter-size page
+class MunsellWheel:
+    # Card parameters for PIL
+    dpi = 100
+    image_w = 850
+    image_h = 1100
+
+    x0 = image_w / 2
+    y0 = image_h / 2
+    patch_w_2 = 63
+    patch_r0 = 200
+    patch_r1 = patch_r0 + 2 * patch_w_2
+    max_patches = 10
+    degrees_per_patch = 360 / max_patches
+
+    small_font_size = 14
+    small_font = ImageFont.truetype(
+        './RobotoMono-BoldItalic.ttf', small_font_size)
+
+    def __init__(self, source):
+        self.source = source
+        self.init_image()
+
+    def init_image(self):
+        self.img = Image.new(
+            'RGB', (self.image_w, self.image_h), color='white')
+        self.draw = ImageDraw.Draw(self.img)
+
+    def add_patch(self, idx, color, name=None):
+        if idx < self.max_patches:
+            angle = (idx * self.degrees_per_patch - 90) * math.pi / 180
+            c = math.cos(angle)
+            s = math.sin(angle)
+            x0 = self.x0 + self.patch_r0 * c + self.patch_w_2 * s
+            y0 = self.y0 + self.patch_r0 * s - self.patch_w_2 * c
+            x1 = self.x0 + self.patch_r1 * c + self.patch_w_2 * s
+            y1 = self.y0 + self.patch_r1 * s - self.patch_w_2 * c
+            x2 = self.x0 + self.patch_r1 * c - self.patch_w_2 * s
+            y2 = self.y0 + self.patch_r1 * s + self.patch_w_2 * c
+            x3 = self.x0 + self.patch_r0 * c - self.patch_w_2 * s
+            y3 = self.y0 + self.patch_r0 * s + self.patch_w_2 * c
+            r, g, b = self.source.rgb(color)
+            fill = '#{:02X}{:02X}{:02X}'.format(r, g, b)
+            self.draw.polygon([(x0, y0), (x1, y1), (x2, y2), (x3, y3)], fill=fill)
+            return True
+
+        return False
+
+    def print(self, prefix=''):
+        if prefix is None or prefix == '':
+            prefix = 'wheel'
+        file_name = '{}.png'.format(prefix)
+        self.img.save(file_name, dpi=(self.dpi, self.dpi))
+        
 
 class Munsell:
     def __init__(self, source_name='rit'):
@@ -597,26 +654,41 @@ class Munsell:
         except ValueError:
             print('Invalid hue, not found in book: {}'.format(hue))
 
-    def print_chips(self, colors):
+    def print_chips(self, colors, prefix):
         card = MunsellCard(self.source, 'chips')
         page_num = 1
         idx = 0
         for hvc in colors:
             color = card.source.find_nearest(hvc['h'], hvc['V'], hvc['C'])
             if not color:
+                print('No match for {}'.format(hvc['spec']))
                 continue
             if card.add_patch(idx, color, name=hvc['name']):
                 idx = idx + 1
             else:
-                card.print(page_num)
+                card.print(page_num, prefix)
                 page_num = page_num + 1
                 idx = 0
                 card.init_image()
                 if card.add_patch(0, color, name=hvc['name']):
                     idx = 1
         if idx > 0:
-            card.print(page_num)
+            card.print(page_num, prefix)
 
+    def print_wheel(self, colors, prefix):
+        wheel = MunsellWheel(self.source)
+        idx = 0
+        for hvc in colors:
+            color = wheel.source.find_nearest(hvc['h'], hvc['V'], hvc['C'])
+            if not color:
+                print('No match for {}'.format(hvc['spec']))
+                continue
+            if wheel.add_patch(idx, color, name=hvc['name']):
+                idx = idx + 1
+            if idx == 10:
+                break
+        if idx > 0:
+            wheel.print(prefix)
 
 def parse_color(arg):
     arg = arg.strip()
@@ -638,7 +710,7 @@ def parse_color(arg):
         hue = '{}{}'.format(m.group(1), m.group(2))
         value = int(round(float(m.group(3)) * 10.0))
         chroma = int(m.group(4))
-        return {'name': name, 'h': hue, 'V': value, 'C': chroma}
+        return {'name': name, 'spec': spec, 'h': hue, 'V': value, 'C': chroma}
 
     return None
 
@@ -661,6 +733,11 @@ if __name__ == '__main__':
         '--hues', help='print a card bracketing the colors near a given color, like "10YR8/12"', metavar='COLOR')
     group.add_argument(
         '--chips', help='print a page of chips, reading from a list of arguments', action='append', nargs='+', metavar='COLOR')
+    group.add_argument(
+        '--wheel', help='print 10 colors in a wheel', action='append', nargs='+', metavar='COLOR')
+    parser.add_argument(
+        '--prefix', help='prefix for chip file names', default='chips'
+    )
     args = parser.parse_args()
 
     if args.book:
@@ -681,7 +758,13 @@ if __name__ == '__main__':
                   for arg in itertools.chain.from_iterable(args.chips)]
         colors = [color for color in colors if color]
         if len(colors) > 0:
-            Munsell(args.source).print_chips(colors)
+            Munsell(args.source).print_chips(colors, args.prefix)
+    elif args.wheel is not None:
+        colors = [parse_color(arg)
+                  for arg in itertools.chain.from_iterable(args.wheel)]
+        colors = [color for color in colors if color]
+        if len(colors) > 0:
+            Munsell(args.source).print_wheel(colors, args.prefix) 
     elif args.card is None:
         parser.error(
             "please choose output, either --book, --card, --chips, or --hues")

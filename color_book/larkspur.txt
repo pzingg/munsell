@@ -1,4 +1,4 @@
-# cat larkspur.txt | xargs python color_book --chips
+# cat larkspur.txt | xargs python color_book.py --chips
 Wings[L]:7.5YR8/2
 Wings[S]:10YR4/4
 LarkFace1[L]:10YR8/8
