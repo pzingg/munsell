@@ -4,6 +4,7 @@ import colour
 import csv
 import json
 import numpy as np
+from safe_xyy_to_munsell import safe_xyY_to_munsell_specification, munsell_specification_to_near_munsell_color
 
 
 HUES = ['R', 'YR', 'Y', 'GY', 'G', 'BG', 'B', 'PB', 'P', 'RP']
@@ -41,29 +42,6 @@ def hsv_keys(hsv):
     value_key = (v_val * 1000 * 100) + (h_val * 100) + c_val
     return (hue_key, value_key)
 
-
-def clamp_to_macadam(xyy, hsv):
-    if xyy[2] < 0.15:
-        # print(f'low Y {hsv}')
-        xyy[2] = 0.2
-    elif xyy[2] > 0.6:
-        # print(f'high Y {hsv}')
-        xyy[2] = 0.6
-    return xyy
-
-def my_RGB_to_XYZ(rgb):
-    illuminant_RGB = np.array([0.31270, 0.32900])
-    illuminant_XYZ = np.array([0.34570, 0.35850])
-    chromatic_adaptation_transform = 'Bradford'
-    matrix_RGB_to_XYZ = np.array(
-        [[0.41240000, 0.35760000, 0.18050000],
-        [0.21260000, 0.71520000, 0.07220000],
-        [0.01930000, 0.11920000, 0.95050000]]
-    )
-    return colour.RGB_to_XYZ(rgb, illuminant_RGB, illuminant_XYZ, 
-        matrix_RGB_to_XYZ,
-        chromatic_adaptation_transform)  
-
 def read_jsonline(fname):
     colors = []
     with open(fname) as f:
@@ -89,46 +67,14 @@ def read_jsonline(fname):
     else:
         return sorted(colors, key=lambda x: x.hue_key)
 
-
-MUNSELL_HUE_LETTER_CODES = [
-    'B', #: 1,
-    'BG', #: 2,
-    'G', # : 3,
-    'GY', # : 4,
-    'Y', # : 5,
-    'YR', # : 6,
-    'R', # : 7,
-    'RP', # : 8,
-    'P', # : 9
-    'PB' #: 10,
-]
-
 def generate_csv(name):
     colors = read_jsonline(f'{name}.jsonl')
     with open(f'{name}_munsell.csv', 'w') as csvfile:
         writer = csv.writer(csvfile)
         writer.writerow(['id', 'name', 'rgb', 'x', 'y', 'big_Y', 'h', 'v', 'c'])
         for ni, color in enumerate(colors):
-            try:
-                spec = colour.notation.munsell.xyY_to_munsell_specification(color.xyy)
-                if spec[2] < 2:
-                    spec[2] == 2
-                hue_code = int(spec[3])
-                hue_scale = round(spec[0]/2.5) * 2.5
-                if hue_scale == 0:
-                    hue_scale = 10
-                else:
-                    hue_code = hue_code - 1
-                hue_letter = MUNSELL_HUE_LETTER_CODES[hue_code % 10]
-                hue = f'{hue_scale}{hue_letter}'
-                # munsell_color = colour.notation.munsell.munsell_specification_to_munsell_colour(spec, hue_decimals=1, value_decimals=0, chroma_decimals=0)
-                # print(f'hue {hue} <-> {munsell_color}')
-                value = round(spec[1])
-                chroma = round(spec[2])
-            except Exception as e:
-                hue = 'N'
-                value = 0
-                chroma = 0
+            spec = safe_xyY_to_munsell_specification(color.xyy)
+            hue, value, chroma = munsell_specification_to_near_munsell_color(spec)
             writer.writerow([color.name, color.data[0],
                 color.rgb, f'{color.xyy[0]:04f}', f'{color.xyy[1]:04f}', 
                 f'{color.xyy[2]:04f}',
