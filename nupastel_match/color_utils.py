@@ -1,7 +1,17 @@
+import json
 import warnings
+import subprocess
 import numpy as np
 import colour
 from colour import notation, utilities, volume
+
+INTERPOL_HUE_NAMES = [
+    "R","YR","Y","GY","G","BG","B","PB","P","RP"
+]
+
+INTERPOL_TO_CODE_INDEX = [
+    7, 6, 5, 4, 3, 2, 1, 10, 9, 8
+]
 
 MUNSELL_HUE_NAMES = [
     'B', # 1,
@@ -15,6 +25,38 @@ MUNSELL_HUE_NAMES = [
     'P', # 9
     'PB' # 10
 ]
+
+# See https://patapom.com/blog/Colorimetry/Illuminants
+# CIE 1931 2nd standards
+# D65 is sRGB standard
+ILLUMINANT_D65 = np.array([0.31270, 0.32900])
+# C is Munsell standard
+ILLUMINANT_C = np.array([0.31006, 0.31616])
+# Another standard
+ILLUMINANT_D50 = np.array([0.34570, 0.35850])
+
+# CAT
+# See http://brucelindbloom.com/index.html?Eqn_ChromAdapt.html
+CAT_BRADFORD_D65_TO_C = np.array([
+    [ 0.9821687, -0.0067531,  0.0518013],
+    [-0.0044921,  0.9893393,  0.0162333],
+    [ 0.0114719, -0.0199953,  1.2928395]])
+CAT_BRADFORD_C_TO_D65 = np.array([
+    [ 0.9904476, -0.0071683, -0.0116156],
+    [-0.0123712,  1.0155950, -0.0029282],
+    [-0.0035635,  0.0067697,  0.9181569]])
+
+def csci_rgb_to_adapted_xyY(r, g, b):
+    '''Convert RGB input into CIE XYZ and xyY coordinates.'''
+    rgb = np.array([r / 255, g / 255, b / 255])
+
+    # xyz = colour.RGB_to_XYZ(rgb, ILLUMINANT_D65, ILLUMINANT_C, 
+    #    CAT_BRADFORD_D65_TO_C, 'Bradford')
+    xyz = colour.sRGB_to_XYZ(rgb, chromatic_adaptation_method='Bradford')
+
+    # adapt xyY from the RGB space white to C
+    xyy_adapted = colour.XYZ_to_xyY(xyz, ILLUMINANT_C)
+    return (xyz, xyy_adapted)
 
 def get_munsell_value(Y):
     with utilities.common.domain_range_scale('ignore'):
@@ -95,8 +137,53 @@ def adjust_value_down(xyY, value):
 
     raise RuntimeError(f'Could not adjust Munsell value down for xyY {xyY}, last Y tested was {Y_temp:.03f}')
 
+def r_hue_to_code(hue):
+    if hue == 0:
+        hue = 100
 
-def safe_xyY_to_munsell_specification(xyY):
+    idx, frac = divmod(hue, 10)
+    idx = int(idx)
+    if frac == 0:
+        frac = 10
+        idx = idx - 1
+    return frac, float(INTERPOL_TO_CODE_INDEX[idx % 10])
+
+def mipr_hvc_to_munsell_specification(hvc):
+    if hvc[2] <= 0:
+        return np.array([np.nan, hvc[1], np.nan, np.nan])
+    hue, code = r_hue_to_code(hvc[0])
+    return np.array([hue, hvc[1], hvc[2], code])
+
+def mipr_sRGB_to_munsell_specification(r, g, b):
+    '''r, g, b in [0, 255]'''
+    arg = f'sRGB {r} {g} {b}'
+    # print(f"sRGB to R -> '{arg}'")
+    out = subprocess.check_output(['/usr/bin/Rscript', 'to_munsell.R', arg])
+    try:
+        res = json.loads(out)
+        # res should be [[2., 3., 4.]]
+    except:
+        res = None
+    if not isinstance(res, list) or len(res) == 0:
+        raise Exception(f"to_munsell.R returned unexpected output '{out}'")
+    return mipr_hvc_to_munsell_specification(res[0])
+
+def mipr_xyY_to_munsell_specification(xyY):
+    '''x, y, Y in [0, 1]'''
+    x, y, Y = utilities.tsplit(xyY)
+    arg = f'xyY {x:.6f} {y:.6f} {Y * 100:.6f}'
+    # print(f"xyY to R -> '{arg}'")
+    out = subprocess.check_output(['/usr/bin/Rscript', 'to_munsell.R', arg])
+    try:
+        res = json.loads(out)
+        # res should be [{'HVC': [2., 3., 4.], ...}]
+    except:
+        res = None
+    if not isinstance(res, list) or len(res) == 0 or 'HVC' not in res[0]:
+        raise Exception(f"to_munsell.R returned unexpected output '{out}'")
+    return mipr_hvc_to_munsell_specification(res[0]['HVC'])
+
+def csci_xyY_to_munsell_specification(xyY):
     xyY_adjusted, value = adjust_value_up(xyY)
     if value < 1:
         return np.array([np.nan, value, np.nan, np.nan])

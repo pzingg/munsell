@@ -4,7 +4,7 @@ import colour
 import csv
 import json
 import numpy as np
-from safe_xyy_to_munsell import safe_xyY_to_munsell_specification, munsell_specification_to_near_munsell_color
+from csci_xyy_to_munsell import csci_xyY_to_munsell_specification, munsell_specification_to_near_munsell_color
 
 
 HUES = ['R', 'YR', 'Y', 'GY', 'G', 'BG', 'B', 'PB', 'P', 'RP']
@@ -73,7 +73,7 @@ def generate_csv(name):
         writer = csv.writer(csvfile)
         writer.writerow(['id', 'name', 'rgb', 'x', 'y', 'big_Y', 'h', 'v', 'c'])
         for ni, color in enumerate(colors):
-            spec = safe_xyY_to_munsell_specification(color.xyy)
+            spec = csci_xyY_to_munsell_specification(color.xyy)
             hue, value, chroma = munsell_specification_to_near_munsell_color(spec)
             writer.writerow([color.name, color.data[0],
                 color.rgb, f'{color.xyy[0]:04f}', f'{color.xyy[1]:04f}', 

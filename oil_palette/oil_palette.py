@@ -1,8 +1,10 @@
 #!/usr/bin/python3
 
 import csv
+import json
 import math
 import subprocess
+import warnings
 from PIL import Image, ImageDraw, ImageFont
 
 PALETTE_COLS = [ 
@@ -13,13 +15,15 @@ PALETTE_COLS = [
 
 def munsell_to_rgb(h, v, c):
     arg = '{}{}/{}'.format(h, v, c)
-    result = subprocess.check_output([ '/usr/bin/Rscript', 'munsell_to_rgb.R', arg ])
-    result = ''.join(map(chr, result)).strip()
+    out = subprocess.check_output([ '/usr/bin/Rscript', 'munsell_to_rgb.R', arg ])
     try:
-        rgb = [math.floor(float(v)) for v in result.split(' ')]
-        return rgb
+        res = json.loads(out)
     except:
-        return [-1, -1, -1]
+        res = None
+    if not isinstance(res, list) or len(res) == 0:
+        warnings.warn(f"munsell_to_rgb.R returned unexpected output '{out}'")
+        return (-1, -1, -1)
+    return tuple([int(v) for v in res[0]])
 
 
 class PalettePage:
