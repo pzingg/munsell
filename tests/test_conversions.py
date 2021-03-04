@@ -4,12 +4,7 @@ import numpy as np
 import colour
 from colormath.color_objects import sRGBColor, xyYColor, XYZColor
 from colormath import color_conversions
-from color_utils import \
-    csci_rgb_to_adapted_xyY, \
-    csci_xyY_to_munsell_specification, \
-    mipr_xyY_to_munsell_specification, \
-    mipr_sRGB_to_munsell_specification, \
-    munsell_specification_to_near_munsell_color
+from color_utils import *
 
 def rgb_to_xyy_colormath(r, g, b):
     rgb_color = sRGBColor(r / 255, g / 255, b / 255)
@@ -33,6 +28,10 @@ HARD_COLORS = [
     ('Bronze Green Deep', '161613'),
     ('Intense Blue', '0F1620')
 ]
+
+def test_hue_names():
+    assert INTERPOL_TO_CSCI_HUE_INDEX[0] == 7
+    assert INTERPOL_TO_CSCI_HUE_INDEX[9] == 8
 
 @pytest.mark.skip(reason='later')
 def test_rgb_to_xyy_alternatives():

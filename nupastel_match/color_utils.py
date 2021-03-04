@@ -6,14 +6,19 @@ import colour
 from colour import notation, utilities, volume
 
 INTERPOL_HUE_NAMES = [
-    "R","YR","Y","GY","G","BG","B","PB","P","RP"
+    'R',
+    'YR',
+    'Y',
+    'GY',
+    'G',
+    'BG',
+    'B',
+    'PB',
+    'P',
+    'RP'
 ]
 
-INTERPOL_TO_CODE_INDEX = [
-    7, 6, 5, 4, 3, 2, 1, 10, 9, 8
-]
-
-MUNSELL_HUE_NAMES = [
+COLORSCI_HUE_NAMES = [
     'B', # 1,
     'BG', # 2
     'G', # 3
@@ -25,6 +30,11 @@ MUNSELL_HUE_NAMES = [
     'P', # 9
     'PB' # 10
 ]
+
+# 7, 6, 5, 4, 3, 2, 1, 10, 9, 8
+INTERPOL_TO_CSCI_HUE_INDEX = list([
+    COLORSCI_HUE_NAMES.index(name) + 1 for name in INTERPOL_HUE_NAMES
+])
 
 # See https://patapom.com/blog/Colorimetry/Illuminants
 # CIE 1931 2nd standards
@@ -146,7 +156,7 @@ def r_hue_to_code(hue):
     if frac == 0:
         frac = 10
         idx = idx - 1
-    return frac, float(INTERPOL_TO_CODE_INDEX[idx % 10])
+    return frac, float(INTERPOL_TO_CSCI_HUE_INDEX[idx % 10])
 
 def mipr_hvc_to_munsell_specification(hvc):
     if hvc[2] <= 0:
@@ -218,6 +228,6 @@ def munsell_specification_to_near_munsell_color(spec, hue_lcd=2.5, value_lcd=1, 
     if hue == 0:
         hue = 10
         code = code + 1
-    hue_name = MUNSELL_HUE_NAMES[(code - 1) % 10]
+    hue_name = COLORSCI_HUE_NAMES[(code - 1) % 10]
     value = round(value / value_lcd) * value_lcd
     return (f'{hue}{hue_name}', value, chroma)
