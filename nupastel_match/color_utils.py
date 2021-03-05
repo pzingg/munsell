@@ -36,14 +36,41 @@ INTERPOL_TO_CSCI_HUE_INDEX = list([
     COLORSCI_HUE_NAMES.index(name) + 1 for name in INTERPOL_HUE_NAMES
 ])
 
+# These two functions from 
+# https://stackoverflow.com/questions/3620663/color-theory-how-to-convert-munsell-hvc-to-rgb-hsb-hsl
+
 # See https://patapom.com/blog/Colorimetry/Illuminants
-# CIE 1931 2nd standards
+# CIE 1931 2 Degree Standards
 # D65 is sRGB standard
 ILLUMINANT_D65 = np.array([0.31270, 0.32900])
 # C is Munsell standard
-ILLUMINANT_C = np.array([0.31006, 0.31616])
+# np.array([0.31006, 0.31616])
+ILLUMINANT_C = colour.ILLUMINANTS['CIE 1931 2 Degree Standard Observer']['C']
 # Another standard
 ILLUMINANT_D50 = np.array([0.34570, 0.35850])
+
+def new_munsell_colour_to_sRGB(color):
+    # The first step is to convert the Munsell color to *CIE xyY* 
+    # colorspace.
+    xyY = colour.notation.munsell.munsell_colour_to_xyY(color)
+
+    # We then perform conversion to *CIE XYZ* tristimulus values.
+    XYZ = colour.xyY_to_XYZ(xyY)
+
+    # The last step will involve using the *Munsell Renotation System*
+    # illuminant which is *CIE Illuminant C*:
+    # http://nbviewer.ipython.org/github/colour-science/colour-ipython/blob/master/notebooks/colorimetry/illuminants.ipynb#CIE-Illuminant-C
+    # It is necessary in order to ensure white stays white when
+    # converting to *sRGB* colourspace and its different whitepoint 
+    # (*CIE Standard Illuminant D65*) by performing chromatic 
+    # adaptation between the two different illuminant.
+    return colour.XYZ_to_sRGB(XYZ, ILLUMINANT_C)
+
+def new_sRGB_to_munsell_specification(r, g, b):
+    rgb = np.array([r / 255, g / 255, b / 255])
+    XYZ = colour.sRGB_to_XYZ(rgb, ILLUMINANT_C)
+    xyY = colour.XYZ_to_xyY(XYZ)
+    return colour.notation.munsell.xyY_to_munsell_specification(xyY)
 
 # CAT
 # See http://brucelindbloom.com/index.html?Eqn_ChromAdapt.html
@@ -166,9 +193,7 @@ def mipr_hvc_to_munsell_specification(hvc):
 
 def mipr_sRGB_to_munsell_specification(r, g, b):
     '''r, g, b in [0, 255]'''
-    arg = f'sRGB {r} {g} {b}'
-    # print(f"sRGB to R -> '{arg}'")
-    out = subprocess.check_output(['/usr/bin/Rscript', 'to_munsell.R', arg])
+    out = subprocess.check_output(['/usr/bin/Rscript', 'to_munsell.R', 'sRGB', str(r), str(g), str(b)])
     try:
         res = json.loads(out)
         # res should be [[2., 3., 4.]]
@@ -181,17 +206,37 @@ def mipr_sRGB_to_munsell_specification(r, g, b):
 def mipr_xyY_to_munsell_specification(xyY):
     '''x, y, Y in [0, 1]'''
     x, y, Y = utilities.tsplit(xyY)
-    arg = f'xyY {x:.6f} {y:.6f} {Y * 100:.6f}'
-    # print(f"xyY to R -> '{arg}'")
-    out = subprocess.check_output(['/usr/bin/Rscript', 'to_munsell.R', arg])
+    out = subprocess.check_output(['/usr/bin/Rscript', 'to_munsell.R', 'xyY', str(x), str(y), str(Y * 100)])
     try:
         res = json.loads(out)
-        # res should be [{'HVC': [2., 3., 4.], ...}]
+        # res should be [[2., 3., 4.]]
     except:
         res = None
-    if not isinstance(res, list) or len(res) == 0 or 'HVC' not in res[0]:
+    if not isinstance(res, list) or len(res) == 0:
         raise Exception(f"to_munsell.R returned unexpected output '{out}'")
-    return mipr_hvc_to_munsell_specification(res[0]['HVC'])
+    return mipr_hvc_to_munsell_specification(res[0])
+
+def mipr_munsell_color_to_xyY(color, xyC='NBS'):
+    out = subprocess.check_output(['/usr/bin/Rscript', 'munsell_to_xyy.R', color, xyC])
+    try:
+        res = json.loads(out)
+        # res should be [[0.2, 0.3, 0.4]]
+    except:
+        res = None
+    if not isinstance(res, list) or len(res) == 0:
+        raise Exception(f"munsell_to_xyy.R returned unexpected output '{out}'")
+    return np.array(res[0])
+
+def mipr_munsell_color_to_rgb(color):
+    out = subprocess.check_output(['/usr/bin/Rscript', 'munsell_to_rgb.R', color])
+    try:
+        res = json.loads(out)
+        # res should be [[0.2, 0.3, 0.4]]
+    except:
+        res = None
+    if not isinstance(res, list) or len(res) == 0:
+        raise Exception(f"munsell_to_rgb.R returned unexpected output '{out}'")
+    return np.array(res[0])
 
 def csci_xyY_to_munsell_specification(xyY):
     xyY_adjusted, value = adjust_value_up(xyY)
