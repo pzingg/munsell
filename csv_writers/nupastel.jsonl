@@ -1,0 +1,96 @@
+{"name": "Crimson Red", "g": 27, "r": 176, "y": 100, "m": 100, "b": 33, "k": 13, "identifier": "NP256", "c": 21, "html": "B01B21"}
+{"name": "Lemon Yellow", "g": 235, "r": 246, "y": 70, "m": 1, "b": 111, "k": 0, "identifier": "NP217", "c": 6, "html": "F6EB6F"}
+{"name": "Light Naples Yellow", "g": 245, "r": 255, "y": 17, "m": 2, "b": 215, "k": 0, "identifier": "NP247", "c": 1, "html": "FFF5D7"}
+{"name": "Cadmium Yellow Deep", "g": 215, "r": 255, "y": 64, "m": 15, "b": 117, "k": 0, "identifier": "NP257", "c": 1, "html": "FFD775"}
+{"name": "Corn Yellow", "g": 220, "r": 255, "y": 54, "m": 13, "b": 138, "k": 0, "identifier": "NP227", "c": 1, "html": "FFDC8A"}
+{"name": "Orange", "g": 139, "r": 246, "y": 85, "m": 55, "b": 61, "k": 0, "identifier": "NP212", "c": 0, "html": "F68B3D"}
+{"name": "Burnt Orange", "g": 138, "r": 244, "y": 69, "m": 56, "b": 90, "k": 0, "identifier": "NP222", "c": 0, "html": "F48A5A"}
+{"name": "Chrome Yellow", "g": 172, "r": 250, "y": 69, "m": 38, "b": 98, "k": 0, "identifier": "NP207", "c": 0, "html": "FAAC62"}
+{"name": "Pale Vermillion", "g": 108, "r": 230, "y": 88, "m": 71, "b": 57, "k": 1, "identifier": "NP266", "c": 5, "html": "E66C39"}
+{"name": "Scarlet", "g": 81, "r": 243, "y": 68, "m": 83, "b": 78, "k": 0, "identifier": "NP226", "c": 0, "html": "F3514E"}
+{"name": "Blue Haze", "g": 68, "r": 46, "y": 26, "m": 59, "b": 138, "k": 7, "identifier": "NP405", "c": 87, "html": "2E628A"}
+{"name": "Blue Violet", "g": 35, "r": 3, "y": 33, "m": 92, "b": 92, "k": 31, "identifier": "NP244", "c": 100, "html": "03235C"}
+{"name": "Carmine Madder", "g": 17, "r": 216, "y": 67, "m": 100, "b": 72, "k": 1, "identifier": "NP206", "c": 9, "html": "D81148"}
+{"name": "Indigo Blue", "g": 53, "r": 5, "y": 33, "m": 86, "b": 102, "k": 22, "identifier": "NP285", "c": 100, "html": "053566"}
+{"name": "Ceylon Blue", "g": 85, "r": 4, "y": 38, "m": 60, "b": 112, "k": 19, "identifier": "NP365", "c": 95, "html": "045570"}
+{"name": "Tile Blue", "g": 83, "r": 7, "y": 25, "m": 71, "b": 132, "k": 8, "identifier": "NP415", "c": 98, "html": "075384"}
+{"name": "White", "g": 255, "r": 254, "y": 1, "m": 0, "b": 251, "k": 0, "identifier": "NP211", "c": 0, "html": "EEEBEB"}
+{"name": "Warm Light Grey", "g": 250, "r": 252, "y": 1, "m": 1, "b": 251, "k": 0, "identifier": "NP239", "c": 1, "html": "EEEBEB"}
+{"name": "Flesh Pink", "g": 220, "r": 255, "y": 22, "m": 15, "b": 194, "k": 0, "identifier": "NP276", "c": 0, "html": "FFDCC2"}
+{"name": "Cold Very Light Grey", "g": 208, "r": 199, "y": 10, "m": 12, "b": 215, "k": 0, "identifier": "NP299", "c": 21, "html": "C7D0D7"}
+{"name": "Peach", "g": 191, "r": 240, "y": 25, "m": 28, "b": 177, "k": 0, "identifier": "NP376", "c": 4, "html": "F0BFB1"}
+{"name": "Light Ochre", "g": 188, "r": 230, "y": 70, "m": 25, "b": 104, "k": 0, "identifier": "NP243", "c": 10, "html": "E6BC68"}
+{"name": "Warm Very Light Grey", "g": 236, "r": 232, "y": 6, "m": 4, "b": 235, "k": 0, "identifier": "NP249", "c": 8, "html": "E8ECEB"}
+{"name": "Shell Pink", "g": 208, "r": 240, "y": 9, "m": 20, "b": 211, "k": 0, "identifier": "NP366", "c": 4, "html": "F0D0D3"}
+{"name": "Nut Brown", "g": 136, "r": 173, "y": 50, "m": 46, "b": 120, "k": 4, "identifier": "NP313", "c": 32, "html": "AD8878"}
+{"name": "Rust", "g": 72, "r": 149, "y": 81, "m": 77, "b": 54, "k": 23, "identifier": "NP343", "c": 29, "html": "954836"}
+{"name": "Titian Brown", "g": 120, "r": 186, "y": 71, "m": 57, "b": 85, "k": 6, "identifier": "NP333", "c": 24, "html": "BA7855"}
+{"name": "Sanguine", "g": 89, "r": 181, "y": 77, "m": 74, "b": 68, "k": 10, "identifier": "NP213", "c": 22, "html": "B55944"}
+{"name": "Raw Sienna", "g": 118, "r": 204, "y": 99, "m": 61, "b": 43, "k": 3, "identifier": "NP233", "c": 17, "html": "CC762B"}
+{"name": "Burnt Sienna", "g": 93, "r": 150, "y": 70, "m": 65, "b": 74, "k": 19, "identifier": "NP203", "c": 33, "html": "965D4A"}
+{"name": "Burgundy", "g": 48, "r": 88, "y": 75, "m": 74, "b": 38, "k": 54, "identifier": "NP346", "c": 43, "html": "583026"}
+{"name": "Garnet", "g": 61, "r": 97, "y": 75, "m": 69, "b": 47, "k": 46, "identifier": "NP363", "c": 44, "html": "613D2F"}
+{"name": "Cocoa Brown", "g": 77, "r": 105, "y": 67, "m": 62, "b": 65, "k": 36, "identifier": "NP253", "c": 47, "html": "694D41"}
+{"name": "Cordovan", "g": 42, "r": 82, "y": 75, "m": 76, "b": 34, "k": 58, "identifier": "NP353", "c": 43, "html": "522A22"}
+{"name": "Sepia", "g": 75, "r": 86, "y": 61, "m": 60, "b": 71, "k": 38, "identifier": "NP293", "c": 58, "html": "564B47"}
+{"name": "Van Dyke Brown", "g": 84, "r": 106, "y": 67, "m": 58, "b": 70, "k": 33, "identifier": "NP283", "c": 49, "html": "6A5446"}
+{"name": "Burnt Umber", "g": 98, "r": 106, "y": 60, "m": 52, "b": 87, "k": 25, "identifier": "NP223", "c": 55, "html": "6A6257"}
+{"name": "Warm Deep Grey", "g": 117, "r": 107, "y": 41, "m": 47, "b": 126, "k": 10, "identifier": "NP209", "c": 61, "html": "6B757E"}
+{"name": "Cold Medium Grey", "g": 127, "r": 104, "y": 35, "m": 42, "b": 141, "k": 5, "identifier": "NP279", "c": 63, "html": "687F8D"}
+{"name": "Cold Light Grey", "g": 159, "r": 152, "y": 28, "m": 32, "b": 167, "k": 1, "identifier": "NP289", "c": 43, "html": "989FA7"}
+{"name": "Plum", "g": 4, "r": 78, "y": 38, "m": 100, "b": 65, "k": 46, "identifier": "NP324", "c": 63, "html": "4E0441"}
+{"name": "Tuscan Red", "g": 87, "r": 152, "y": 41, "m": 74, "b": 109, "k": 10, "identifier": "NP273", "c": 38, "html": "98576D"}
+{"name": "Warm Medium Grey", "g": 116, "r": 106, "y": 41, "m": 47, "b": 125, "k": 11, "identifier": "NP219", "c": 62, "html": "6A747D"}
+{"name": "Dark Rose", "g": 92, "r": 171, "y": 55, "m": 72, "b": 95, "k": 9, "identifier": "NP416", "c": 28, "html": "AB5C5F"}
+{"name": "Cold Deep Grey", "g": 86, "r": 68, "y": 48, "m": 57, "b": 96, "k": 27, "identifier": "NP259", "c": 74, "html": "455660"}
+{"name": "Indian Red", "g": 80, "r": 126, "y": 71, "m": 66, "b": 64, "k": 30, "identifier": "NP263", "c": 38, "html": "7E5040"}
+{"name": "Black", "g": 0, "r": 1, "y": 65, "m": 69, "b": 3, "k": 89, "identifier": "NP229", "c": 75, "html": "010003"}
+{"name": "Carmine", "g": 74, "r": 154, "y": 41, "m": 81, "b": 103, "k": 11, "identifier": "NP236", "c": 37, "html": "9A4A67"}
+{"name": "Rose Pink", "g": 115, "r": 240, "y": 0, "m": 70, "b": 173, "k": 0, "identifier": "NP246", "c": 1, "html": "F073AD"}
+{"name": "Carnival Red", "g": 65, "r": 242, "y": 36, "m": 89, "b": 111, "k": 0, "identifier": "NP336", "c": 0, "html": "F2416F"}
+{"name": "Flamingo", "g": 66, "r": 199, "y": 60, "m": 88, "b": 85, "k": 3, "identifier": "NP406", "c": 17, "html": "C74255"}
+{"name": "Coral", "g": 136, "r": 203, "y": 42, "m": 53, "b": 130, "k": 1, "identifier": "NP383", "c": 20, "html": "CB8882"}
+{"name": "Salmon Pink", "g": 115, "r": 245, "y": 57, "m": 69, "b": 101, "k": 0, "identifier": "NP296", "c": 0, "html": "F57365"}
+{"name": "Orchid Pink", "g": 92, "r": 241, "y": 23, "m": 79, "b": 134, "k": 0, "identifier": "NP306", "c": 0, "html": "F15C86"}
+{"name": "Madder Pink", "g": 172, "r": 247, "y": 34, "m": 39, "b": 153, "k": 0, "identifier": "NP286", "c": 1, "html": "F7AC99"}
+{"name": "Sandlewood", "g": 155, "r": 211, "y": 30, "m": 43, "b": 156, "k": 0, "identifier": "NP204", "c": 16, "html": "D39B9C"}
+{"name": "Old Rose", "g": 128, "r": 193, "y": 27, "m": 57, "b": 148, "k": 1, "identifier": "NP316", "c": 24, "html": "C18094"}
+{"name": "Orchid", "g": 96, "r": 157, "y": 1, "m": 73, "b": 166, "k": 0, "identifier": "NP304", "c": 42, "html": "9D60A6"}
+{"name": "Hyacinth Violet", "g": 71, "r": 112, "y": 4, "m": 85, "b": 150, "k": 0, "identifier": "NP254", "c": 67, "html": "704796"}
+{"name": "Maroon", "g": 81, "r": 151, "y": 23, "m": 80, "b": 131, "k": 3, "identifier": "NP216", "c": 44, "html": "975183"}
+{"name": "Persian Rose", "g": 88, "r": 170, "y": 0, "m": 78, "b": 162, "k": 0, "identifier": "NP214", "c": 35, "html": "AA58A2"}
+{"name": "Red Violet", "g": 61, "r": 158, "y": 16, "m": 90, "b": 132, "k": 1, "identifier": "NP234", "c": 42, "html": "9E3D84"}
+{"name": "Old Lilac", "g": 127, "r": 184, "y": 3, "m": 57, "b": 178, "k": 0, "identifier": "NP314", "c": 28, "html": "B87FB2"}
+{"name": "Violet", "g": 67, "r": 71, "y": 2, "m": 87, "b": 151, "k": 0, "identifier": "NP224", "c": 87, "html": "474397"}
+{"name": "Light Turquoise", "g": 191, "r": 79, "y": 21, "m": 2, "b": 203, "k": 0, "identifier": "NP245", "c": 63, "html": "4FBFCB"}
+{"name": "Deep Blue", "g": 101, "r": 33, "y": 1, "m": 62, "b": 176, "k": 0, "identifier": "NP275", "c": 89, "html": "2165B0"}
+{"name": "Light Blue", "g": 195, "r": 87, "y": 2, "m": 3, "b": 234, "k": 0, "identifier": "NP235", "c": 57, "html": "57C3EA"}
+{"name": "Ivory", "g": 244, "r": 255, "y": 15, "m": 3, "b": 218, "k": 0, "identifier": "NP277", "c": 1, "html": "FFF4DA"}
+{"name": "Turquoise Blue", "g": 169, "r": 4, "y": 25, "m": 12, "b": 188, "k": 0, "identifier": "NP215", "c": 76, "html": "04A9BC"}
+{"name": "Peacock Blue", "g": 147, "r": 5, "y": 30, "m": 25, "b": 167, "k": 1, "identifier": "NP205", "c": 82, "html": "0593A7"}
+{"name": "Ultramarine Blue", "g": 131, "r": 77, "y": 0, "m": 43, "b": 195, "k": 0, "identifier": "NP265", "c": 72, "html": "4D83C3"}
+{"name": "Azure Blue", "g": 143, "r": 6, "y": 5, "m": 31, "b": 198, "k": 0, "identifier": "NP255", "c": 80, "html": "068FC6"}
+{"name": "Harbor Blue", "g": 94, "r": 62, "y": 22, "m": 65, "b": 141, "k": 5, "identifier": "NP345", "c": 84, "html": "3E5E8D"}
+{"name": "Spruce Blue", "g": 47, "r": 4, "y": 38, "m": 87, "b": 89, "k": 30, "identifier": "NP305", "c": 100, "html": "042F59"}
+{"name": "Prussian Blue", "g": 45, "r": 23, "y": 55, "m": 68, "b": 56, "k": 57, "identifier": "NP295", "c": 88, "html": "172D38"}
+{"name": "Iron Blue", "g": 97, "r": 46, "y": 7, "m": 65, "b": 163, "k": 1, "identifier": "NP225", "c": 88, "html": "2E61A3"}
+{"name": "Light Sap Green", "g": 221, "r": 204, "y": 83, "m": 0, "b": 83, "k": 0, "identifier": "NP268", "c": 24, "html": "CCDD53"}
+{"name": "Eden Green", "g": 182, "r": 126, "y": 59, "m": 10, "b": 135, "k": 0, "identifier": "NP448", "c": 54, "html": "7EB687"}
+{"name": "Sap Green", "g": 194, "r": 147, "y": 79, "m": 4, "b": 102, "k": 0, "identifier": "NP208", "c": 47, "html": "93C266"}
+{"name": "Endive Green", "g": 211, "r": 200, "y": 79, "m": 5, "b": 93, "k": 0, "identifier": "NP348", "c": 25, "html": "C8D35D"}
+{"name": "Viridian Green", "g": 169, "r": 29, "y": 45, "m": 10, "b": 158, "k": 0, "identifier": "NP258", "c": 77, "html": "1DA99E"}
+{"name": "Pistachio Green", "g": 205, "r": 134, "y": 17, "m": 2, "b": 211, "k": 0, "identifier": "NP288", "c": 46, "html": "86CDD3"}
+{"name": "Fern Green", "g": 164, "r": 113, "y": 64, "m": 19, "b": 121, "k": 1, "identifier": "NP408", "c": 60, "html": "71A479"}
+{"name": "Veronese Green", "g": 198, "r": 114, "y": 46, "m": 0, "b": 162, "k": 0, "identifier": "NP218", "c": 55, "html": "72C6A2"}
+{"name": "Hookers Green", "g": 164, "r": 65, "y": 57, "m": 14, "b": 136, "k": 1, "identifier": "NP228", "c": 73, "html": "41A488"}
+{"name": "Smoke Green", "g": 157, "r": 67, "y": 34, "m": 21, "b": 165, "k": 1, "identifier": "NP368", "c": 72, "html": "439DA5"}
+{"name": "Emerald Green", "g": 166, "r": 10, "y": 55, "m": 10, "b": 142, "k": 1, "identifier": "NP238", "c": 79, "html": "0AA68E"}
+{"name": "Neptune Green", "g": 198, "r": 98, "y": 33, "m": 0, "b": 186, "k": 0, "identifier": "NP418", "c": 58, "html": "62C6BA"}
+{"name": "Dark Green", "g": 150, "r": 54, "y": 52, "m": 21, "b": 136, "k": 2, "identifier": "NP278", "c": 77, "html": "369688"}
+{"name": "Palm Green", "g": 122, "r": 115, "y": 76, "m": 38, "b": 81, "k": 17, "identifier": "NP308", "c": 54, "html": "737A51"}
+{"name": "Bottle Green", "g": 86, "r": 24, "y": 61, "m": 47, "b": 83, "k": 33, "identifier": "NP298", "c": 88, "html": "185653"}
+{"name": "Erin Green", "g": 126, "r": 15, "y": 100, "m": 26, "b": 60, "k": 13, "identifier": "NP378", "c": 88, "html": "0F7E3C"}
+{"name": "Olive Green", "g": 124, "r": 118, "y": 64, "m": 39, "b": 98, "k": 14, "identifier": "NP248", "c": 54, "html": "767C62"}
+{"name": "Beech Green", "g": 168, "r": 186, "y": 70, "m": 29, "b": 104, "k": 1, "identifier": "NP428", "c": 29, "html": "BAA868"}
+{"name": "Colonial Yellow", "g": 189, "r": 203, "y": 51, "m": 21, "b": 140, "k": 0, "identifier": "267-P", "c": 22, "html": "CBBD8C"}
+{"name": "Citrine Green", "g": 154, "r": 167, "y": 69, "m": 33, "b": 102, "k": 4, "identifier": "NP318", "c": 36, "html": "A79A66"}

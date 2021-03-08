@@ -1,0 +1,378 @@
+{"m": 95, "identifier": "RD1", "name": "Red 1", "html": "7A1F30", "y": 71, "g": 31, "k": 38, "c": 33, "b": 48, "r": 122}
+{"m": 46, "identifier": "RE8", "name": "Red Earth 8", "html": "DE987F", "y": 48, "g": 152, "k": 0, "c": 11, "b": 127, "r": 222}
+{"m": 76, "identifier": "RE10", "name": "Red Earth 10", "html": "C65B47", "y": 76, "g": 91, "k": 4, "c": 17, "b": 71, "r": 198}
+{"m": 14, "identifier": "RE13", "name": "Red Earth 13", "html": "F2D9BB", "y": 26, "g": 217, "k": 0, "c": 4, "b": 187, "r": 242}
+{"m": 61, "identifier": "RE9", "name": "Red Earth 9", "html": "D07850", "y": 74, "g": 120, "k": 2, "c": 15, "b": 80, "r": 208}
+{"m": 24, "identifier": "RE7", "name": "Red Earth 7", "html": "F8C8B1", "y": 27, "g": 200, "k": 0, "c": 1, "b": 177, "r": 248}
+{"m": 93, "identifier": "RE12", "name": "Red Earth 12", "html": "802537", "y": 67, "g": 37, "k": 33, "c": 33, "b": 55, "r": 128}
+{"m": 100, "identifier": "RE11", "name": "Red Earth 11", "html": "971426", "y": 89, "g": 20, "k": 24, "c": 26, "b": 38, "r": 151}
+{"m": 58, "identifier": "RE15", "name": "Red Earth 15", "html": "C87D60", "y": 65, "g": 125, "k": 3, "c": 19, "b": 96, "r": 200}
+{"m": 37, "identifier": "RE14", "name": "Red Earth 14", "html": "DDA67D", "y": 53, "g": 166, "k": 0, "c": 13, "b": 125, "r": 221}
+{"m": 77, "identifier": "RE17", "name": "Red Earth 17", "html": "8C4646", "y": 65, "g": 70, "k": 25, "c": 34, "b": 70, "r": 140}
+{"m": 31, "identifier": "RD17", "name": "Red 17", "html": "E9B9C5", "y": 10, "g": 185, "k": 0, "c": 6, "b": 197, "r": 233}
+{"m": 73, "identifier": "RE16", "name": "Red Earth 16", "html": "A25440", "y": 76, "g": 84, "k": 17, "c": 27, "b": 64, "r": 162}
+{"m": 81, "identifier": "RE18", "name": "Red Earth 18", "html": "713439", "y": 65, "g": 52, "k": 39, "c": 38, "b": 57, "r": 113}
+{"m": 13, "identifier": "RD18", "name": "Red 18", "html": "F9E0E4", "y": 4, "g": 224, "k": 0, "c": 1, "b": 228, "r": 249}
+{"m": 66, "identifier": "RD16", "name": "Red 16", "html": "B26D82", "y": 34, "g": 109, "k": 2, "c": 30, "b": 130, "r": 178}
+{"m": 2, "identifier": "LT2", "name": "Light Set 2", "html": "FAF2CD", "y": 22, "g": 242, "k": 0, "c": 2, "b": 205, "r": 250}
+{"m": 1, "identifier": "LT1", "name": "Light Set 1", "html": "EEEBEB", "y": 1, "g": 252, "k": 0, "c": 1, "b": 250, "r": 252}
+{"m": 4, "identifier": "LT3", "name": "Light Set 3", "html": "F5ECC1", "y": 28, "g": 236, "k": 0, "c": 4, "b": 193, "r": 245}
+{"m": 22, "identifier": "LT7", "name": "Light Set 7", "html": "FFD1D4", "y": 7, "g": 209, "k": 0, "c": 0, "b": 212, "r": 255}
+{"m": 23, "identifier": "LT6", "name": "Light Set 6", "html": "FDD8C8", "y": 22, "g": 201, "k": 0, "c": 3, "b": 185, "r": 244}
+{"m": 12, "identifier": "LT4", "name": "Light Set 4", "html": "FDE1BA", "y": 28, "g": 225, "k": 0, "c": 1, "b": 186, "r": 253}
+{"m": 13, "identifier": "LT5", "name": "Light Set 5", "html": "F2DBBB", "y": 27, "g": 219, "k": 0, "c": 4, "b": 187, "r": 242}
+{"m": 30, "identifier": "LT8", "name": "Light Set 8", "html": "D8B5B1", "y": 24, "g": 181, "k": 0, "c": 14, "b": 177, "r": 216}
+{"m": 40, "identifier": "LT9", "name": "Light Set 9", "html": "B49895", "y": 36, "g": 152, "k": 1, "c": 31, "b": 149, "r": 180}
+{"m": 4, "identifier": "LT16", "name": "Light Set 16", "html": "C6DFE3", "y": 9, "g": 223, "k": 0, "c": 21, "b": 227, "r": 198}
+{"m": 28, "identifier": "LT10", "name": "Light Set 10", "html": "D3B8C7", "y": 10, "g": 184, "k": 0, "c": 16, "b": 199, "r": 211}
+{"m": 18, "identifier": "LT12", "name": "Light Set 12", "html": "E5CFD1", "y": 11, "g": 207, "k": 0, "c": 9, "b": 209, "r": 229}
+{"m": 19, "identifier": "LT11", "name": "Light Set 11", "html": "D5C9D7", "y": 6, "g": 201, "k": 0, "c": 15, "b": 215, "r": 213}
+{"m": 10, "identifier": "LT14", "name": "Light Set 14", "html": "D2D9EC", "y": 1, "g": 217, "k": 0, "c": 16, "b": 236, "r": 210}
+{"m": 14, "identifier": "LT13", "name": "Light Set 13", "html": "DDD5E4", "y": 3, "g": 213, "k": 0, "c": 11, "b": 228, "r": 221}
+{"m": 4, "identifier": "LT15", "name": "Light Set 15", "html": "CADFE4", "y": 8, "g": 223, "k": 0, "c": 20, "b": 228, "r": 202}
+{"m": 2, "identifier": "LT17", "name": "Light Set 17", "html": "C6E2E6", "y": 8, "g": 226, "k": 0, "c": 21, "b": 230, "r": 198}
+{"m": 2, "identifier": "LT18", "name": "Light Set 18", "html": "F1F2ED", "y": 5, "g": 242, "k": 0, "c": 4, "b": 237, "r": 241}
+{"m": 6, "identifier": "A2", "name": "Additional Colours 2", "html": "C3DCF2", "y": 1, "g": 220, "k": 0, "c": 21, "b": 242, "r": 185}
+{"m": 8, "identifier": "A1", "name": "Additional Colours 1", "html": "CBDAED", "y": 1, "g": 218, "k": 0, "c": 18, "b": 237, "r": 203}
+{"m": 9, "identifier": "A3", "name": "Additional Colours 3", "html": "B9D1D5", "y": 13, "g": 209, "k": 0, "c": 27, "b": 213, "r": 185}
+{"m": 22, "identifier": "A4", "name": "Additional Colours 4", "html": "D0C3DD", "y": 2, "g": 195, "k": 0, "c": 17, "b": 221, "r": 208}
+{"m": 20, "identifier": "A5", "name": "Additional Colours 5", "html": "E3CBD9", "y": 5, "g": 203, "k": 0, "c": 9, "b": 217, "r": 227}
+{"m": 33, "identifier": "A6", "name": "Additional Colours 6", "html": "DFB3C0", "y": 12, "g": 179, "k": 0, "c": 11, "b": 192, "r": 223}
+{"m": 28, "identifier": "GY3", "name": "Grey 3", "html": "89A1A1", "y": 34, "g": 161, "k": 1, "c": 49, "b": 161, "r": 137}
+{"m": 9, "identifier": "GY6", "name": "Grey 6", "html": "CED6C1", "y": 25, "g": 214, "k": 0, "c": 19, "b": 193, "r": 206}
+{"m": 53, "identifier": "GY1", "name": "Grey 1", "html": "545955", "y": 58, "g": 89, "k": 30, "c": 65, "b": 85, "r": 84}
+{"m": 43, "identifier": "GY8", "name": "Grey 8", "html": "82889E", "y": 26, "g": 136, "k": 1, "c": 53, "b": 158, "r": 130}
+{"m": 44, "identifier": "GY2", "name": "Grey 2", "html": "5E7376", "y": 46, "g": 115, "k": 13, "c": 66, "b": 118, "r": 94}
+{"m": 21, "identifier": "GY4", "name": "Grey 4", "html": "A5B5B2", "y": 27, "g": 181, "k": 0, "c": 37, "b": 178, "r": 165}
+{"m": 68, "identifier": "GY7", "name": "Grey 7", "html": "4D5270", "y": 35, "g": 82, "k": 18, "c": 76, "b": 112, "r": 77}
+{"m": 13, "identifier": "GY5", "name": "Grey 5", "html": "C2CCC3", "y": 22, "g": 204, "k": 0, "c": 24, "b": 195, "r": 194}
+{"m": 36, "identifier": "GY9", "name": "Grey 9", "html": "8594A9", "y": 24, "g": 148, "k": 1, "c": 51, "b": 169, "r": 133}
+{"m": 18, "identifier": "GY10", "name": "Grey 10", "html": "BCC2D2", "y": 9, "g": 194, "k": 0, "c": 26, "b": 210, "r": 188}
+{"m": 56, "identifier": "GY14", "name": "Grey 14", "html": "435257", "y": 53, "g": 82, "k": 32, "c": 73, "b": 87, "r": 67}
+{"m": 12, "identifier": "GY11", "name": "Grey 11", "html": "C9D2E3", "y": 4, "g": 210, "k": 0, "c": 19, "b": 227, "r": 201}
+{"m": 2, "identifier": "GY12", "name": "Grey 12", "html": "E5EEED", "y": 5, "g": 238, "k": 0, "c": 9, "b": 237, "r": 229}
+{"m": 33, "identifier": "GY15", "name": "Grey 15", "html": "909AA3", "y": 30, "g": 154, "k": 1, "c": 46, "b": 163, "r": 144}
+{"m": 25, "identifier": "GY16", "name": "Grey 16", "html": "A8AFB5", "y": 23, "g": 175, "k": 0, "c": 35, "b": 181, "r": 168}
+{"m": 70, "identifier": "GY13", "name": "Grey 13", "html": "0F0E14", "y": 62, "g": 14, "k": 82, "c": 76, "b": 20, "r": 15}
+{"m": 9, "identifier": "GY18", "name": "Grey 18", "html": "D6DBDE", "y": 9, "g": 219, "k": 0, "c": 15, "b": 222, "r": 214}
+{"m": 13, "identifier": "GY17", "name": "Grey 17", "html": "CBD0D4", "y": 12, "g": 208, "k": 0, "c": 19, "b": 212, "r": 203}
+{"m": 38, "identifier": "GY19", "name": "Grey 19", "html": "9D8B4D", "y": 81, "g": 139, "k": 8, "c": 38, "b": 77, "r": 157}
+{"m": 17, "identifier": "GY22", "name": "Grey 22", "html": "CCC27A", "y": 63, "g": 194, "k": 0, "c": 22, "b": 122, "r": 204}
+{"m": 7, "identifier": "GY23", "name": "Grey 23", "html": "E6DD9C", "y": 46, "g": 221, "k": 0, "c": 11, "b": 156, "r": 230}
+{"m": 40, "identifier": "GY20", "name": "Grey 20", "html": "AE8E51", "y": 79, "g": 142, "k": 6, "c": 31, "b": 81, "r": 174}
+{"m": 35, "identifier": "GY21", "name": "Grey 21", "html": "AF9757", "y": 77, "g": 151, "k": 4, "c": 32, "b": 87, "r": 175}
+{"m": 6, "identifier": "GY24", "name": "Grey 24", "html": "F4E7BA", "y": 31, "g": 231, "k": 0, "c": 4, "b": 186, "r": 244}
+{"m": 9, "identifier": "GY25", "name": "Grey 25", "html": "E8DFBE", "y": 27, "g": 223, "k": 0, "c": 9, "b": 190, "r": 232}
+{"m": 5, "identifier": "GY26", "name": "Grey 26", "html": "F3ECD9", "y": 14, "g": 236, "k": 0, "c": 4, "b": 217, "r": 243}
+{"m": 1, "identifier": "GY27", "name": "Grey 27", "html": "F8F6E1", "y": 12, "g": 246, "k": 0, "c": 2, "b": 225, "r": 248}
+{"m": 8, "identifier": "GY31", "name": "Grey 31", "html": "CAD7CD", "y": 19, "g": 215, "k": 0, "c": 20, "b": 205, "r": 202}
+{"m": 11, "identifier": "GY32", "name": "Grey 32", "html": "BECEC3", "y": 23, "g": 206, "k": 0, "c": 26, "b": 195, "r": 190}
+{"m": 7, "identifier": "GY30", "name": "Grey 30", "html": "D6DDD5", "y": 15, "g": 221, "k": 0, "c": 16, "b": 213, "r": 214}
+{"m": 2, "identifier": "GY28", "name": "Grey 28", "html": "F4F5F7", "y": 1, "g": 245, "k": 0, "c": 3, "b": 247, "r": 244}
+{"m": 4, "identifier": "GY29", "name": "Grey 29", "html": "ECEBD7", "y": 16, "g": 235, "k": 0, "c": 7, "b": 215, "r": 236}
+{"m": 19, "identifier": "GY33", "name": "Grey 33", "html": "98B4B5", "y": 26, "g": 180, "k": 0, "c": 42, "b": 181, "r": 152}
+{"m": 51, "identifier": "GY35", "name": "Grey 35", "html": "46554E", "y": 62, "g": 85, "k": 34, "c": 70, "b": 78, "r": 70}
+{"m": 38, "identifier": "GY34", "name": "Grey 34", "html": "5E7A6E", "y": 56, "g": 122, "k": 13, "c": 65, "b": 110, "r": 94}
+{"m": 68, "identifier": "D4", "name": "Dark Set 4", "html": "4C311C", "y": 84, "g": 49, "k": 59, "c": 48, "b": 28, "r": 76}
+{"m": 73, "identifier": "D16", "name": "Dark Set 16", "html": "2E2C39", "y": 53, "g": 44, "k": 56, "c": 76, "b": 57, "r": 46}
+{"m": 79, "identifier": "D2", "name": "Dark Set 2", "html": "5C2A1F", "y": 81, "g": 42, "k": 54, "c": 39, "b": 31, "r": 92}
+{"m": 65, "identifier": "D17", "name": "Dark Set 17", "html": "444653", "y": 49, "g": 70, "k": 35, "c": 73, "b": 83, "r": 68}
+{"m": 80, "identifier": "D3", "name": "Dark Set 3", "html": "3A0900", "y": 76, "g": 9, "k": 75, "c": 49, "b": 0, "r": 58}
+{"m": 16, "identifier": "A41", "name": "Additional Colours 41", "html": "BCC3B1", "y": 31, "g": 195, "k": 0, "c": 27, "b": 177, "r": 188}
+{"m": 69, "identifier": "GY36", "name": "Grey 36", "html": "171A1F", "y": 61, "g": 26, "k": 76, "c": 77, "b": 31, "r": 23}
+{"m": 59, "identifier": "A38", "name": "Additional Colours 38", "html": "36372F", "y": 69, "g": 55, "k": 58, "c": 67, "b": 47, "r": 54}
+{"m": 5, "identifier": "A42", "name": "Additional Colours 42", "html": "D7E1D6", "y": 16, "g": 225, "k": 0, "c": 15, "b": 214, "r": 215}
+{"m": 45, "identifier": "A39", "name": "Additional Colours 39", "html": "636A5A", "y": 63, "g": 106, "k": 23, "c": 60, "b": 90, "r": 99}
+{"m": 36, "identifier": "A40", "name": "Additional Colours 40", "html": "8B8F81", "y": 48, "g": 143, "k": 5, "c": 47, "b": 129, "r": 139}
+{"m": 60, "identifier": "A37", "name": "Additional Colours 37", "html": "262F2C", "y": 66, "g": 47, "k": 64, "c": 75, "b": 44, "r": 38}
+{"m": 12, "identifier": "BE1", "name": "Brown Earth 1", "html": "D5D1B4", "y": 31, "g": 209, "k": 0, "c": 17, "b": 180, "r": 213}
+{"m": 36, "identifier": "BE4", "name": "Brown Earth 4", "html": "B69A6B", "y": 65, "g": 154, "k": 2, "c": 29, "b": 107, "r": 182}
+{"m": 59, "identifier": "BE5", "name": "Brown Earth 5", "html": "624D3C", "y": 72, "g": 77, "k": 39, "c": 50, "b": 60, "r": 98}
+{"m": 26, "identifier": "BE3", "name": "Brown Earth 3", "html": "C2B080", "y": 56, "g": 176, "k": 1, "c": 26, "b": 128, "r": 194}
+{"m": 28, "identifier": "BE8", "name": "Brown Earth 8", "html": "DCB57E", "y": 57, "g": 181, "k": 0, "c": 14, "b": 126, "r": 220}
+{"m": 72, "identifier": "BE6", "name": "Brown Earth 6", "html": "3F2E36", "y": 56, "g": 46, "k": 56, "c": 63, "b": 54, "r": 63}
+{"m": 18, "identifier": "BE2", "name": "Brown Earth 2", "html": "CFC5A1", "y": 40, "g": 197, "k": 0, "c": 20, "b": 161, "r": 207}
+{"m": 22, "identifier": "BE7", "name": "Brown Earth 7", "html": "D7BF93", "y": 46, "g": 191, "k": 0, "c": 16, "b": 147, "r": 215}
+{"m": 37, "identifier": "BE9", "name": "Brown Earth 9", "html": "DFA55B", "y": 74, "g": 165, "k": 0, "c": 12, "b": 91, "r": 223}
+{"m": 46, "identifier": "BE10", "name": "Brown Earth 10", "html": "D89453", "y": 77, "g": 148, "k": 1, "c": 14, "b": 83, "r": 216}
+{"m": 74, "identifier": "BE12", "name": "Brown Earth 12", "html": "7C4234", "y": 76, "g": 66, "k": 34, "c": 35, "b": 52, "r": 124}
+{"m": 37, "identifier": "BE15", "name": "Brown Earth 15", "html": "D3A375", "y": 59, "g": 163, "k": 0, "c": 17, "b": 117, "r": 211}
+{"m": 77, "identifier": "D1", "name": "Dark Set 1", "html": "8C463A", "y": 75, "g": 70, "k": 27, "c": 32, "b": 58, "r": 140}
+{"m": 28, "identifier": "BE14", "name": "Brown Earth 14", "html": "CCB182", "y": 54, "g": 177, "k": 0, "c": 21, "b": 130, "r": 204}
+{"m": 23, "identifier": "BE13", "name": "Brown Earth 13", "html": "C9B997", "y": 43, "g": 185, "k": 0, "c": 22, "b": 151, "r": 201}
+{"m": 59, "identifier": "BE16", "name": "Brown Earth 16", "html": "AF704D", "y": 74, "g": 112, "k": 10, "c": 26, "b": 77, "r": 175}
+{"m": 69, "identifier": "BE11", "name": "Brown Earth 11", "html": "9E5938", "y": 84, "g": 89, "k": 18, "c": 29, "b": 56, "r": 158}
+{"m": 67, "identifier": "BE18", "name": "Brown Earth 18", "html": "553C38", "y": 65, "g": 60, "k": 48, "c": 52, "b": 56, "r": 85}
+{"m": 9, "identifier": "BE19", "name": "Brown Earth 19", "html": "F5E5D6", "y": 14, "g": 229, "k": 0, "c": 3, "b": 214, "r": 245}
+{"m": 15, "identifier": "BE20", "name": "Brown Earth 20", "html": "E7D3BB", "y": 25, "g": 211, "k": 0, "c": 9, "b": 187, "r": 231}
+{"m": 64, "identifier": "BE17", "name": "Brown Earth 17", "html": "865743", "y": 72, "g": 87, "k": 26, "c": 37, "b": 67, "r": 134}
+{"m": 81, "identifier": "BE24", "name": "Brown Earth 24", "html": "48293B", "y": 51, "g": 41, "k": 51, "c": 61, "b": 59, "r": 72}
+{"m": 54, "identifier": "BE22", "name": "Brown Earth 22", "html": "916D53", "y": 68, "g": 109, "k": 17, "c": 38, "b": 83, "r": 145}
+{"m": 25, "identifier": "BE21", "name": "Brown Earth 21", "html": "D0B888", "y": 52, "g": 184, "k": 0, "c": 19, "b": 136, "r": 208}
+{"m": 56, "identifier": "BE23", "name": "Brown Earth 23", "html": "996E5D", "y": 61, "g": 110, "k": 14, "c": 36, "b": 93, "r": 153}
+{"m": 30, "identifier": "BE28", "name": "Brown Earth 28", "html": "C0A659", "y": 77, "g": 166, "k": 1, "c": 26, "b": 89, "r": 192}
+{"m": 20, "identifier": "BE27", "name": "Brown Earth 27", "html": "CDBD72", "y": 67, "g": 189, "k": 0, "c": 22, "b": 114, "r": 205}
+{"m": 55, "identifier": "BE29", "name": "Brown Earth 29", "html": "6E562A", "y": 92, "g": 86, "k": 34, "c": 46, "b": 42, "r": 110}
+{"m": 15, "identifier": "BE25", "name": "Brown Earth 25", "html": "DDCD91", "y": 50, "g": 205, "k": 0, "c": 14, "b": 145, "r": 221}
+{"m": 18, "identifier": "BE32", "name": "Brown Earth 32", "html": "D2C598", "y": 45, "g": 197, "k": 0, "c": 19, "b": 152, "r": 210}
+{"m": 17, "identifier": "BE26", "name": "Brown Earth 26", "html": "DDC772", "y": 67, "g": 199, "k": 0, "c": 15, "b": 114, "r": 221}
+{"m": 71, "identifier": "BE30", "name": "Brown Earth 30", "html": "6E4446", "y": 59, "g": 68, "k": 35, "c": 45, "b": 70, "r": 110}
+{"m": 11, "identifier": "BE31", "name": "Brown Earth 31", "html": "E9DBBE", "y": 26, "g": 219, "k": 0, "c": 8, "b": 190, "r": 233}
+{"m": 22, "identifier": "BE33", "name": "Brown Earth 33", "html": "C2B77F", "y": 59, "g": 183, "k": 0, "c": 26, "b": 127, "r": 194}
+{"m": 30, "identifier": "BE34", "name": "Brown Earth 34", "html": "9E9C6B", "y": 67, "g": 156, "k": 3, "c": 40, "b": 107, "r": 158}
+{"m": 17, "identifier": "A25", "name": "Additional Colours 25", "html": "CDC7BB", "y": 25, "g": 199, "k": 0, "c": 20, "b": 187, "r": 205}
+{"m": 49, "identifier": "BE35", "name": "Brown Earth 35", "html": "7E693A", "y": 86, "g": 105, "k": 23, "c": 44, "b": 58, "r": 126}
+{"m": 56, "identifier": "A27", "name": "Additional Colours 27", "html": "7B6359", "y": 59, "g": 99, "k": 22, "c": 47, "b": 89, "r": 123}
+{"m": 64, "identifier": "A28", "name": "Additional Colours 28", "html": "674D4C", "y": 58, "g": 77, "k": 33, "c": 51, "b": 76, "r": 103}
+{"m": 59, "identifier": "BE36", "name": "Brown Earth 36", "html": "403A2E", "y": 72, "g": 58, "k": 56, "c": 61, "b": 46, "r": 64}
+{"m": 30, "identifier": "A26", "name": "Additional Colours 26", "html": "ACA698", "y": 39, "g": 166, "k": 1, "c": 35, "b": 152, "r": 172}
+{"m": 26, "identifier": "A20", "name": "Additional Colours 20", "html": "C5B5A5", "y": 33, "g": 181, "k": 0, "c": 23, "b": 165, "r": 197}
+{"m": 15, "identifier": "A19", "name": "Additional Colours 19", "html": "DDD1C1", "y": 22, "g": 209, "k": 0, "c": 13, "b": 193, "r": 221}
+{"m": 66, "identifier": "A23", "name": "Additional Colours 23", "html": "6A483E", "y": 68, "g": 72, "k": 38, "c": 45, "b": 62, "r": 106}
+{"m": 37, "identifier": "A21", "name": "Additional Colours 21", "html": "B09987", "y": 46, "g": 153, "k": 1, "c": 32, "b": 135, "r": 176}
+{"m": 80, "identifier": "A24", "name": "Additional Colours 24", "html": "3D1C25", "y": 60, "g": 28, "k": 67, "c": 54, "b": 37, "r": 61}
+{"m": 22, "identifier": "A32", "name": "Additional Colours 32", "html": "BFBCC5", "y": 15, "g": 188, "k": 0, "c": 25, "b": 197, "r": 191}
+{"m": 50, "identifier": "A22", "name": "Additional Colours 22", "html": "987967", "y": 58, "g": 121, "k": 11, "c": 38, "b": 103, "r": 152}
+{"m": 15, "identifier": "A31", "name": "Additional Colours 31", "html": "D3CFDE", "y": 4, "g": 207, "k": 0, "c": 16, "b": 222, "r": 211}
+{"m": 34, "identifier": "A33", "name": "Additional Colours 33", "html": "AEA2B0", "y": 21, "g": 162, "k": 0, "c": 33, "b": 176, "r": 174}
+{"m": 48, "identifier": "A34", "name": "Additional Colours 34", "html": "8F8190", "y": 32, "g": 129, "k": 3, "c": 47, "b": 144, "r": 143}
+{"m": 66, "identifier": "A35", "name": "Additional Colours 35", "html": "65576E", "y": 39, "g": 87, "k": 17, "c": 63, "b": 110, "r": 101}
+{"m": 22, "identifier": "A53", "name": "Additional Colours 53", "html": "93AFC5", "y": 14, "g": 175, "k": 0, "c": 43, "b": 197, "r": 147}
+{"m": 43, "identifier": "A52", "name": "Additional Colours 52", "html": "527C94", "y": 30, "g": 124, "k": 4, "c": 72, "b": 148, "r": 82}
+{"m": 81, "identifier": "A29", "name": "Additional Colours 29", "html": "4A324C", "y": 44, "g": 50, "k": 39, "c": 69, "b": 76, "r": 74}
+{"m": 19, "identifier": "A54", "name": "Additional Colours 54", "html": "AABCD0", "y": 10, "g": 188, "k": 0, "c": 33, "b": 208, "r": 170}
+{"m": 51, "identifier": "A51", "name": "Additional Colours 51", "html": "416B84", "y": 34, "g": 107, "k": 0, "c": 79, "b": 132, "r": 65}
+{"m": 89, "identifier": "D14", "name": "Dark Set 14", "html": "332549", "y": 41, "g": 37, "k": 42, "c": 84, "b": 73, "r": 51}
+{"m": 29, "identifier": "P11", "name": "Portrait Colours 11", "html": "C8B1B7", "y": 20, "g": 177, "k": 0, "c": 21, "b": 183, "r": 200}
+{"m": 78, "identifier": "A50", "name": "Additional Colours 50", "html": "2D3C5D", "y": 39, "g": 60, "k": 29, "c": 90, "b": 93, "r": 45}
+{"m": 84, "identifier": "A49", "name": "Additional Colours 49", "html": "2A2B4A", "y": 43, "g": 43, "k": 42, "c": 88, "b": 74, "r": 42}
+{"m": 87, "identifier": "A36", "name": "Additional Colours 36", "html": "2E2343", "y": 44, "g": 35, "k": 47, "c": 84, "b": 67, "r": 46}
+{"m": 83, "identifier": "A30", "name": "Additional Colours 30", "html": "2F2E4E", "y": 42, "g": 46, "k": 39, "c": 87, "b": 78, "r": 47}
+{"m": 57, "identifier": "P12", "name": "Portrait Colours 12", "html": "C67E68", "y": 59, "g": 126, "k": 2, "c": 20, "b": 104, "r": 198}
+{"m": 81, "identifier": "S10", "name": "Special Collection 10", "html": "9E508A", "y": 17, "g": 80, "k": 1, "c": 42, "b": 138, "r": 158}
+{"m": 90, "identifier": "P10", "name": "Portrait Colours 10", "html": "843052", "y": 47, "g": 48, "k": 23, "c": 40, "b": 82, "r": 132}
+{"m": 85, "identifier": "S8", "name": "Special Collection 8", "html": "76395B", "y": 41, "g": 57, "k": 23, "c": 50, "b": 91, "r": 118}
+{"m": 90, "identifier": "P9", "name": "Portrait Colours 9", "html": "8B3456", "y": 46, "g": 52, "k": 20, "c": 38, "b": 86, "r": 139}
+{"m": 82, "identifier": "S9", "name": "Special Collection 9", "html": "6E3953", "y": 45, "g": 57, "k": 29, "c": 51, "b": 83, "r": 110}
+{"m": 96, "identifier": "P6", "name": "Portrait Colours 6", "html": "B02C27", "y": 97, "g": 44, "k": 13, "c": 21, "b": 39, "r": 176}
+{"m": 93, "identifier": "P8", "name": "Portrait Colours 8", "html": "5D161E", "y": 76, "g": 22, "k": 55, "c": 37, "b": 30, "r": 93}
+{"m": 100, "identifier": "P7", "name": "Portrait Colours 7", "html": "B00C2F", "y": 85, "g": 12, "k": 13, "c": 21, "b": 47, "r": 176}
+{"m": 100, "identifier": "S7", "name": "Special Collection 7", "html": "7A0137", "y": 59, "g": 1, "k": 36, "c": 35, "b": 55, "r": 122}
+{"m": 23, "identifier": "P5", "name": "Portrait Colours 5", "html": "E9C4A7", "y": 33, "g": 196, "k": 0, "c": 8, "b": 167, "r": 233}
+{"m": 40, "identifier": "P3", "name": "Portrait Colours 3", "html": "E6A378", "y": 55, "g": 163, "k": 0, "c": 8, "b": 120, "r": 230}
+{"m": 43, "identifier": "P1", "name": "Portrait Colours 1", "html": "D19767", "y": 66, "g": 151, "k": 1, "c": 18, "b": 103, "r": 209}
+{"m": 32, "identifier": "BV2", "name": "Blue Violet 2", "html": "A0A3C4", "y": 8, "g": 163, "k": 0, "c": 38, "b": 196, "r": 160}
+{"m": 25, "identifier": "P4", "name": "Portrait Colours 4", "html": "E8BF7F", "y": 57, "g": 191, "k": 0, "c": 9, "b": 127, "r": 232}
+{"m": 33, "identifier": "P2", "name": "Portrait Colours 2", "html": "ECB072", "y": 62, "g": 176, "k": 0, "c": 6, "b": 114, "r": 236}
+{"m": 15, "identifier": "BV1", "name": "Blue Violet 1", "html": "D3D1E7", "y": 1, "g": 209, "k": 0, "c": 15, "b": 231, "r": 211}
+{"m": 38, "identifier": "BV3", "name": "Blue Violet 3", "html": "A199BE", "y": 8, "g": 153, "k": 0, "c": 38, "b": 190, "r": 161}
+{"m": 62, "identifier": "BV4", "name": "Blue Violet 4", "html": "726CA8", "y": 6, "g": 108, "k": 0, "c": 63, "b": 168, "r": 114}
+{"m": 8, "identifier": "BV7", "name": "Blue Violet 7", "html": "D2DDEF", "y": 1, "g": 221, "k": 0, "c": 16, "b": 239, "r": 210}
+{"m": 76, "identifier": "BV5", "name": "Blue Violet 5", "html": "57538E", "y": 16, "g": 83, "k": 3, "c": 77, "b": 142, "r": 87}
+{"m": 41, "identifier": "BV10", "name": "Blue Violet 10", "html": "798CCE", "y": 0, "g": 140, "k": 0, "c": 54, "b": 206, "r": 121}
+{"m": 90, "identifier": "BV6", "name": "Blue Violet 6", "html": "3B3467", "y": 31, "g": 52, "k": 20, "c": 89, "b": 103, "r": 59}
+{"m": 19, "identifier": "BV9", "name": "Blue Violet 9", "html": "A5BCE5", "y": 0, "g": 188, "k": 0, "c": 33, "b": 229, "r": 165}
+{"m": 10, "identifier": "BV8", "name": "Blue Violet 8", "html": "C4D5EF", "y": 0, "g": 213, "k": 0, "c": 21, "b": 239, "r": 196}
+{"m": 75, "identifier": "BV11", "name": "Blue Violet 11", "html": "4555A0", "y": 4, "g": 85, "k": 1, "c": 84, "b": 160, "r": 69}
+{"m": 83, "identifier": "BV12", "name": "Blue Violet 12", "html": "3D499D", "y": 1, "g": 73, "k": 0, "c": 89, "b": 157, "r": 61}
+{"m": 876, "identifier": "D18", "name": "Dark Set 18", "html": "233C72", "y": 28, "g": 60, "k": 14, "c": 99, "b": 114, "r": 35}
+{"m": 86, "identifier": "S12", "name": "Special Collection 12", "html": "454492", "y": 7, "g": 68, "k": 1, "c": 88, "b": 146, "r": 69}
+{"m": 87, "identifier": "D13", "name": "Dark Set 13", "html": "3A428D", "y": 10, "g": 66, "k": 2, "c": 92, "b": 141, "r": 58}
+{"m": 98, "identifier": "S11", "name": "Special Collection 11", "html": "212773", "y": 24, "g": 39, "k": 11, "c": 100, "b": 115, "r": 33}
+{"m": 33, "identifier": "BV14", "name": "Blue Violet 14", "html": "7195B5", "y": 17, "g": 149, "k": 0, "c": 59, "b": 181, "r": 113}
+{"m": 15, "identifier": "BV13", "name": "Blue Violet 13", "html": "9FBDC5", "y": 18, "g": 189, "k": 0, "c": 38, "b": 197, "r": 159}
+{"m": 50, "identifier": "BV15", "name": "Blue Violet 15", "html": "737BA2", "y": 18, "g": 123, "k": 1, "c": 61, "b": 162, "r": 115}
+{"m": 0, "identifier": "T5", "name": "Turquoise 5", "html": "A7DDE7", "y": 9, "g": 221, "k": 0, "c": 32, "b": 231, "r": 167}
+{"m": 24, "identifier": "T2", "name": "Turquoise 2", "html": "0194A4", "y": 33, "g": 148, "k": 1, "c": 82, "b": 164, "r": 1}
+{"m": 74, "identifier": "BV17", "name": "Blue Violet 17", "html": "324E7D", "y": 26, "g": 78, "k": 10, "c": 90, "b": 125, "r": 50}
+{"m": 67, "identifier": "BV16", "name": "Blue Violet 16", "html": "615C85", "y": 26, "g": 92, "k": 7, "c": 70, "b": 133, "r": 97}
+{"m": 12, "identifier": "T3", "name": "Turquoise 3", "html": "16A9BB", "y": 25, "g": 169, "k": 0, "c": 75, "b": 187, "r": 22}
+{"m": 8, "identifier": "T4", "name": "Turquoise 4", "html": "63B9C8", "y": 19, "g": 185, "k": 0, "c": 58, "b": 200, "r": 99}
+{"m": 3, "identifier": "T6", "name": "Turquoise 6", "html": "BDDDE8", "y": 6, "g": 221, "k": 0, "c": 24, "b": 232, "r": 189}
+{"m": 85, "identifier": "BV18", "name": "Blue Violet 18", "html": "2D3865", "y": 33, "g": 56, "k": 22, "c": 93, "b": 101, "r": 45}
+{"m": 6, "identifier": "BG18", "name": "Blue Green 18", "html": "C8DBD9", "y": 13, "g": 219, "k": 0, "c": 21, "b": 217, "r": 200}
+{"m": 37, "identifier": "T1", "name": "Turquoise 1", "html": "017C8C", "y": 38, "g": 124, "k": 6, "c": 87, "b": 140, "r": 1}
+{"m": 1, "identifier": "BG17", "name": "Blue Green 17", "html": "B5DED8", "y": 16, "g": 222, "k": 0, "c": 28, "b": 216, "r": 181}
+{"m": 24, "identifier": "BG15", "name": "Blue Green 15", "html": "3399B0", "y": 26, "g": 153, "k": 0, "c": 76, "b": 176, "r": 51}
+{"m": 37, "identifier": "BG13", "name": "Blue Green 13", "html": "017C8E", "y": 37, "g": 124, "k": 6, "c": 87, "b": 142, "r": 1}
+{"m": 6, "identifier": "BG16", "name": "Blue Green 16", "html": "89C8D7", "y": 13, "g": 200, "k": 0, "c": 44, "b": 215, "r": 137}
+{"m": 0, "identifier": "BG12", "name": "Blue Green 12", "html": "D4F1FF", "y": 0, "g": 241, "k": 0, "c": 15, "b": 255, "r": 212}
+{"m": 33, "identifier": "BG14", "name": "Blue Green 14", "html": "15879F", "y": 30, "g": 135, "k": 2, "c": 83, "b": 159, "r": 21}
+{"m": 11, "identifier": "BG10", "name": "Blue Green 10", "html": "7EC0F0", "y": 0, "g": 192, "k": 0, "c": 46, "b": 240, "r": 126}
+{"m": 5, "identifier": "BG11", "name": "Blue Green 11", "html": "A9D7F8", "y": 0, "g": 215, "k": 0, "c": 30, "b": 248, "r": 169}
+{"m": 20, "identifier": "BG9", "name": "Blue Green 9", "html": "4BA6DB", "y": 1, "g": 166, "k": 0, "c": 65, "b": 219, "r": 75}
+{"m": 32, "identifier": "BG8", "name": "Blue Green 8", "html": "0E8CB5", "y": 17, "g": 140, "k": 1, "c": 82, "b": 181, "r": 14}
+{"m": 53, "identifier": "BG7", "name": "Blue Green 7", "html": "0B6D9C", "y": 19, "g": 109, "k": 2, "c": 90, "b": 156, "r": 11}
+{"m": 5, "identifier": "BG5", "name": "Blue Green 5", "html": "C3DEF9", "y": 0, "g": 222, "k": 0, "c": 21, "b": 249, "r": 195}
+{"m": 5, "identifier": "BG6", "name": "Blue Green 6", "html": "D2E2EF", "y": 2, "g": 226, "k": 0, "c": 16, "b": 239, "r": 210}
+{"m": 19, "identifier": "BG4", "name": "Blue Green 4", "html": "76AFDC", "y": 1, "g": 175, "k": 0, "c": 52, "b": 220, "r": 118}
+{"m": 62, "identifier": "BG1", "name": "Blue Green 1", "html": "275878", "y": 34, "g": 88, "k": 15, "c": 90, "b": 120, "r": 39}
+{"m": 33, "identifier": "BG3", "name": "Blue Green 3", "html": "4A91CF", "y": 0, "g": 145, "k": 0, "c": 69, "b": 207, "r": 74}
+{"m": 66, "identifier": "S13", "name": "Special Collection 13", "html": "0B5FA7", "y": 3, "g": 95, "k": 0, "c": 94, "b": 167, "r": 11}
+{"m": 47, "identifier": "S14", "name": "Special Collection 14", "html": "0476A8", "y": 15, "g": 118, "k": 1, "c": 88, "b": 168, "r": 4}
+{"m": 52, "identifier": "BG2", "name": "Blue Green 2", "html": "3072AF", "y": 7, "g": 114, "k": 0, "c": 83, "b": 175, "r": 48}
+{"m": 4, "identifier": "BGE2", "name": "Blue Green Earth 2", "html": "A6D1C8", "y": 23, "g": 209, "k": 0, "c": 35, "b": 200, "r": 166}
+{"m": 15, "identifier": "BGE3", "name": "Blue Green Earth 3", "html": "66AEAD", "y": 33, "g": 174, "k": 0, "c": 61, "b": 173, "r": 102}
+{"m": 5, "identifier": "BGE1", "name": "Blue Green Earth 1", "html": "B6D6D1", "y": 18, "g": 214, "k": 0, "c": 28, "b": 209, "r": 182}
+{"m": 29, "identifier": "BGE5", "name": "Blue Green Earth 5", "html": "578E89", "y": 46, "g": 142, "k": 4, "c": 69, "b": 137, "r": 87}
+{"m": 20, "identifier": "BGE4", "name": "Blue Green Earth 4", "html": "64A39A", "y": 42, "g": 163, "k": 1, "c": 63, "b": 154, "r": 100}
+{"m": 28, "identifier": "BGE9", "name": "Blue Green Earth 9", "html": "4C908F", "y": 43, "g": 144, "k": 3, "c": 72, "b": 143, "r": 76}
+{"m": 5, "identifier": "BGE8", "name": "Blue Green Earth 8", "html": "88C5B3", "y": 35, "g": 197, "k": 0, "c": 47, "b": 179, "r": 136}
+{"m": 65, "identifier": "BGE6", "name": "Blue Green Earth 6", "html": "233A42", "y": 55, "g": 58, "k": 49, "c": 84, "b": 66, "r": 35}
+{"m": 42, "identifier": "BGE11", "name": "Blue Green Earth 11", "html": "266F78", "y": 46, "g": 111, "k": 14, "c": 84, "b": 120, "r": 38}
+{"m": 12, "identifier": "BGE7", "name": "Blue Green Earth 7", "html": "92BCB0", "y": 33, "g": 188, "k": 0, "c": 44, "b": 176, "r": 146}
+{"m": 35, "identifier": "BGE10", "name": "Blue Green Earth 10", "html": "427D79", "y": 51, "g": 125, "k": 11, "c": 76, "b": 121, "r": 66}
+{"m": 2, "identifier": "BGE13", "name": "Blue Green Earth 13", "html": "D0E2BA", "y": 32, "g": 226, "k": 0, "c": 19, "b": 186, "r": 208}
+{"m": 15, "identifier": "BGE15", "name": "Blue Green Earth 15", "html": "ACBC8D", "y": 53, "g": 188, "k": 0, "c": 35, "b": 141, "r": 172}
+{"m": 15, "identifier": "BGE14", "name": "Blue Green Earth 14", "html": "ACBD90", "y": 51, "g": 189, "k": 0, "c": 35, "b": 144, "r": 172}
+{"m": 47, "identifier": "BGE12", "name": "Blue Green Earth 12", "html": "1D5D5F", "y": 55, "g": 93, "k": 26, "c": 87, "b": 95, "r": 29}
+{"m": 46, "identifier": "BGE18", "name": "Blue Green Earth 18", "html": "37574A", "y": 87, "g": 87, "k": 35, "c": 76, "b": 74, "r": 55}
+{"m": 36, "identifier": "BGE17", "name": "Blue Green Earth 17", "html": "667D63", "y": 65, "g": 125, "k": 14, "c": 62, "b": 99, "r": 102}
+{"m": 48, "identifier": "S17", "name": "Special Collection 17", "html": "27432D", "y": 81, "g": 67, "k": 52, "c": 78, "b": 45, "r": 39}
+{"m": 29, "identifier": "BGE16", "name": "Blue Green Earth 16", "html": "7A9270", "y": 63, "g": 146, "k": 6, "c": 55, "b": 112, "r": 122}
+{"m": 66, "identifier": "D15", "name": "Dark Set 15", "html": "013542", "y": 54, "g": 53, "k": 50, "c": 95, "b": 66, "r": 1}
+{"m": 52, "identifier": "D8", "name": "Dark Set 8", "html": "344942", "y": 65, "g": 73, "k": 44, "c": 75, "b": 66, "r": 52}
+{"m": 52, "identifier": "S18", "name": "Special Collection 18", "html": "4B4923", "y": 93, "g": 73, "k": 47, "c": 60, "b": 35, "r": 75}
+{"m": 44, "identifier": "S16", "name": "Special Collection 16", "html": "046365", "y": 54, "g": 99, "k": 23, "c": 90, "b": 101, "r": 4}
+{"m": 49, "identifier": "D11", "name": "Dark Set 11", "html": "414A2B", "y": 86, "g": 74, "k": 47, "c": 66, "b": 43, "r": 65}
+{"m": 46, "identifier": "D6", "name": "Dark Set 6", "html": "75680A", "y": 100, "g": 104, "k": 25, "c": 50, "b": 10, "r": 117}
+{"m": 55, "identifier": "D5", "name": "Dark Set 5", "html": "4D4834", "y": 75, "g": 72, "k": 46, "c": 59, "b": 52, "r": 77}
+{"m": 45, "identifier": "D12", "name": "Dark Set 12", "html": "4D5927", "y": 100, "g": 89, "k": 37, "c": 65, "b": 39, "r": 77}
+{"m": 42, "identifier": "D10", "name": "Dark Set 10", "html": "095440", "y": 77, "g": 84, "k": 39, "c": 89, "b": 64, "r": 9}
+{"m": 44, "identifier": "D9", "name": "Dark Set 9", "html": "124F3F", "y": 74, "g": 79, "k": 42, "c": 87, "b": 63, "r": 18}
+{"m": 57, "identifier": "D7", "name": "Dark Set 7", "html": "2A2B01", "y": 86, "g": 43, "k": 69, "c": 66, "b": 1, "r": 42}
+{"m": 7, "identifier": "YGE2", "name": "Yellow Green Earth 2", "html": "B9D1B9", "y": 30, "g": 209, "k": 0, "c": 28, "b": 185, "r": 185}
+{"m": 5, "identifier": "YGE1", "name": "Yellow Green Earth 1", "html": "D7DFB8", "y": 32, "g": 223, "k": 0, "c": 16, "b": 184, "r": 215}
+{"m": 19, "identifier": "YGE4", "name": "Yellow Green Earth 4", "html": "8AAEA0", "y": 39, "g": 174, "k": 0, "c": 48, "b": 160, "r": 138}
+{"m": 19, "identifier": "YGE3", "name": "Yellow Green Earth 3", "html": "81AB97", "y": 45, "g": 171, "k": 1, "c": 53, "b": 151, "r": 129}
+{"m": 18, "identifier": "YGE5", "name": "Yellow Green Earth 5", "html": "66A695", "y": 47, "g": 166, "k": 1, "c": 62, "b": 149, "r": 102}
+{"m": 41, "identifier": "YGE6", "name": "Yellow Green Earth 6", "html": "337581", "y": 42, "g": 117, "k": 10, "c": 81, "b": 129, "r": 51}
+{"m": 35, "identifier": "YGE11", "name": "Yellow Green Earth 11", "html": "6E7B2B", "y": 100, "g": 123, "k": 17, "c": 58, "b": 43, "r": 110}
+{"m": 39, "identifier": "YGE12", "name": "Yellow Green Earth 12", "html": "857D2A", "y": 100, "g": 125, "k": 15, "c": 47, "b": 42, "r": 133}
+{"m": 15, "identifier": "YGE8", "name": "Yellow Green Earth 8", "html": "B3BB4B", "y": 88, "g": 187, "k": 0, "c": 34, "b": 75, "r": 179}
+{"m": 4, "identifier": "YGE7", "name": "Yellow Green Earth 7", "html": "DADC6F", "y": 71, "g": 220, "k": 0, "c": 17, "b": 111, "r": 218}
+{"m": 16, "identifier": "YGE10", "name": "Yellow Green Earth 10", "html": "79A52C", "y": 100, "g": 165, "k": 2, "c": 59, "b": 44, "r": 121}
+{"m": 2, "identifier": "YGE9", "name": "Yellow Green Earth 9", "html": "B6D26B", "y": 75, "g": 210, "k": 0, "c": 32, "b": 107, "r": 182}
+{"m": 51, "identifier": "S15", "name": "Special Collection 15", "html": "00647C", "y": 38, "g": 100, "k": 13, "c": 92, "b": 124, "r": 1}
+{"m": 15, "identifier": "YGE15", "name": "Yellow Green Earth 15", "html": "ADBA6B", "y": 72, "g": 186, "k": 1, "c": 36, "b": 107, "r": 173}
+{"m": 44, "identifier": "YGE13", "name": "Yellow Green Earth 13", "html": "716A0F", "y": 100, "g": 106, "k": 24, "c": 52, "b": 15, "r": 113}
+{"m": 19, "identifier": "YGE14", "name": "Yellow Green Earth 14", "html": "A8B26D", "y": 70, "g": 178, "k": 1, "c": 37, "b": 109, "r": 168}
+{"m": 34, "identifier": "YGE17", "name": "Yellow Green Earth 17", "html": "808751", "y": 80, "g": 135, "k": 11, "c": 51, "b": 81, "r": 128}
+{"m": 0, "identifier": "GN35", "name": "Green 35", "html": "D7E54A", "y": 84, "g": 229, "k": 0, "c": 20, "b": 74, "r": 215}
+{"m": 26, "identifier": "YGE16", "name": "Yellow Green Earth 16", "html": "999F55", "y": 81, "g": 159, "k": 4, "c": 43, "b": 85, "r": 153}
+{"m": 0, "identifier": "GN36", "name": "Green 36", "html": "F1F982", "y": 60, "g": 249, "k": 0, "c": 8, "b": 130, "r": 241}
+{"m": 50, "identifier": "YGE18", "name": "Yellow Green Earth 18", "html": "354228", "y": 84, "g": 66, "k": 53, "c": 70, "b": 40, "r": 53}
+{"m": 0, "identifier": "GN33", "name": "Green 33", "html": "83C314", "y": 100, "g": 195, "k": 0, "c": 54, "b": 20, "r": 131}
+{"m": 1, "identifier": "GN34", "name": "Green 34", "html": "C2D524", "y": 100, "g": 213, "k": 0, "c": 29, "b": 36, "r": 194}
+{"m": 16, "identifier": "GN32", "name": "Green 32", "html": "329737", "y": 100, "g": 151, "k": 3, "c": 80, "b": 55, "r": 50}
+{"m": 33, "identifier": "GN31", "name": "Green 31", "html": "457752", "y": 77, "g": 119, "k": 18, "c": 75, "b": 82, "r": 69}
+{"m": 0, "identifier": "GN30", "name": "Green 30", "html": "DAED44", "y": 85, "g": 237, "k": 0, "c": 19, "b": 68, "r": 218}
+{"m": 1, "identifier": "GN29", "name": "Green 29", "html": "A6CC00", "y": 100, "g": 204, "k": 0, "c": 41, "b": 0, "r": 166}
+{"m": 0, "identifier": "GN28", "name": "Green 28", "html": "8CC806", "y": 100, "g": 200, "k": 0, "c": 50, "b": 6, "r": 140}
+{"m": 0, "identifier": "GN27", "name": "Green 27", "html": "68BE43", "y": 100, "g": 190, "k": 0, "c": 62, "b": 67, "r": 104}
+{"m": 18, "identifier": "GN26", "name": "Green 26", "html": "1C9138", "y": 100, "g": 145, "k": 5, "c": 84, "b": 56, "r": 28}
+{"m": 20, "identifier": "GN25", "name": "Green 25", "html": "0B8F67", "y": 74, "g": 143, "k": 5, "c": 85, "b": 103, "r": 11}
+{"m": 0, "identifier": "GN24", "name": "Green 24", "html": "BEDF98", "y": 52, "g": 223, "k": 0, "c": 27, "b": 152, "r": 190}
+{"m": 1, "identifier": "GN22", "name": "Green 22", "html": "8AC99E", "y": 48, "g": 201, "k": 0, "c": 47, "b": 158, "r": 138}
+{"m": 4, "identifier": "GN23", "name": "Green 23", "html": "98CAA5", "y": 43, "g": 202, "k": 0, "c": 42, "b": 165, "r": 152}
+{"m": 24, "identifier": "GN20", "name": "Green 20", "html": "2D8E7A", "y": 60, "g": 142, "k": 5, "c": 80, "b": 122, "r": 45}
+{"m": 15, "identifier": "GN21", "name": "Green 21", "html": "60AA9B", "y": 44, "g": 170, "k": 1, "c": 64, "b": 155, "r": 96}
+{"m": 25, "identifier": "GN19", "name": "Green 19", "html": "338C78", "y": 60, "g": 140, "k": 6, "c": 79, "b": 120, "r": 51}
+{"m": 0, "identifier": "GN11", "name": "Green 11", "html": "BEDC4A", "y": 87, "g": 220, "k": 0, "c": 30, "b": 74, "r": 190}
+{"m": 8, "identifier": "GN17", "name": "Green 17", "html": "BDCA60", "y": 79, "g": 202, "k": 0, "c": 30, "b": 96, "r": 189}
+{"m": 13, "identifier": "GN16", "name": "Green 16", "html": "8AB269", "y": 75, "g": 178, "k": 1, "c": 50, "b": 105, "r": 138}
+{"m": 4, "identifier": "GN18", "name": "Green 18", "html": "E2E19E", "y": 46, "g": 225, "k": 0, "c": 13, "b": 158, "r": 226}
+{"m": 32, "identifier": "GN14", "name": "Green 14", "html": "507B4D", "y": 82, "g": 123, "k": 16, "c": 71, "b": 77, "r": 80}
+{"m": 21, "identifier": "GN15", "name": "Green 15", "html": "769B2A", "y": 100, "g": 155, "k": 4, "c": 59, "b": 42, "r": 118}
+{"m": 47, "identifier": "GN13", "name": "Green 13", "html": "325142", "y": 71, "g": 81, "k": 40, "c": 77, "b": 66, "r": 50}
+{"m": 0, "identifier": "GN12", "name": "Green 12", "html": "DDF182", "y": 61, "g": 241, "k": 0, "c": 16, "b": 130, "r": 221}
+{"m": 9, "identifier": "GN9", "name": "Green 9", "html": "63AF71", "y": 73, "g": 175, "k": 0, "c": 65, "b": 113, "r": 99}
+{"m": 7, "identifier": "GN10", "name": "Green 10", "html": "82B968", "y": 77, "g": 185, "k": 0, "c": 53, "b": 104, "r": 130}
+{"m": 13, "identifier": "GN5", "name": "Green 5", "html": "91B788", "y": 57, "g": 183, "k": 0, "c": 46, "b": 136, "r": 145}
+{"m": 0, "identifier": "GN6", "name": "Green 6", "html": "D9F6D7", "y": 20, "g": 246, "k": 0, "c": 14, "b": 215, "r": 217}
+{"m": 10, "identifier": "GN4", "name": "Green 4", "html": "A2C293", "y": 51, "g": 194, "k": 0, "c": 39, "b": 147, "r": 162}
+{"m": 24, "identifier": "GN3", "name": "Green 3", "html": "67987B", "y": 59, "g": 152, "k": 4, "c": 63, "b": 123, "r": 103}
+{"m": 9, "identifier": "GN8", "name": "Green 8", "html": "09A363", "y": 82, "g": 163, "k": 1, "c": 82, "b": 99, "r": 9}
+{"m": 27, "identifier": "GN7", "name": "Green 7", "html": "017F5A", "y": 78, "g": 127, "k": 12, "c": 87, "b": 90, "r": 1}
+{"m": 9, "identifier": "A47", "name": "Additional Colours 47", "html": "B4CEC3", "y": 24, "g": 206, "k": 0, "c": 30, "b": 195, "r": 180}
+{"m": 36, "identifier": "GN2", "name": "Green 2", "html": "217164", "y": 63, "g": 113, "k": 18, "c": 85, "b": 100, "r": 33}
+{"m": 4, "identifier": "A48", "name": "Additional Colours 48", "html": "CEE1DB", "y": 13, "g": 225, "k": 0, "c": 18, "b": 219, "r": 206}
+{"m": 37, "identifier": "GN1", "name": "Green 1", "html": "0F644F", "y": 73, "g": 100, "k": 27, "c": 88, "b": 79, "r": 15}
+{"m": 32, "identifier": "A45", "name": "Additional Colours 45", "html": "598574", "y": 57, "g": 133, "k": 9, "c": 68, "b": 116, "r": 89}
+{"m": 40, "identifier": "A44", "name": "Additional Colours 44", "html": "4B6D5D", "y": 63, "g": 109, "k": 22, "c": 71, "b": 93, "r": 75}
+{"m": 55, "identifier": "A43", "name": "Additional Colours 43", "html": "203731", "y": 68, "g": 55, "k": 59, "c": 80, "b": 49, "r": 32}
+{"m": 18, "identifier": "A46", "name": "Additional Colours 46", "html": "97B4A2", "y": 39, "g": 180, "k": 0, "c": 43, "b": 162, "r": 151}
+{"m": 4, "identifier": "Y5", "name": "Yellow 5", "html": "E3DE68", "y": 73, "g": 222, "k": 0, "c": 13, "b": 104, "r": 227}
+{"m": 0, "identifier": "Y6", "name": "Yellow 6", "html": "FCF9B2", "y": 37, "g": 249, "k": 0, "c": 2, "b": 178, "r": 252}
+{"m": 38, "identifier": "Y2", "name": "Yellow 2", "html": "BF9624", "y": 100, "g": 150, "k": 3, "c": 26, "b": 36, "r": 191}
+{"m": 10, "identifier": "Y4", "name": "Yellow 4", "html": "CECB28", "y": 100, "g": 203, "k": 0, "c": 23, "b": 40, "r": 206}
+{"m": 4, "identifier": "A7", "name": "Additional Colours 7", "html": "FBECB3", "y": 35, "g": 236, "k": 0, "c": 2, "b": 179, "r": 251}
+{"m": 18, "identifier": "Y3", "name": "Yellow 3", "html": "CEBF57", "y": 80, "g": 191, "k": 0, "c": 22, "b": 87, "r": 206}
+{"m": 6, "identifier": "A8", "name": "Additional Colours 8", "html": "F7E593", "y": 52, "g": 229, "k": 0, "c": 4, "b": 147, "r": 247}
+{"m": 62, "identifier": "Y1", "name": "Yellow 1", "html": "A66525", "y": 100, "g": 101, "k": 15, "c": 28, "b": 37, "r": 166}
+{"m": 20, "identifier": "A9", "name": "Additional Colours 9", "html": "E9C322", "y": 99, "g": 195, "k": 0, "c": 10, "b": 34, "r": 233}
+{"m": 0, "identifier": "Y12", "name": "Yellow 12", "html": "FFFAA9", "y": 41, "g": 250, "k": 0, "c": 2, "b": 169, "r": 255}
+{"m": 10, "identifier": "Y10", "name": "Yellow 10", "html": "F3D735", "y": 90, "g": 215, "k": 0, "c": 6, "b": 53, "r": 243}
+{"m": 5, "identifier": "A12", "name": "Additional Colours 12", "html": "F6E001", "y": 100, "g": 224, "k": 0, "c": 6, "b": 1, "r": 246}
+{"m": 0, "identifier": "A10", "name": "Additional Colours 10", "html": "F5F426", "y": 90, "g": 244, "k": 0, "c": 9, "b": 38, "r": 245}
+{"m": 14, "identifier": "Y9", "name": "Yellow 9", "html": "F7D102", "y": 100, "g": 209, "k": 0, "c": 4, "b": 2, "r": 247}
+{"m": 2, "identifier": "Y11", "name": "Yellow 11", "html": "F3E761", "y": 76, "g": 231, "k": 0, "c": 7, "b": 97, "r": 243}
+{"m": 0, "identifier": "A11", "name": "Additional Colours 11", "html": "FBEE09", "y": 96, "g": 238, "k": 0, "c": 5, "b": 9, "r": 251}
+{"m": 18, "identifier": "Y17", "name": "Yellow 17", "html": "EECD80", "y": 58, "g": 205, "k": 0, "c": 6, "b": 128, "r": 238}
+{"m": 28, "identifier": "Y16", "name": "Yellow 16", "html": "DEB342", "y": 88, "g": 179, "k": 0, "c": 14, "b": 66, "r": 222}
+{"m": 26, "identifier": "Y8", "name": "Yellow 8", "html": "F7BE0D", "y": 100, "g": 190, "k": 0, "c": 3, "b": 13, "r": 247}
+{"m": 11, "identifier": "Y18", "name": "Yellow 18", "html": "F1DEB4", "y": 32, "g": 222, "k": 0, "c": 5, "b": 180, "r": 241}
+{"m": 44, "identifier": "Y14", "name": "Yellow 14", "html": "E49934", "y": 93, "g": 153, "k": 0, "c": 9, "b": 52, "r": 228}
+{"m": 62, "identifier": "Y13", "name": "Yellow 13", "html": "C87320", "y": 100, "g": 115, "k": 4, "c": 18, "b": 32, "r": 200}
+{"m": 49, "identifier": "Y7", "name": "Yellow 7", "html": "EF9437", "y": 90, "g": 148, "k": 0, "c": 3, "b": 55, "r": 239}
+{"m": 52, "identifier": "Y15", "name": "Yellow 15", "html": "D0862D", "y": 98, "g": 134, "k": 2, "c": 17, "b": 45, "r": 208}
+{"m": 18, "identifier": "O17", "name": "Orange 17", "html": "F0CC74", "y": 65, "g": 204, "k": 0, "c": 6, "b": 116, "r": 240}
+{"m": 54, "identifier": "S3", "name": "Special Collection 3", "html": "D68303", "y": 100, "g": 131, "k": 1, "c": 14, "b": 3, "r": 214}
+{"m": 26, "identifier": "O16", "name": "Orange 16", "html": "ECBC50", "y": 81, "g": 188, "k": 0, "c": 8, "b": 80, "r": 236}
+{"m": 26, "identifier": "O15", "name": "Orange 15", "html": "EFBC3D", "y": 89, "g": 188, "k": 0, "c": 6, "b": 61, "r": 239}
+{"m": 6, "identifier": "O18", "name": "Orange 18", "html": "EDE3A5", "y": 42, "g": 227, "k": 0, "c": 8, "b": 165, "r": 237}
+{"m": 47, "identifier": "S2", "name": "Special Collection 2", "html": "E69543", "y": 84, "g": 149, "k": 0, "c": 8, "b": 67, "r": 230}
+{"m": 35, "identifier": "O14", "name": "Orange 14", "html": "E8A906", "y": 100, "g": 169, "k": 0, "c": 9, "b": 6, "r": 232}
+{"m": 49, "identifier": "A13", "name": "Additional Colours 13", "html": "E79108", "y": 100, "g": 145, "k": 0, "c": 8, "b": 8, "r": 231}
+{"m": 71, "identifier": "S4", "name": "Special Collection 4", "html": "D1650A", "y": 100, "g": 101, "k": 3, "c": 14, "b": 10, "r": 209}
+{"m": 57, "identifier": "O13", "name": "Orange 13", "html": "E08204", "y": 100, "g": 130, "k": 1, "c": 10, "b": 4, "r": 224}
+{"m": 64, "identifier": "S5", "name": "Special Collection 5", "html": "DE772C", "y": 97, "g": 119, "k": 1, "c": 10, "b": 44, "r": 222}
+{"m": 16, "identifier": "O12", "name": "Orange 12", "html": "EFD3A3", "y": 39, "g": 211, "k": 0, "c": 6, "b": 163, "r": 239}
+{"m": 67, "identifier": "S1", "name": "Special Collection 1", "html": "E47116", "y": 100, "g": 113, "k": 1, "c": 7, "b": 22, "r": 228}
+{"m": 27, "identifier": "O11", "name": "Orange 11", "html": "F2BE72", "y": 64, "g": 190, "k": 0, "c": 4, "b": 114, "r": 242}
+{"m": 37, "identifier": "O10", "name": "Orange 10", "html": "E7A64C", "y": 81, "g": 166, "k": 0, "c": 8, "b": 76, "r": 231}
+{"m": 40, "identifier": "O9", "name": "Orange 9", "html": "F4A549", "y": 81, "g": 165, "k": 0, "c": 2, "b": 73, "r": 244}
+{"m": 32, "identifier": "O6", "name": "Orange 6", "html": "E5B398", "y": 38, "g": 179, "k": 0, "c": 9, "b": 152, "r": 229}
+{"m": 85, "identifier": "S6", "name": "Special Collection 6", "html": "CB4A2B", "y": 97, "g": 74, "k": 4, "c": 14, "b": 43, "r": 203}
+{"m": 61, "identifier": "O8", "name": "Orange 8", "html": "DE7B06", "y": 100, "g": 123, "k": 1, "c": 11, "b": 6, "r": 222}
+{"m": 86, "identifier": "O3", "name": "Orange 3", "html": "D24823", "y": 100, "g": 72, "k": 2, "c": 12, "b": 35, "r": 210}
+{"m": 77, "identifier": "O7", "name": "Orange 7", "html": "D95D1F", "y": 100, "g": 93, "k": 1, "c": 10, "b": 31, "r": 217}
+{"m": 63, "identifier": "O5", "name": "Orange 5", "html": "D67856", "y": 70, "g": 120, "k": 1, "c": 13, "b": 86, "r": 214}
+{"m": 89, "identifier": "A14", "name": "Additional Colours 14", "html": "D6412B", "y": 97, "g": 65, "k": 2, "c": 10, "b": 43, "r": 214}
+{"m": 76, "identifier": "O4", "name": "Orange 4", "html": "DD613F", "y": 83, "g": 97, "k": 1, "c": 9, "b": 63, "r": 221}
+{"m": 13, "identifier": "RE1", "name": "Red Earth 1", "html": "FFE2E0", "y": 6, "g": 226, "k": 0, "c": 0, "b": 224, "r": 255}
+{"m": 100, "identifier": "O2", "name": "Orange 2", "html": "B40C23", "y": 98, "g": 12, "k": 12, "c": 20, "b": 35, "r": 180}
+{"m": 100, "identifier": "A15", "name": "Additional Colours 15", "html": "CD0E41", "y": 73, "g": 14, "k": 3, "c": 13, "b": 65, "r": 205}
+{"m": 13, "identifier": "RE2", "name": "Red Earth 2", "html": "F3DEDD", "y": 8, "g": 222, "k": 0, "c": 3, "b": 221, "r": 243}
+{"m": 66, "identifier": "RE4", "name": "Red Earth 4", "html": "B3695C", "y": 62, "g": 105, "k": 8, "c": 25, "b": 92, "r": 179}
+{"m": 87, "identifier": "A16", "name": "Additional Colours 16", "html": "C74525", "y": 100, "g": 69, "k": 5, "c": 16, "b": 37, "r": 199}
+{"m": 44, "identifier": "RE3", "name": "Red Earth 3", "html": "D4987E", "y": 50, "g": 152, "k": 1, "c": 16, "b": 126, "r": 212}
+{"m": 100, "identifier": "O1", "name": "Orange 1", "html": "8B0520", "y": 90, "g": 5, "k": 31, "c": 27, "b": 32, "r": 139}
+{"m": 75, "identifier": "RE5", "name": "Red Earth 5", "html": "734248", "y": 57, "g": 66, "k": 33, "c": 43, "b": 72, "r": 115}
+{"m": 84, "identifier": "RE6", "name": "Red Earth 6", "html": "5A2633", "y": 59, "g": 38, "k": 51, "c": 45, "b": 51, "r": 90}
+{"m": 33, "identifier": "RD11", "name": "Red 11", "html": "FDB9AC", "y": 25, "g": 185, "k": 0, "c": 0, "b": 172, "r": 253}
+{"m": 86, "identifier": "RD14", "name": "Red 14", "html": "663457", "y": 40, "g": 52, "k": 28, "c": 58, "b": 87, "r": 102}
+{"m": 86, "identifier": "RD13", "name": "Red 13", "html": "472641", "y": 46, "g": 38, "k": 47, "c": 66, "b": 65, "r": 71}
+{"m": 93, "identifier": "RD15", "name": "Red 15", "html": "7B2C5C", "y": 38, "g": 44, "k": 20, "c": 50, "b": 92, "r": 123}
+{"m": 56, "identifier": "RD10", "name": "Red 10", "html": "E4887D", "y": 45, "g": 136, "k": 0, "c": 8, "b": 125, "r": 228}
+{"m": 19, "identifier": "RD12", "name": "Red 12", "html": "F9D4CC", "y": 14, "g": 212, "k": 0, "c": 1, "b": 204, "r": 249}
+{"m": 68, "identifier": "A18", "name": "Additional Colours 18", "html": "D56F6B", "y": 52, "g": 111, "k": 1, "c": 13, "b": 107, "r": 213}
+{"m": 74, "identifier": "A17", "name": "Additional Colours 17", "html": "D8644B", "y": 75, "g": 100, "k": 1, "c": 11, "b": 75, "r": 216}
+{"m": 83, "identifier": "RD9", "name": "Red 9", "html": "CF5152", "y": 66, "g": 81, "k": 2, "c": 14, "b": 82, "r": 207}
+{"m": 100, "identifier": "RD8", "name": "Red 8", "html": "91002A", "y": 81, "g": 0, "k": 28, "c": 27, "b": 42, "r": 145}
+{"m": 24, "identifier": "RD6", "name": "Red 6", "html": "FAC798", "y": 42, "g": 199, "k": 0, "c": 1, "b": 152, "r": 250}
+{"m": 92, "identifier": "RD7", "name": "Red 7", "html": "682038", "y": 57, "g": 32, "k": 43, "c": 41, "b": 56, "r": 104}
+{"m": 63, "identifier": "RD4", "name": "Red 4", "html": "E87C55", "y": 71, "g": 124, "k": 0, "c": 5, "b": 85, "r": 232}
+{"m": 39, "identifier": "RD5", "name": "Red 5", "html": "F2A980", "y": 51, "g": 169, "k": 0, "c": 3, "b": 128, "r": 242}
+{"m": 79, "identifier": "RD3", "name": "Red 3", "html": "D95A49", "y": 75, "g": 90, "k": 1, "c": 10, "b": 73, "r": 217}
+{"m": 98, "identifier": "RD2", "name": "Red 2", "html": "B32728", "y": 96, "g": 39, "k": 12, "c": 21, "b": 40, "r": 179}
