@@ -1,18 +1,12 @@
 import warnings
 import pytest
 import numpy as np
-import colour
-from colormath.color_objects import sRGBColor, xyYColor, XYZColor
-from colormath import color_conversions
-from color_utils import *
 
-def rgb_to_xyy_colormath(r, g, b):
-    rgb_color = sRGBColor(r / 255, g / 255, b / 255)
-    xyz_color = color_conversions.convert_color(rgb_color, XYZColor) 
-    xyy_color = color_conversions.convert_color(rgb_color, xyYColor) 
-    xyz = np.array(xyz_color.get_value_tuple())
-    xyy = np.array(xyy_color.get_value_tuple())
-    return (xyz, xyy)
+import colour
+import munsellkit as mkit
+import munsellkit.minterpol as mint
+import munsellkit.lindbloom as mlin
+
 
 HARD_COLORS = [
     ('Black Green', '020202'),
@@ -42,120 +36,32 @@ REALPAINT_COLORS = [
         'xyY': (0.43041, 0.36216, 0.37496)})
 ]
 
-CAT_METHODS = [
-    'CAT02', 
-    'XYZ Scaling', 
-    'Von Kries', 
-    'Bradford', 
-    'Sharp', 
-    'Fairchild', 
-    'CMCCAT97', 
-    'CMCCAT2000', 
-    'CAT02 Brill 2008', 
-    'Bianco 2010', 
-    'Bianco PC 2010'
-]
-
-@pytest.mark.skip(reason='all methods are equal')
-def test_cat_methods():
-    for name, spaces in REALPAINT_COLORS:
-        xyz_rp = np.array(spaces['XYZ'])
-        srgb = np.array(spaces['sRGB']) / 255
-        dist = 1000
-        best = None
-        for cat_method in CAT_METHODS:
-            xyz_csci = colour.sRGB_to_XYZ(srgb, chromatic_adaptation_method=cat_method)
-            test = np.square(xyz_rp - xyz_csci).sum()
-            print(f'XYZ realpaint {xyz_rp}')
-            print(f'XYZ {cat_method} {xyz_csci}')
-            print(f'dist was {test}\n')
-
-            if test < dist:
-                dist = test
-                best = cat_method
-        print(f'best method was {best}')
-
-        # P3 is not close -- need to correct
-        # rgb_p3 = np.array(spaces['P3']) / 255
-        # xyz_p3 = colour.RGB_to_XYZ(rgb_p3, ...)
-        # print(f'colour P3 XYZ {xyz_p3}')
-
-@pytest.mark.skip(reason='all illuminants are equal')
-def test_realpaint_xyy():
-    for name, spaces in REALPAINT_COLORS:
-        xyy_rp = np.array(spaces['xyY'])
-        srgb = np.array(spaces['sRGB']) / 255
-        xyz = colour.sRGB_to_XYZ(srgb)
-        for il_name, illuminant in [('C', ILLUMINANT_C), ('D65', ILLUMINANT_D65)]:
-            xyy_csci = colour.XYZ_to_xyY(xyz, illuminant=illuminant)
-            print(f'xyY realpaint {xyy_rp}')
-            print(f'xyY {il_name} {xyy_csci}')
 
 def test_realpaint_to_munsell():
-    print(f'C {ILLUMINANT_C}')
     for name, spaces in REALPAINT_COLORS:
         r, g, b = spaces['sRGB']
-        spec_csci = new_sRGB_to_munsell_specification(r, g, b)
-        spec_interpol = mipr_sRGB_to_munsell_specification(r, g, b)
-        csci = colour.notation.munsell.munsell_specification_to_munsell_colour(spec_csci)
-        interpol = colour.notation.munsell.munsell_specification_to_munsell_colour(spec_interpol)
-        print(f'{name} {r:3.1f}, {g:3.1f}, {b:3.1f} -> colorsci {csci}')
-        print(f'{name} {r:3.1f}, {g:3.1f}, {b:3.1f} -> interpol {interpol}')
+        spec_mlin = mlin.rgb_to_munsell_specification(r, g, b)
+        color_mlin = mkit.normalized_color(spec_mlin, out='color')
+        spec_mint = mint.rgb_to_munsell_specification(r, g, b)
+        color_mint = mkit.normalized_color(spec_mint, out='color')
+        print(f'{name} {r:3.1f}, {g:3.1f}, {b:3.1f} -> mlin {color_mlin}')
+        print(f'{name} {r:3.1f}, {g:3.1f}, {b:3.1f} -> mint {color_mint}')
+
 
 def test_realpaint_from_munsell():
     for name, spaces in REALPAINT_COLORS:
         rgb_rp = np.array(spaces['sRGB'])
-        rgb_csci = new_munsell_colour_to_sRGB(name)
-        rgb_csci = rgb_csci * 255
-        rgb_mipr = mipr_munsell_color_to_rgb(name)
+        rgb_mkit = mkit.munsell_color_to_rgb(name)
+        rgb_mkit = rgb_mkit * 255
+        rgb_mint = mint.munsell_color_to_rgb(name)
+        rgb_mint = rgb_mint * 255
         print(f'{name} -> rgb realpaint {rgb_rp}')
-        print(f'{name} -> rgb colorsci {rgb_csci}')
-        print(f'{name} -> rgb interpol {rgb_mipr}')
-
-@pytest.mark.skip(reason='later')
-def test_hue_names():
-    assert INTERPOL_TO_CSCI_HUE_INDEX[0] == 7
-    assert INTERPOL_TO_CSCI_HUE_INDEX[9] == 8
-
-@pytest.mark.skip(reason='later')
-def test_rgb_to_xyy_alternatives():
-    for name, rgb_hex in HARD_COLORS:
-        r = int(rgb_hex[:2], 16)
-        g = int(rgb_hex[2:4], 16)
-        b = int(rgb_hex[4:6], 16)
-
-        xyz_colormath, xyy_colormath = rgb_to_xyy_colormath(r, g, b)
-        xyz_csci, xyy_csci = csci_rgb_to_adapted_xyY(r, g, b)
-        np.testing.assert_array_almost_equal(xyz_colormath, xyz_csci, decimal=4)
-        np.testing.assert_array_almost_equal(xyy_colormath, xyy_csci, decimal=4)
-
-        spec_interpol = mipr_xyY_to_munsell_specification(xyy_csci)
-        spec_csci = csci_xyY_to_munsell_specification(xyy_csci)
-
-        hue, value, chroma = munsell_specification_to_near_munsell_color(spec_csci)
-        print(f'{name} [{r} {g} {b}] -> {hue} {value}/{chroma}')
-
-@pytest.mark.skip(reason='later')
-def test_to_munsell_alternatives():
-    for name, rgb_hex in HARD_COLORS:
-        r = int(rgb_hex[:2], 16)
-        g = int(rgb_hex[2:4], 16)
-        b = int(rgb_hex[4:6], 16)
-
-        xyz_csci, xyy_csci = csci_rgb_to_adapted_xyY(r, g, b)
-        spec_csci = csci_xyY_to_munsell_specification(xyy_csci)
-        spec_interpol = mipr_xyY_to_munsell_specification(xyy_csci)
-        spec_interpol_rgb = mipr_sRGB_to_munsell_specification(r, g, b)
-        print(f'{name} [{r} {g} {b}] -> colour {spec_csci}')
-        print(f'{name} [{r} {g} {b}] -> R/xyY  {spec_interpol}')
-        print(f'{name} [{r} {g} {b}] -> R/sRGB {spec_interpol_rgb}')
+        print(f'{name} -> rgb mkit {rgb_mkit}')
+        print(f'{name} -> rgb mint {rgb_mint}')
 
 
-@pytest.mark.skip(reason='later')
 def test_grays():
     for r, g, b in [(25*v, 25*v, 25*v) for v in range(0, 11)]:
-      _xyz, xyy = csci_rgb_to_adapted_xyY(r, g, b)
-      spec = csci_xyY_to_munsell_specification(xyy)
-      hue, value, chroma = munsell_specification_to_near_munsell_color(spec)
-
-      print(f'[{r} {g} {b}] -> {hue} {value}/{chroma}')
+      spec_mlin = mlin.rgb_to_munsell_specification(r, g, b)
+      color_mlin = mkit.normalized_color(spec_mlin, out='color')
+      print(f'[{r} {g} {b}] -> {color_mlin}')

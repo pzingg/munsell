@@ -9,6 +9,11 @@ import sys
 import colour
 from PIL import Image, ImageDraw, ImageFont
 
+import colour
+from colour.notation import munsell as cnm
+import munsellkit as mkit
+
+
 # Column headers from UEF tables
 s_colnames = [
     'h', 'V', 'C'
@@ -233,10 +238,8 @@ class ScienceColorSource(ColorSource):
 
     def rgb(self, color):
         spec = self._to_colorlab(color['h'], color['V']/10, color['C'])
-        xyy = colour.notation.munsell.munsell_specification_to_xyY(spec)
-        xyz = colour.xyY_to_XYZ(xyy)
-        srgb = colour.XYZ_to_sRGB(xyz)
-        return [min(255, max(0, round(v * 255))) for v in srgb]
+        rgb = mkit.munsell_specification_to_rgb(spec)
+        return [min(255, max(0, round(v * 255))) for v in rgb]
 
     def find_nearest(self, hue, value, chroma):
         if hue == 'N':
@@ -270,7 +273,7 @@ class ScienceColorSource(ColorSource):
 
     def find_highest_chroma(self, hue, value, chroma):
         spec = self._to_colorlab(hue, value/10, chroma)
-        max_chroma = colour.notation.munsell.maximum_chroma_from_renotation(spec[0], spec[1], spec[3])
+        max_chroma = cnm.maximum_chroma_from_renotation(spec[0], spec[1], spec[3])
         return max_chroma
 
     def _to_colorlab(self, hue, value, chroma):
@@ -279,7 +282,7 @@ class ScienceColorSource(ColorSource):
             munsell_color = f'N{value}'
         else:
             munsell_color = f'{hue} {value}/{chroma}'
-        return colour.notation.munsell.parse_munsell_colour(munsell_color)
+        return cnm.parse_munsell_colour(munsell_color)
 
 
 class LegacyColorSource(ColorSource):
