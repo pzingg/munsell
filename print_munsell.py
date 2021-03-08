@@ -1,8 +1,11 @@
 #!/usr/bin/env python3
 
 import argparse
-import colorspacious
-import subprocess
+import numpy as np
+
+import munsellkit as mkit
+import munsellkit.minterpol as mint
+import munsellkit.lindbloom as mlin
 
 
 # CIECAM JCh data from https://www.stilllifesmatter.com/single-post/2017/08/16/about-pigments
@@ -57,54 +60,32 @@ color_list = [
 ]
 
 
-def to_munsell(name, space, spec3):
-    if space == 'jch':
-        spec3 = colorspacious.cspace_convert(spec3, 'JCh', 'CIELab')
-        space = 'lab'
-
-    script_name = '{}_to_munsell.R'.format(space)
-    arg = '{:.4f} {:.4f} {:.4f}'.format(spec3[0], spec3[1], spec3[2])
-    result = subprocess.check_output(['/usr/bin/Rscript', script_name, arg])
-    return parse_munsell_result(name, result)
-
-
-def parse_munsell_result(name, result):
-    result = ''.join(map(chr, result)).strip()
-    hue, rhue, value, chroma = result.split(' ')
-    value = float(value)
-    if hue == 'NA':
-        hue = 'N'
-        rhue = 'N'
-        chroma = 0
-    else:
-        chroma = float(chroma)
-
-    rvalue = int(round(value))
-    rchroma = int(round(chroma / 2.0)) * 2
-    print_munsell(name, rhue, rvalue, rchroma)
-    return (hue, value, chroma)
-
-
-def print_munsell(name, rhue, rvalue, rchroma):
-    if rhue == 'N':
-        print('{} -> {}{}'.format(name, rhue, rvalue))
-    else:
-        print('{} -> {}{}/{}'.format(name, rhue, rvalue, rchroma))
+def to_munsell(name, space, color):
+    if space == 'rgb':
+        spec = mlin.rgb_to_munsell_specification(color)
+    elif space == 'jch':
+        spec = mint.jch_to_munsell_specification(color)
+    elif space == 'xyy':
+        spec = mint.xyY_to_munsell_specification(color)
+    munsell_color = mkit.normalized_color(spec, out='color')
+    print(f'{name}\t{munsell_color}')
 
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description='Process some integers.')
-    parser.add_argument('--array', action='store_true')
+    parser = argparse.ArgumentParser(description='Convert colors to Munsell.')
     parser.add_argument('name', type=str, nargs='?')
-    parser.add_argument('space', type=str, nargs='?')
+    parser.add_argument('space', type=str, nargs='?', help='jch or rgb only')
     parser.add_argument('spec', type=float, nargs='*')
     args = parser.parse_args()
 
-    if args.array:
+    if len(args.spec) == 3:
+        if args.name and args.space:
+            to_munsell(args.name, args.space.lower(), np.array(args.spec))
+        else:
+            parser.print_help()
+    elif len(args.spec) == 0:
         for name, abbrev, mfr, pigment, j, c, h in color_list:
             name = '{:5} {}'.format(pigment, name)
-            to_munsell(name, 'jch', [j, c, h])
-    elif len(args.spec) == 3:
-        to_munsell(args.name, args.space, args.spec)
+            to_munsell(name, 'jch', np.array([j, c, h]))
     else:
         parser.print_help()
