@@ -1,6 +1,6 @@
 # artpaints_spider
 
-Get the color information on Prismacolor Nupastel, Sennelier and Unison 
+Get the color information on Prismacolor Nupastel, Sennelier and Unison
 soft pastel colors from the http://www.art-paints.com website.
 
 Munsell information for the colors in each brand will be dumped into

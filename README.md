@@ -14,16 +14,16 @@ See the README files in each project for more details.
   for a collection of colors you might have on a palette.
 
 - `utilities` contains Python 3 scripts that write out color
-  information to standard output or to CSV files that are formatted 
-  with data columns that are similar to the PastelData.xls file on 
-  Paul Centore's website at 
+  information to standard output or to CSV files that are formatted
+  with data columns that are similar to the PastelData.xls file on
+  Paul Centore's website at
   https://www.munsellcolourscienceforpainters.com/ColourAnalysisOfPastels/ColourAnalysisOfPastels.html
 
 - `artpaints_spider` is a Python 3 web crawler that downloads data on
-  artist colors from the http://art-paints.com website that can 
+  artist colors from the http://art-paints.com website that can
   be consumed by scripts in `utilities`.
 
-- `colorwell_spider` is a Python 3 web crawler that downloads data 
+- `colorwell_spider` is a Python 3 web crawler that downloads data
   on oil colors from the https://colorwell.org website to a CSV file with
   data columns similar to the PastelData.xls file.
 

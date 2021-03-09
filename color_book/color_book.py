@@ -555,7 +555,7 @@ class MunsellCard:
 
     def add_patches(self):
         if self.hue == 'N':
-            colors = [color for color in self.source.neutral_colors 
+            colors = [color for color in self.source.neutral_colors
                 if color['V'] in [20, 30, 40, 50, 60, 70, 80, 85, 90, 95]]
             colors = colors[-self.max_patches:]
         elif self.mode == 'chroma':
@@ -586,7 +586,7 @@ class MunsellCard:
             x1 = x0 + self.patch_w
             y1 = y0 - self.patch_h
             xy = [x0, y0, x1, y1]
-            
+
             r, g, b = self.source.rgb(color)
             fill = f'#{r:02X}{g:02X}{b:02X}'
 
@@ -598,7 +598,7 @@ class MunsellCard:
                 label = name
 
             label_y = y0 + 6
-            label2_y = label_y + self.small_font_size + 2 
+            label2_y = label_y + self.small_font_size + 2
             self.draw.rectangle(xy, fill=fill)
             self.draw.text((x0, label_y), label, font=self.small_font,
                            fill='#000000', align='left')
@@ -673,7 +673,7 @@ class MunsellWheel:
             prefix = 'wheel'
         file_name = f'{prefix}.png'
         self.img.save(file_name, dpi=(self.dpi, self.dpi))
-        
+
 
 class Munsell:
     def __init__(self, source_name='rit'):
@@ -869,7 +869,7 @@ if __name__ == '__main__':
                   for arg in itertools.chain.from_iterable(args.wheel)]
         colors = [color for color in colors if color]
         if len(colors) > 0:
-            Munsell(args.source).print_wheel(colors, args.prefix) 
+            Munsell(args.source).print_wheel(colors, args.prefix)
         else:
             parser.error(f'No colors were parsed in --wheel {args.wheel}')
     elif args.card is None:

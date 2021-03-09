@@ -8,9 +8,9 @@
 % Munsell spectra (AOTF) and their color coordinates are stored in file
 % munsell400_700_5.mat where:
 %
-%               munsell         61x1250 matrix where each column is one spectrum       
+%               munsell         61x1250 matrix where each column is one spectrum
 %                               measured from 400 nm to 700 nm with 5 nm interval.
-%       
+%
 %               S               1250x15 matrix where one row is the label of the
 %                               corresponding spectrum in the munsell matrix. For
 %                               example 1st row is the label of the 1st spectrum

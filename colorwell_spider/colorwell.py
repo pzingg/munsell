@@ -3,9 +3,9 @@ import os
 import re
 import sys
 import time
-from selenium import webdriver  
-from selenium.webdriver.common.keys import Keys  
-from selenium.webdriver.chrome.options import Options  
+from selenium import webdriver
+from selenium.webdriver.common.keys import Keys
+from selenium.webdriver.chrome.options import Options
 
 from colour.notation import munsell as cnm
 import munsellkit as mkit
@@ -69,7 +69,7 @@ example_modal = """
     <p class="modal-card-title">
       <span class="tag is-primary is-medium Naf19f1a1b455a904f8a" style="vertical-align: middle;"></span>
        5.0R 5/14
-    </p> 
+    </p>
     <button aria-label="close" class="delete"></button>
   </header>
   <section class="modal-card-body">
@@ -85,22 +85,22 @@ example_modal = """
       </thead>
       <tbody>
         <tr>
-          <td>Gamblin Artist's Oil Colors</td> 
-          <td class="has-text-weight-semibold">Cadmium Red Medium</td> 
-         <td>[PR108]</td> 
-         <td class="is-italic">Spectrophotometer</td> 
+          <td>Gamblin Artist's Oil Colors</td>
+          <td class="has-text-weight-semibold">Cadmium Red Medium</td>
+         <td>[PR108]</td>
+         <td class="is-italic">Spectrophotometer</td>
          <td class="has-text-weight-semibold">5.0R 5/14</td>
         </tr>
         <tr>
-          <td>Williamsburg Handmade Oil Paints</td> 
-          <td class="has-text-weight-semibold">Persian Rose</td> 
-         <td>[PY154] [PR112] [PV19] [PW6] [PW4]</td> 
-         <td class="is-italic">Spectrophotometer</td> 
+          <td>Williamsburg Handmade Oil Paints</td>
+          <td class="has-text-weight-semibold">Persian Rose</td>
+         <td>[PY154] [PR112] [PV19] [PW6] [PW4]</td>
+         <td class="is-italic">Spectrophotometer</td>
          <td class="has-text-weight-semibold">3.9R 5.01/14.74</td>
         </tr>
       </tbody>
     </table>
-  </section> 
+  </section>
   <footer class="modal-card-foot">
     <p class="content is-small is-italic">These paint(s) have been included here because they are nearest to the Munsell notation: 5.0R 5/14
     </p>
@@ -109,7 +109,7 @@ example_modal = """
 """
 
 def setup_driver():
-    chrome_options = Options()  
+    chrome_options = Options()
     chrome_options.headless = True
     driver = webdriver.Chrome(executable_path='./drivers/chromedriver', options=chrome_options)
     return driver
@@ -149,9 +149,9 @@ def scrape_url(url, i, hue, driver, csv_writer):
       for link in links:
           if link.is_displayed():
               scrape_link(link, i, driver, csv_writer)
-            
 
-def scrape_link(link, i, driver, csv_writer):  
+
+def scrape_link(link, i, driver, csv_writer):
     link.click()
     time.sleep(0.5)
     # print('clicked link')

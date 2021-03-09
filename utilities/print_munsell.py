@@ -65,10 +65,12 @@ def to_munsell(name, space, color):
         spec = mlin.rgb_to_munsell_specification(color)
     elif space == 'jch':
         spec = mint.jch_to_munsell_specification(color)
+    elif space == 'jch_experimental':
+        spec = mlin.jch_to_munsell_specification(color)
     elif space == 'xyy':
         spec = mint.xyY_to_munsell_specification(color)
     munsell_color = mkit.normalized_color(spec, out='color')
-    print(f'{name}\t{munsell_color}')
+    print(f'{name}\t{space}\t{munsell_color}')
 
 
 if __name__ == '__main__':
@@ -87,5 +89,6 @@ if __name__ == '__main__':
         for name, abbrev, mfr, pigment, j, c, h in color_list:
             name = '{:5} {}'.format(pigment, name)
             to_munsell(name, 'jch', np.array([j, c, h]))
+            to_munsell(name, 'jch_experimental', np.array([j, c, h]))
     else:
         parser.print_help()

@@ -9,7 +9,7 @@ from PIL import Image, ImageDraw, ImageFont
 
 import munsellkit as mkit
 
-PALETTE_COLS = [ 
+PALETTE_COLS = [
     'Foxton Palette',
     'My Palette',
     'GOSP Palette'
@@ -83,7 +83,7 @@ class PalettePage:
                     r, g, b = rgb
                     r = max(0, min(255, int(r * 255)))
                     g = max(0, min(255, int(g * 255)))
-                    b = max(0, min(255, int(b * 255)))                 
+                    b = max(0, min(255, int(b * 255)))
                     print(f'{in_palette:20s} {r} {g} {b}')
                     self.draw_patch(x0, y0, in_palette, r, g, b)
                     y0 += self.patch_h_stride

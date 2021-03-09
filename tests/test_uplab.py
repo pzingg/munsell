@@ -21,14 +21,14 @@ REALPAINT_COLORS = [
 ]
 
 def print_spec(name, spec):
-  h, v, c, code = spec 
+  h, v, c, code = spec
   color = mkit.normalized_color(spec, out='color')
   print(f'{name} -> hvc {h} {v} {c} {code} -> {color}')
 
 def test_inverse():
     for name in ['2.5G8/4', '5R6/6']:
       rgb = mkit.munsell_color_to_rgb(name)
-      rgb = rgb * 255 
+      rgb = rgb * 255
       lab1 = mlin.rgb_to_uplab(rgb[0], rgb[1], rgb[2])
       spec = mlin.uplab_to_munsell_specification(lab1)
       lab2 = mlin.munsell_specification_to_uplab(spec)
@@ -50,11 +50,11 @@ def test_color():
       '2.5PB8/6',
       '2.5P8/4',
       '2.5RP8/4',
-      '5RP8/4',  
+      '5RP8/4',
       '7.5RP8/4',
-      '10RP8/4', 
+      '10RP8/4',
     ]:
-        rgb = mkit.munsell_color_to_rgb(name) 
+        rgb = mkit.munsell_color_to_rgb(name)
         if np.isnan(rgb[0]):
             print(f'{name} not available')
             continue
