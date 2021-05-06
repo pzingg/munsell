@@ -32,6 +32,15 @@ with the `--card` argument.
 Or print out a 4 x 6 inch card showing the hues that neighbor a specified
 Munsell color with the `--hues` argument.
 
+## Examples
+
+1. Print a 4x6 card of color chips named `aq1.png` from the colors specified in 
+the `aquarium-1.txt` file.
+
+```
+cat aquarium-1.txt | python3 color_book.py --prefix aq1 --chips
+```
+
 
 ## Additional References
 

@@ -239,7 +239,7 @@ class ScienceColorSource(ColorSource):
     def rgb(self, color):
         spec = self._to_colorlab(color['h'], color['V']/10, color['C'])
         rgb = mkit.munsell_specification_to_rgb(spec)
-        return [min(255, max(0, round(v * 255))) for v in rgb]
+        return [min(255, max(0, int(round(v * 255)))) for v in rgb]
 
     def find_nearest(self, hue, value, chroma):
         if hue == 'N':
@@ -294,7 +294,7 @@ class LegacyColorSource(ColorSource):
         raise Exception('Must use subclass!')
 
     def rgb(self, color):
-        return [color[key] for key in ['dR', 'dG', 'dB']]
+        return [int(color[key]) for key in ['dR', 'dG', 'dB']]
 
     def find_nearest(self, hue, value, chroma):
         for color in self.data:
@@ -612,7 +612,10 @@ class MunsellCard:
         if self.mode == 'chips':
             if prefix is None or prefix == '':
                 prefix = 'chips'
-            file_name = f'{prefix}_{page_num}.png'
+            if page_num == 0:
+                file_name = f'{prefix}.png'
+            else:
+                file_name = f'{prefix}_{page_num}.png'
         else:
             page_num = ORDERED_HUES.index(self.hue) + 1
             if self.mode == 'chroma':
@@ -737,6 +740,8 @@ class Munsell:
                 if card.add_patch(0, color, name=hvc['name']):
                     idx = 1
         if idx > 0:
+            if page_num == 1:
+                page_num = 0
             card.print(page_num, prefix)
 
     def print_wheel(self, colors, prefix):

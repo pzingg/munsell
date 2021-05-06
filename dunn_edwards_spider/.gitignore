@@ -1,0 +1,7 @@
+*.csv
+*.png
+*.txt
+*.ttf
+
+__pycache__/
+drivers/
