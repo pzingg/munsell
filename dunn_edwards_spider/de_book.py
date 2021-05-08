@@ -107,11 +107,14 @@ def chroma_label(chroma):
 class MunsellPage:
     # Page parameters for PIL
     dpi = 100
-    image_w = 1700
+    image_w = 850
     image_h = 1100
 
+    xsmall_font_size = 14
     small_font_size = 18
     large_font_size = 32
+    xsmall_font = ImageFont.truetype(
+        './RobotoMono-Regular.ttf', xsmall_font_size)
     small_font = ImageFont.truetype(
         './RobotoMono-BoldItalic.ttf', small_font_size)
     large_font = ImageFont.truetype(
@@ -119,8 +122,8 @@ class MunsellPage:
 
     patch_x0 = 150
     value_label_x0 = patch_x0 - 50
-    patch_w = 125
-    patch_w_stride = patch_w + 24
+    patch_w = 72
+    patch_w_stride = patch_w + 12
 
     patch_y0 = image_h - 60
     chroma_label_y0 = patch_y0 + 15
@@ -141,10 +144,11 @@ class MunsellPage:
         self.draw = ImageDraw.Draw(self.img)
 
     def build_image(self):
-        x0 = self.patch_x0 + (N_COLS * self.patch_w_stride) + self.patch_w
-        y0 = self.patch_y0 - (N_ROWS * self.patch_h_stride)
+        x0 = self.patch_x0 + ((N_COLS - 1) * self.patch_w_stride) + self.patch_w
+        y0 = self.patch_y0 - (N_ROWS * self.patch_h_stride) + 10
         draw_text_ralign(self.draw, (x0, y0), self.hue, self.large_font)
         draw_text_ralign(self.draw, (x0, y0 + 40), f'p. {self.page_num}', self.small_font)
+        last_col = len(CHROMA_COLS) - 2 
 
         for x, chroma in enumerate(CHROMA_COLS):
             label = chroma_label(chroma)
@@ -161,6 +165,9 @@ class MunsellPage:
                            label, font=self.small_font, fill='#000000', align='left')
 
             for x, chroma in enumerate(CHROMA_COLS):
+                if i == 0 and x >= last_col:
+                    continue
+
                 x0 = self.patch_x0 + (x * self.patch_w_stride)
                 y0 = self.patch_y0 - (y * self.patch_h_stride)
                 x1 = x0 + self.patch_w
@@ -173,19 +180,19 @@ class MunsellPage:
                     y1 = y1 + 4
                     colors = sorted(self.data[value_2][chroma], key=lambda row: color_distance(row, self.astm_hue, value, chroma))
                     if len(colors) > 0:
-                        for row in colors[:5]:
+                        for row in colors[:6]:
                             label = row['Identifier']
                             self.draw.text((x1, y1),
-                                label, font=self.small_font, fill='#000000', align='left')
-                            y1 = y1 + 15
+                                label, font=self.xsmall_font, fill='#000000', align='left')
+                            y1 = y1 + 14
                 else:
                     munsell_color = f'{self.hue} {value}/{chroma}'
                     spec = cnm.parse_munsell_colour(munsell_color)
                     max_chroma = cnm.maximum_chroma_from_renotation(spec[0], spec[1], spec[3])
                     if chroma <= max_chroma:
-                        self.draw.rectangle(xy, outline='#000000')
-                        self.draw.line(xy, fill='#000000', width=1)
-                        self.draw.line([x0, y1, x1, y0], fill='#000000', width=1)
+                        self.draw.rectangle(xy, outline='#666699')
+                        # self.draw.line(xy, fill='#666666', width=1)
+                        # self.draw.line([x0, y1, x1, y0], fill='#666666', width=1)
 
 
     def print(self):
