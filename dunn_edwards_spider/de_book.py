@@ -3,10 +3,10 @@ import csv
 import itertools
 import math
 import operator
+
+from colour.notation import munsell as cnm
 from PIL import Image, ImageDraw, ImageFont
 
-TEXT_MODE = False
-VERBOSE = False
 
 VALUE_2_ROWS = [
     19,
@@ -17,8 +17,7 @@ VALUE_2_ROWS = [
     12,
     10,
     8,
-    6,
-    4
+    6
 ]
 
 N_ROWS = len(VALUE_2_ROWS)
@@ -108,7 +107,7 @@ def chroma_label(chroma):
 class MunsellPage:
     # Page parameters for PIL
     dpi = 100
-    image_w = 850
+    image_w = 1700
     image_h = 1100
 
     small_font_size = 18
@@ -118,19 +117,20 @@ class MunsellPage:
     large_font = ImageFont.truetype(
         './RobotoMono-BoldItalic.ttf', large_font_size)
 
-    patch_x0 = 100
+    patch_x0 = 150
     value_label_x0 = patch_x0 - 50
-    patch_w = 80
-    patch_w_stride = patch_w + 12
+    patch_w = 125
+    patch_w_stride = patch_w + 24
 
-    patch_y0 = image_h - 50
+    patch_y0 = image_h - 60
     chroma_label_y0 = patch_y0 + 15
-    patch_h = 84
+    patch_h = 100
     patch_h_stride = patch_h + 12
 
     def __init__(self, source_name, page_num, hue, data):
         self.source_name = source_name
         self.page_num = page_num
+        self.astm_hue = (page_num % 40) * 2.5
         self.hue = hue
         self.data = data
         self.init_image()
@@ -141,7 +141,7 @@ class MunsellPage:
         self.draw = ImageDraw.Draw(self.img)
 
     def build_image(self):
-        x0 = self.patch_x0 + ((N_COLS - 1) * self.patch_w_stride)
+        x0 = self.patch_x0 + (N_COLS * self.patch_w_stride) + self.patch_w
         y0 = self.patch_y0 - (N_ROWS * self.patch_h_stride)
         draw_text_ralign(self.draw, (x0, y0), self.hue, self.large_font)
         draw_text_ralign(self.draw, (x0, y0 + 40), f'p. {self.page_num}', self.small_font)
@@ -153,6 +153,7 @@ class MunsellPage:
                             label, font=self.small_font, fill='#000000', align='left')
 
         for i, value_2 in enumerate(VALUE_2_ROWS):
+            value = value_2 / 2.
             y = N_ROWS - i - 1
             label = value_label(value_2)
             y0 = self.patch_y0 - self.patch_h - (y * self.patch_h_stride)
@@ -160,39 +161,44 @@ class MunsellPage:
                            label, font=self.small_font, fill='#000000', align='left')
 
             for x, chroma in enumerate(CHROMA_COLS):
+                x0 = self.patch_x0 + (x * self.patch_w_stride)
+                y0 = self.patch_y0 - (y * self.patch_h_stride)
+                x1 = x0 + self.patch_w
+                y1 = y0 - self.patch_h
+                xy = [x0, y0, x1, y1]
                 if chroma in self.data[value_2]:
-                    x0 = self.patch_x0 + (x * self.patch_w_stride)
-                    y0 = self.patch_y0 - (y * self.patch_h_stride)
-                    x1 = x0 + self.patch_w
-                    y1 = y0 - self.patch_h
-                    xy = [x0, y0, x1, y1]
                     self.draw.rectangle(xy, outline='black')
 
                     x1 = x0 + 6
                     y1 = y1 + 4
-                    n_colors = 0
-                    for id, name, notation, astm_hue in self.data[value_2][chroma]:
-                        if n_colors >= 5:
-                            break
-                        label = id
-                        self.draw.text((x1, y1),
-                            label, font=self.small_font, fill='#000000', align='left')
-                        n_colors = n_colors + 1
-                        y1 = y1 + 15
+                    colors = sorted(self.data[value_2][chroma], key=lambda row: color_distance(row, self.astm_hue, value, chroma))
+                    if len(colors) > 0:
+                        for row in colors[:5]:
+                            label = row['Identifier']
+                            self.draw.text((x1, y1),
+                                label, font=self.small_font, fill='#000000', align='left')
+                            y1 = y1 + 15
+                else:
+                    munsell_color = f'{self.hue} {value}/{chroma}'
+                    spec = cnm.parse_munsell_colour(munsell_color)
+                    max_chroma = cnm.maximum_chroma_from_renotation(spec[0], spec[1], spec[3])
+                    if chroma <= max_chroma:
+                        self.draw.rectangle(xy, outline='#000000')
+                        self.draw.line(xy, fill='#000000', width=1)
+                        self.draw.line([x0, y1, x1, y0], fill='#000000', width=1)
+
 
     def print(self):
         file_name = f'{self.source_name}_{self.page_num:02d}_{self.hue}.png'
         self.img.save(file_name, dpi=(self.dpi, self.dpi))
 
 
-def make_book():
+def make_book(args):
     pages = dict()
     with open('dunn_edwards.csv', 'rt') as f:
         reader = csv.DictReader(f)
         for row in reader:
             name = row['Color Name']
-            id = row['Identifier']
-            notation = row['Munsell Specification']
 
             astm_hue = float(row['ASTM Hue'])
             astm_page = round(astm_hue / 2.5) % 40
@@ -204,8 +210,11 @@ def make_book():
                 value_2 = round(value) * 2
 
             if value_2 not in VALUE_2_ROWS:
-                raise RuntimeError(f'{name}: value_2 {value_2} is out of range, value was {value}')
-            
+                if args.raise_exceptions:
+                    raise RuntimeError(f'{name}: value_2 {value_2} is out of range, value was {value}')
+                else:
+                    continue
+
             chroma = float(row['Chroma'])
             if chroma > 2.:
                 chroma = round(chroma / 2.) * 2
@@ -213,7 +222,10 @@ def make_book():
                 chroma = max(round(chroma), 1)
 
             if chroma not in CHROMA_COLS:
-                raise RuntimeError(f'{name}: chroma {chroma} is out of range')
+                if args.raise_exceptions:
+                    raise RuntimeError(f'{name}: chroma {chroma} is out of range')
+                else:
+                    continue
 
             if astm_page not in pages:
                 page_rows = dict()
@@ -224,14 +236,14 @@ def make_book():
             if chroma not in pages[astm_page][value_2]:
                 pages[astm_page][value_2][chroma] = []
 
-            pages[astm_page][value_2][chroma].append((id, name, notation, astm_hue))
+            pages[astm_page][value_2][chroma].append(row)
 
-    if TEXT_MODE:
-        print_text(pages)
-    else:
+    if args.book:
         print_book(pages)
+    else:
+        print_text(pages)
     
-    if VERBOSE:
+    if args.verbose:
         print_stats(pages)
 
 def print_book(pages):
@@ -242,13 +254,16 @@ def print_book(pages):
         page_image.build_image()
         page_image.print()
 
+
 def print_text(pages):
     for page_num in range(1, 41):
         print(f'\nPage # {page_num}')
         page = page_num % 40
         hue = HUES[page]
+        astm_hue = page * 2.5
         print(f'Hue {hue}')
         for i, value_2 in enumerate(VALUE_2_ROWS):
+            value = value_2 / 2.
             row = pages[page][value_2]
             if len(row) > 0:
                 print(f' Value {value_label(value_2)}:')
@@ -256,9 +271,12 @@ def print_text(pages):
                     bucket = i * N_COLS + j
                     if chroma in pages[page][value_2]:
                         print(f'  Chroma {chroma_label(chroma)}:')
-                        for id, name, notation, astm_hue in pages[page][value_2][chroma]:
-                            print(f'   {id} {name} {notation} {astm_hue}')
-            
+                        colors = sorted(pages[page][value_2][chroma], key=lambda row: color_distance(row, astm_hue, value, chroma))
+                        for row in colors:
+                            dist = color_distance(row, astm_hue, value, chroma)
+                            print(f'''   {row['Identifier']} {row['Color Name']} {row['Munsell Specification']} d={dist:.2f}''')        
+
+
 def print_stats(pages):
     print('')
     stats = (N_ROWS * N_COLS) * [0]
@@ -278,5 +296,23 @@ def print_stats(pages):
             print(f'{value_label(value_2)}/{chroma_label(chroma)}: {stats[bucket]} pages')
 
 
+def color_distance(row, astm_hue, value, chroma):
+    # row['ASTM Hue']
+    dv = value - float(row['Value'])
+    dc = chroma - float(row['Chroma'])
+    return 5*abs(dv) + abs(dc)
+
+
 if __name__ == '__main__':
-    make_book()
+    import argparse
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        '--verbose', help='print stats', action='store_true')
+    parser.add_argument(
+        '--book', help='print in book format', action='store_true')
+    parser.add_argument(
+        '--raise-exceptions', help='raise error if value or chroma out of range', action='store_true')
+    args = parser.parse_args()
+
+    make_book(args)
