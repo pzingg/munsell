@@ -199,28 +199,33 @@ def make_book(args):
         reader = csv.DictReader(f)
         for row in reader:
             name = row['Color Name']
-
+            value = float(row['Value'])
+            chroma = float(row['Chroma'])
             astm_hue = float(row['ASTM Hue'])
             astm_page = round(astm_hue / 2.5) % 40
 
-            value = float(row['Value'])
+            row['Value'] = value
+            row['Chroma'] = chroma
+            row['ASTM Hue'] = astm_hue
+
             if value > 8.:
                 value_2 = min(round(value * 2.), 19)
             else:
                 value_2 = round(value) * 2
 
+            # value_2 is an int
             if value_2 not in VALUE_2_ROWS:
                 if args.raise_exceptions:
                     raise RuntimeError(f'{name}: value_2 {value_2} is out of range, value was {value}')
                 else:
                     continue
 
-            chroma = float(row['Chroma'])
             if chroma > 2.:
                 chroma = round(chroma / 2.) * 2
             else:
                 chroma = max(round(chroma), 1)
 
+            # chroma is now an int
             if chroma not in CHROMA_COLS:
                 if args.raise_exceptions:
                     raise RuntimeError(f'{name}: chroma {chroma} is out of range')
@@ -296,11 +301,19 @@ def print_stats(pages):
             print(f'{value_label(value_2)}/{chroma_label(chroma)}: {stats[bucket]} pages')
 
 
+HUE_WEIGHT = 1.     # Max will be 1.25
+VALUE_WEIGHT = 10.  # Max will be 5.
+CHROMA_WEIGHT = 2.  # Max will be 2.
+
 def color_distance(row, astm_hue, value, chroma):
-    # row['ASTM Hue']
-    dv = value - float(row['Value'])
-    dc = chroma - float(row['Chroma'])
-    return 5*abs(dv) + abs(dc)
+    dh = astm_hue - row['ASTM Hue']
+    if dh > 50.:
+        dh = dh - 100.
+    elif dh < -50.:
+        dh = dh + 100.
+    dv = value - row['Value']
+    dc = chroma - row['Chroma']
+    return HUE_WEIGHT * abs(dh) + VALUE_WEIGHT * abs(dv) + CHROMA_WEIGHT * abs(dc)
 
 
 if __name__ == '__main__':

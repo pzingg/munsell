@@ -17,3 +17,6 @@ node_modules
 *.pyc
 *.pyo
 __pycache__/
+
+# VS Code
+*.code-workspace
