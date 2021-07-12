@@ -1,0 +1,45 @@
+Mfr,SKU,Abbrev,LPos,Name,Single Pigment,Pigment 1,Pigment 2,Pigment 3,B/W Pigment,Hue Value,Hue Name,ASTM Hue,Value,Chroma
+MG,11-110,IvBlk,R,Ivory black,Y,PBk9,,,,,N,#N/A,1.0,0
+MG,11-153,PrB,B,Prussian blue,Y,PB27,,,,10.0,B,70.0,1.5,4
+MG,11-190,UlB,B,Ultramarine blue,Y,PB29,,,,5.0,PB,75.0,1.5,8
+MG,11-100,DiPu,B,Dioxazine purple,Y,PV23,,,,10.0,PB,80.0,1.5,12
+SE,326,PhB1,T,Phthalo blue,Y,PB15:1,,,,10.0,B,70.0,2.0,4
+MG,11-158,QV,R,Quinacridone violet,Y,PV19,,,,10.0,RP,0.0,2.0,8
+MH,220,TRO,B,Transparent oxide red,Y,PR101,,,,10.0,R,10.0,2.0,4
+SE,211,BtSi,B,Burnt sienna,N,PR101,,,PBk11,5.0,YR,15.0,2.0,4
+DS,,BuUm,B,Burnt umber,Y,PBr7,,,,10.0,YR,20.0,2.0,4
+MH,121,RwUm,R,Raw umber,Y,PBr6,,,,2.5,Y,22.5,2.0,2
+WN,,WnG,R,Winsor green (yellow shade),Y,PG36,,,,7.5,G,47.5,2.0,8
+MG,11-150,PhG,R,Phthalocyanine green,Y,PG7,,,,2.5,BG,52.5,2.0,8
+MG,11-140,PhB3,R,Phthalocyanine blue,Y,PB15:3,,,,2.5,PB,72.5,2.0,10
+MG,11-010,AlCr,T,Alizarin crimson,Y,PR83,,,2,10.0,RP,0.0,2.5,10
+MG,11-014,AnR,R,Anthraquinone red,Y,PR177,,,,2.5,R,2.5,2.5,8
+DS,,QGo,R,Quinacridone gold,Y,PO48,,,,7.5,YR,17.5,2.5,6
+MG,11-188,TYO,R,Transparent yellow oxide,Y,PY42,,,,2.5,Y,22.5,2.5,4
+MG,11-016,AzG,R,Azo green,Y,PY129,,,,2.5,GY,32.5,2.5,4
+SE,819,SpG,R,Sap green,Y,PG36,,,,10.0,GY,40.0,2.5,6
+MG,11-155,QR,T,Quinacridone red,Y,PR209,,,,2.5,R,2.5,3.0,10
+SE,607,CdRMd,T,Cadmium red medium,Y,PR108,,,,5.0,R,5.0,3.0,12
+MG,11-,TeRs,R,Terra rosa,Y,PR101,,,,7.5,R,7.5,3.0,8
+SE,837,Vir,R,Viridian,Y,PG18,,,,5.0,BG,55.0,3.0,10
+MG,11-090,CoB,R,Cobalt blue,Y,PB28,,,,10.0,B,70.0,3.0,12
+MH,507,CoTq,R,Cobalt turquoise deep,Y,PB36,,,,10.0,G,50.0,3.5,12
+MG,11-156,QRs,T,Quinacridone rose,Y,PV19,,,,2.5,R,2.5,4.0,14
+SE,636,SeR,R,Sennelier red,Y,PR255,,,,5.0,R,5.0,4.0,14
+DS,,MdB,T,Mediterranean blue,N,PB15:3,,,PW6,2.5,PB,72.5,4.0,14
+SE,305,CeB,R,Cerulean blue,Y,PB35,,,,5,PB,75.0,4,16
+SE,657,PRs,T,Permanent rose,N,PR206,PR209,,PW6,2.5,R,2.5,5.0,14
+MG,11-050,CdRLt,T,Cadmium red light,Y,PR108,,,,5.0,R,5.0,5.0,14
+MH,301,NpR,R,Napthol red,Y,PR188,,,,7.5,R,7.5,5.0,12
+MH,119,YOch,R,Yellow ochre,Y,PY42,,,,2.5,Y,22.5,5.5,10
+MH,222,PO,R,Permanent orange,Y,PO73,,,,10.0,R,10.0,6.0,12
+MG,11-109,InY,R,Indian yellow,Y,PY110,,,,5.0,YR,15.0,6.0,14
+SE,339,TqLt,R,Turquoise light,Y,PG50,,,,10.0,BG,60.0,6.0,10
+MG,11-063,CdYDp,R,Cadmium yellow deep,Y,PY35,,,,7.5,YR,17.5,7.0,16
+MG,11-060,CdY,R,Cadmium yellow,Y,PY35,,,,2.5,Y,22.5,7.5,10
+W,,NaY,T,Naples yellow Italian,N,PY35,PBr24,,PW6,2.5,Y,22.5,8.0,8
+MG,11-070,CdYLt,R,Cadmium yellow light,Y,PY35,,,,5.0,Y,25.0,8.0,16
+DS,,AzY,T,Azo yellow,Y,PY151,,,,5.0,Y,25.0,8.5,16
+MH,109,BtYLk,R,Bright yellow lake,Y,PY3,,,,7.5,Y,27.5,8.5,12
+SE,535,CdYLm,R,Cadmium yellow lemon,Y,PY35,,,,7.5,Y,27.5,9.0,6
+WN,,TiW,R,Titanium white,N,PW6,,,PW4,,N,#N/A,9.5,0
