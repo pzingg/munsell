@@ -31,7 +31,7 @@ class PaletteGrid:
     image_w = 1100
     image_h = 850
 
-    x_center = 450
+    x_center = 425
     y_center = 425
 
     x_origin = 20
@@ -48,7 +48,8 @@ class PaletteGrid:
     patch_h = 40
     patch_h_stride = 90
 
-    dot_r = 18
+    dot_r = 30
+    dot_r_outer = 40
     polar_value_max = 6.5
 
     def __init__(self, polar=False):
@@ -59,8 +60,8 @@ class PaletteGrid:
         self.img = Image.new('RGB', (self.image_w, self.image_h), color = 'white')
         self.draw = ImageDraw.Draw(self.img)
 
-    def get_x(self, hue):
-        return self.x_origin + self.patch_w_stride * hue/10
+    def get_x(self, astm_hue):
+        return self.x_origin + self.patch_w_stride * astm_hue / 10.
 
     def get_y(self, value):
         return self.y_origin + self.patch_h_stride * (9.5 - value)
@@ -68,51 +69,74 @@ class PaletteGrid:
     def get_r(self, value):
         return value * (self.y_center - self.y_origin) / self.polar_value_max
 
-    def get_polar_xy(self, hue, value):
+    def get_polar_xy(self, astm_hue, value):
         r = self.get_r(value)
-        theta = hue * math.pi / 50.
+        theta = astm_hue * 2. * math.pi / 100.
         x = self.x_center + r * math.sin(theta)
         y = self.y_center - r * math.cos(theta)
         return (x, y)
 
     def draw_polar_grid(self):
-        for value in [4, 6, 8]:
+        for value in range(2, 12, 2):
             r = self.get_r(value)
             xy = (self.x_center - r, self.y_center - r, self.x_center + r, self.y_center + r)
             self.draw.ellipse(xy, fill = None, outline = '#cccccc')
+            xy = self.get_polar_xy(28, value)
+            self.draw.text(xy,
+                str(value), font = self.small_font, fill = '#000000', align = 'left')
 
-        for hue_label, hue in HUES:
+        for hue_label, astm_hue in HUES:
             if hue_label == '10RP':
                 continue
-            x, y = self.get_polar_xy(hue, 8)
+            x, y = self.get_polar_xy(astm_hue, 10)
             xy = [self.x_center, self.y_center, x, y]
             self.draw.line(xy, fill = '#cccccc')
-            xy = self.get_polar_xy(hue, 6.5)
+            xy = self.get_polar_xy(astm_hue, 6.5)
             self.draw.text(xy,
                 hue_label, font = self.small_font, fill = '#000000', align = 'left')
 
-    def draw_polar_patch(self, label, lpos, hue, value, r, g, b):
-        x, y = self.get_polar_xy(hue, value)
-        xy = (x - self.dot_r, y - self.dot_r, x + self.dot_r, y + self.dot_r)
-        if label is None:
-            fill = f'#{r:02X}{g:02X}{b:02X}'
-            self.draw.ellipse(xy, fill = fill)
+    def get_fill(self, hue, value, chroma):
+        if value <= 4:
+            adj_value = value * 0.5 + 2
         else:
-            xy = (x - 12, y - 8)
-            if value < 5.1:
-                fill = '#cccccc'
-            else:
-                fill = '#000000'
-            self.draw.text(xy,
-                label, font = self.small_font, fill = fill, align = 'center')
+            adj_value = value
+        munsell_color = f"{hue} {adj_value}/{chroma}"
+        rgb = mkit.munsell_color_to_rgb(munsell_color)
+        r, g, b = rgb
+        r = max(0, min(255, int(r * 255)))
+        g = max(0, min(255, int(g * 255)))
+        b = max(0, min(255, int(b * 255)))
+        return f'#{r:02X}{g:02X}{b:02X}'
+
+    def get_label_fill(self, value):
+        if value < 5.5:
+            return '#CCCCCC'
+        else:
+            return '#000000'
+
+    def draw_polar_label(self, label, astm_hue, value):
+        x, y = self.get_polar_xy(astm_hue, value)
+        xy = (x - self.dot_r, y - self.dot_r, x + self.dot_r, y + self.dot_r)
+        xy = (x - 12, y - 8)
+        self.draw.text(xy,
+            label, font = self.small_font, 
+            fill = self.get_label_fill(value), align = 'center')
+
+    def draw_polar_patch(self, astm_hue, hue, value, chroma):
+        x, y = self.get_polar_xy(astm_hue, value)
+        # xy = (x - self.dot_r_outer, y - self.dot_r_outer, 
+        #    x + self.dot_r_outer, y + self.dot_r_outer)
+        # self.draw.ellipse(xy, fill = self.get_fill(hue, value, 2))
+        xy = (x - self.dot_r, y - self.dot_r, x + self.dot_r, y + self.dot_r)
+        self.draw.ellipse(xy, fill = self.get_fill(hue, value, chroma))
 
     def draw_grid(self):
         self.draw.rectangle([5, 5, 1095, 845], outline = '#ccccff')
 
-        for hue_label, hue in HUES:
+        for hue_label, astm_hue in HUES:
             if hue_label == '10RP':
                 continue
-            x = self.get_x(hue)
+            x = self.get_x(astm_hue)
             y0 = self.get_y(9.5)
             y1 = self.get_y(1)
             xy = (x, y0, x, y1)
@@ -130,27 +154,28 @@ class PaletteGrid:
             self.draw.text((self.x_origin, y),
                 str(v), font = self.small_font, fill = '#000000', align = 'left')
 
-    def draw_patch(self, label, lpos, hue, value, r, g, b):
-        x0 = self.get_x(hue)
+    def draw_cartesian_label(self, label, lpos, astm_hue, value):
+        x0 = self.get_x(astm_hue)
+        y0 = self.get_y(value)
+        xy = (x0 + self.patch_w + 4, y0)
+        align = 'left'
+        if lpos == 'L':
+            xy = (x0 - 4, y0)
+            align = 'right'
+        elif lpos == 'T':
+            xy = (x0, y0 - 16)
+        elif lpos == 'B':
+            xy = (x0, y0 + self.patch_h + 4)
+        self.draw.text(xy,
+            label, font = self.small_font, fill = '#000000', align = align)
+
+    def draw_cartesian_patch(self, astm_hue, hue, value, chroma):
+        x0 = self.get_x(astm_hue)
         y0 = self.get_y(value)
         x1 = x0 + self.patch_w
         y1 = y0 + self.patch_h
         xy = (x0, y0, x1, y1)
-        if label is None:
-            fill = f'#{r:02X}{g:02X}{b:02X}'
-            self.draw.rectangle(xy, fill = fill)
-        else:
-            xy = (x1 + 4, y0)
-            align = 'left'
-            if lpos == 'L':
-                xy = (x0 - 4, y0)
-                align = 'right'
-            elif lpos == 'T':
-                xy = (x0, y0 - 16)
-            elif lpos == 'B':
-                xy = (x0, y0 + self.patch_h + 4)
-            self.draw.text(xy,
-                label, font = self.small_font, fill = '#000000', align = align)
+        self.draw.rectangle(xy, fill = self.get_fill(hue, value, chroma))
 
     def draw_patches(self):
         with open('my_colors.csv') as palette_file:
@@ -159,21 +184,14 @@ class PaletteGrid:
                 value = row['Value']
                 if astm_hue == '#N/A' or value == '':
                     continue
-                value = float(value)
                 astm_hue = float(astm_hue)
-                adj_value = value
-                if value <= 4:
-                    adj_value = value * 0.5 + 2
-                munsell_color = f"{row['Hue Value']}{row['Hue Name']} {adj_value}/{row['Chroma']}"
-                rgb = mkit.munsell_color_to_rgb(munsell_color)
-                r, g, b = rgb
-                r = max(0, min(255, int(r * 255)))
-                g = max(0, min(255, int(g * 255)))
-                b = max(0, min(255, int(b * 255)))
+                hue = f'''{row['Hue Value']}{row['Hue Name']}'''
+                value = float(value)
+                chroma = float(row['Chroma']) 
                 if self.polar:
-                    self.draw_polar_patch(None, None, astm_hue, value, r, g, b)
+                    self.draw_polar_patch(astm_hue, hue, value, chroma)
                 else:
-                    self.draw_patch(None, None, astm_hue, value, r, g, b)
+                    self.draw_cartesian_patch(astm_hue, hue, value, chroma)
 
         with open('my_colors.csv') as palette_file:
             for row in csv.DictReader(palette_file):
@@ -181,18 +199,12 @@ class PaletteGrid:
                 value = row['Value']
                 if astm_hue == '#N/A' or value == '':
                     continue
-                value = float(value)
                 astm_hue = float(astm_hue)
-                munsell_color = f"{row['Hue Value']}{row['Hue Name']} {value}/{row['Chroma']}"
-                rgb = mkit.munsell_color_to_rgb(munsell_color)
-                r, g, b = rgb
-                r = max(0, min(255, int(r * 255)))
-                g = max(0, min(255, int(g * 255)))
-                b = max(0, min(255, int(b * 255)))
+                value = float(value)
                 if self.polar:
-                    self.draw_polar_patch(row['Abbrev'], row['LPos'], astm_hue, value, r, g, b)
+                    self.draw_polar_label(row['Abbrev'], astm_hue, value)
                 else:
-                    self.draw_patch(row['Abbrev'], row['LPos'], astm_hue, value, r, g, b)
+                    self.draw_cartesian_label(row['Abbrev'], row['LPos'], astm_hue, value)
 
     def print_page(self):
         if self.polar:
