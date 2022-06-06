@@ -148,7 +148,7 @@ class MunsellPage:
         y0 = self.patch_y0 - (N_ROWS * self.patch_h_stride) + 10
         draw_text_ralign(self.draw, (x0, y0), self.hue, self.large_font)
         draw_text_ralign(self.draw, (x0, y0 + 40), f'p. {self.page_num}', self.small_font)
-        last_col = len(CHROMA_COLS) - 2 
+        last_col = len(CHROMA_COLS) - 2
 
         for x, chroma in enumerate(CHROMA_COLS):
             label = chroma_label(chroma)
@@ -254,7 +254,7 @@ def make_book(args):
         print_book(pages)
     else:
         print_text(pages)
-    
+
     if args.verbose:
         print_stats(pages)
 
@@ -269,11 +269,10 @@ def print_book(pages):
 
 def print_text(pages):
     for page_num in range(1, 41):
-        print(f'\nPage # {page_num}')
         page = page_num % 40
-        hue = HUES[page]
         astm_hue = page * 2.5
-        print(f'Hue {hue}')
+        hue = HUES[page]
+        print(f'\nPage # {page_num} Hue {hue}')
         for i, value_2 in enumerate(VALUE_2_ROWS):
             value = value_2 / 2.
             row = pages[page][value_2]
@@ -286,7 +285,7 @@ def print_text(pages):
                         colors = sorted(pages[page][value_2][chroma], key=lambda row: color_distance(row, astm_hue, value, chroma))
                         for row in colors:
                             dist = color_distance(row, astm_hue, value, chroma)
-                            print(f'''   {row['Identifier']} {row['Color Name']} {row['Munsell Specification']} d={dist:.2f}''')        
+                            print(f'''   {row['Identifier']} {row['Color Name']} {row['Munsell Specification']}''')
 
 
 def print_stats(pages):
