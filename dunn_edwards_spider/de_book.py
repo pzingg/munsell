@@ -199,6 +199,18 @@ class MunsellPage:
         file_name = f'{self.source_name}_{self.page_num:02d}_{self.hue}.png'
         self.img.save(file_name, dpi=(self.dpi, self.dpi))
 
+def rounded_chroma_1(chroma):
+    """If chroma < 0.5, returns 0.
+    If 0.5 <= chroma <= 1.5 returns 1.
+    Otherwise rounds to even chroma value (2, 4, 6, etc.)
+    """
+    if chroma < 0.5:
+        return 0
+    if chroma < 1.5:
+        return 1
+    if chroma <= 2:
+        return 2
+    return int(round(chroma / 2) * 2)
 
 def make_book(args):
     pages = dict()
@@ -227,10 +239,7 @@ def make_book(args):
                 else:
                     continue
 
-            if chroma > 2.:
-                chroma = round(chroma / 2.) * 2
-            else:
-                chroma = max(round(chroma), 1)
+            chroma = rounded_chroma_1(chroma)
 
             # chroma is now an int
             if chroma not in CHROMA_COLS:
